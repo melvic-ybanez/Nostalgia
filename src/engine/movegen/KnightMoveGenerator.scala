@@ -21,4 +21,6 @@ object KnightMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   def southSouthEast: U64 => U64 = south andThen southEast
 
   def southSouthWest: U64 => U64 = south andThen southWest
+
+  override def destinationBitsets = ???
 }
