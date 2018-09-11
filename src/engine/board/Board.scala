@@ -13,6 +13,8 @@ trait Board {
   def at(location: Location): Option[Piece]
 
   def updateByMove(move: Move[Location], piece: Piece): Board
+
+  def apply(location: Location): Option[Piece] = at(location)
 }
 
 

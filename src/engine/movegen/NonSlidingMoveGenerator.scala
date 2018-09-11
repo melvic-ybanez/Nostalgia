@@ -10,9 +10,9 @@ import engine.board.bitboards.Implicits._
 trait NonSlidingMoveGenerator extends BitboardMoveGenerator {
   type NonSlidingMove = (U64, U64, U64) => Long
 
-  def allMoves: Stream[WithMoveType[NonSlidingMove]]
+  def allMoves: Stream[WithMove[NonSlidingMove]]
 
-  def destinationBitsets: GeneratorStream[WithMoveType[U64]] = (bitboard, source, sideToMove) => {
+  def destinationBitsets: GeneratorStream[WithMove[U64]] = (bitboard, source, sideToMove) => {
     val pieces = Bitboard.singleBitset(source)
     val emptySquares = bitboard.emptySquares
     val opponents = bitboard.opponents(sideToMove)

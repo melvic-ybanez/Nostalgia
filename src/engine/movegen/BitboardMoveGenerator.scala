@@ -11,11 +11,11 @@ import engine.movegen.BitboardMoveGenerator._
 trait BitboardMoveGenerator {
   type Generator[A] = (Bitboard, Int, Side) => A
   type GeneratorStream[A] = Generator[Stream[A]]
-  type WithMoveType[A] = (A, MoveType)
+  type WithMove[A] = (A, MoveType)
 
-  def destinationBitsets: GeneratorStream[WithMoveType[U64]]
+  def destinationBitsets: GeneratorStream[WithMove[U64]]
 
-  def validDestinationBitsets: GeneratorStream[WithMoveType[U64]] = destinationBitsets(_, _, _)
+  def validDestinationBitsets: GeneratorStream[WithMove[U64]] = destinationBitsets(_, _, _)
     .filter { case (board, _) => Bitboard.isNonEmptySet(board) }
 
   def attackBitsets: GeneratorStream[U64] = validDestinationBitsets(_, _, _).filter {
@@ -23,7 +23,7 @@ trait BitboardMoveGenerator {
     case _ => false
   } map { case (bitboard, _) => bitboard }
 
-  def destinations: GeneratorStream[WithMoveType[Int]] = validDestinationBitsets(_, _, _)
+  def destinations: GeneratorStream[WithMove[Int]] = validDestinationBitsets(_, _, _)
     .map(withMoveType(Bitboard.oneBitIndex))
 
   def emptyOrOpponent(emptySquares: U64, opponents: U64): U64 => U64 = _ & (emptySquares | opponents)
