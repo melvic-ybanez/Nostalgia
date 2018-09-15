@@ -22,7 +22,7 @@ object Bitboard {
     */
   val PieceTypeOffset = 2
 
-  def initialize: Bitboard = {
+  def apply(): Bitboard = {
     // Initialize the white pieces
     val partialBitboard = Bitboard(Array.fill(Board.Size)(0), None)
       .updatePiece(whiteOf(Pawn), _ | 0x000000000000ff00L)
@@ -44,7 +44,7 @@ object Bitboard {
         val pieceTypeBitSet = bitboard.bitsets(pieceType)
         val newBitboard = bitboard.updatePiece(blackOf(pieceType),
           _ => Transformers.rotate180(pieceTypeBitSet))
-        rotate(newBitboard, i - 1)
+        rotate(newBitboard, i + 1)
       }
 
     val fullBitboard = rotate(partialBitboard, 0)

@@ -16,10 +16,12 @@ import engine.utils.Implicits.Locations._
   * Created by melvic on 9/11/18.
   */
 sealed trait BoardView {
+  def squareSize: Int
+  def boardController: BoardController
+
   def toggleHover(hover: Boolean): Unit
   def highlight(location: Location): Unit
   def resetBoard(): Unit
-  def squareSize: Int
 }
 
 case class DefaultBoardView(boardController: BoardController) extends GridPane with BoardView {

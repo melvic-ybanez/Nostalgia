@@ -9,7 +9,7 @@ import engine.utils.Implicits.Locations._
   */
 object Board {
   val Size = 8
-  lazy val defaultBoard = Bitboard.initialize
+  lazy val defaultBoard = Bitboard()
 }
 
 trait Board {

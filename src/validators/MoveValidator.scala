@@ -6,3 +6,5 @@ package validators
 trait MoveValidator {
 
 }
+
+class DefaultMoveValidator extends MoveValidator

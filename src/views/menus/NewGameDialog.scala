@@ -5,6 +5,7 @@ import javafx.scene.control.{ButtonType, Dialog, RadioButton, ToggleGroup}
 import javafx.scene.layout.VBox
 
 import engine.board.{Black, Side, White}
+import models.{HumanVsHuman, Preferences}
 import views.misc.CustomTitledPane
 
 /**
@@ -32,6 +33,8 @@ class NewGameDialog extends Dialog[ButtonType] {
       humanVsHumanRB.setToggleGroup(newGameGroup)
       humanVsComputerRB.setToggleGroup(newGameGroup)
 
+      humanVsHumanRB.setSelected(Preferences.Defaults.gameType == HumanVsHuman)
+
       mainPane.getChildren.addAll(humanVsHumanRB, humanVsComputerRB)
 
       mainPane.setSpacing(15)
@@ -45,6 +48,8 @@ class NewGameDialog extends Dialog[ButtonType] {
       val newGameGroup = new ToggleGroup()
       whiteRB.setToggleGroup(newGameGroup)
       blackRB.setToggleGroup(newGameGroup)
+
+      whiteRB.setSelected(Preferences.Defaults.sideToPlay == White)
 
       mainPane.getChildren.addAll(whiteRB, blackRB)
 

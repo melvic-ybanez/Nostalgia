@@ -1,6 +1,5 @@
 package views.menus
 
-import java.util.prefs.Preferences
 import javafx.scene.control.{ButtonType, Menu, MenuItem, SeparatorMenuItem}
 import javafx.scene.input.{KeyCode, KeyCodeCombination, KeyCombination}
 
@@ -9,7 +8,7 @@ import controllers.BoardController
 /**
   * Created by melvic on 9/15/18.
   */
-case class GameMenu(boardController: BoardController, preferences: Preferences) extends Menu {
+case class GameMenu(boardController: BoardController) extends Menu {
   val gameDialog = new NewGameDialog
   val newGameItem = new MenuItem("New Game...")
   newGameItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN))

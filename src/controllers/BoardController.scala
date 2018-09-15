@@ -4,7 +4,6 @@ import engine.board.bitboards.Bitboard
 import engine.board.{Black, Board, Side, White}
 import engine.movegen.Move.LocationMove
 import validators.MoveValidator
-import views.DefaultBoardView
 import views.boards.{BoardView, DefaultBoardView}
 
 /**
@@ -44,7 +43,7 @@ case class DefaultBoardController(board: Board, moveValidator: MoveValidator) ex
   override
   def newGame(lowerSide: Side): Unit = {
     setSideToMove(lowerSide)
-    accessor = accessor.updatedBoard(_ => Board.defaultBoard)
+    accessor = accessor.updatedBoard(_ => board)
     lowerSide match {
       case Black => rotate()
       case _ => boardView.resetBoard()
