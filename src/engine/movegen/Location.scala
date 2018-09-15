@@ -1,5 +1,7 @@
 package engine.movegen
 
+import engine.utils.Implicits.Locations._
+
 /**
   * Created by melvic on 8/6/18.
   */
@@ -24,4 +26,9 @@ case object _7 extends Rank
 case object _8 extends Rank
 
 case class Location(file: File, rank: Rank)
+
+object Location {
+  lazy val Files: List[File] = A :: B :: C :: D :: E :: F :: G :: H :: Nil
+  lazy val Ranks: List[Rank] = _1 :: _2 :: _3 :: _4 :: _5 :: _6 :: _7 :: _8 :: Nil
+}
 

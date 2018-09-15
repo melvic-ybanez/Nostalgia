@@ -1,16 +1,17 @@
-package engine.board.bitboards
+package engine.utils
 
 import engine.board._
-import engine.board._
+import engine.board.bitboards.Bitboard
 import engine.movegen._
 
 /**
   * Created by melvic on 8/5/18.
   */
 object Implicits {
-  object Piece {
+  object Pieces {
     lazy val pieceTypes = List(Pawn, Knight, Bishop, Rook, Queen, King)
 
+    // TODO: Make this less dependent on a constant from the Bitboard class
     implicit def pieceTypeToInt(pieceType: PieceType): Int =
       pieceTypes.indexOf(pieceType) + Bitboard.PieceTypeOffset
 
@@ -24,10 +25,14 @@ object Implicits {
     implicit def intToSide(i: Int): Side = (White :: Black :: Nil)(i)
   }
 
-  object Location {
-    implicit def fileToInt(file: File): Int = List(A, B, C, D, E, F, G, H).indexOf(file)
+  object Locations {
+    implicit def fileToInt(file: File): Int = Location.Files.indexOf(file)
 
-    implicit def rankToInt(rank: Rank): Int = List(_1, _2, _3, _4, _5, _6, _7, _8).indexOf(rank)
+    implicit def rankToInt(rank: Rank): Int = Location.Ranks.indexOf(rank)
+
+    implicit def intToFile(i: Int): File = Location.Files(i)
+
+    implicit def intToRank(i: Int): Rank = Location.Ranks(i)
 
     implicit def locationToInt(location: Location): Int = location.rank * Board.Size + location.file
   }

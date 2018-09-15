@@ -3,7 +3,7 @@ package engine.movegen
 import java.engine.board.Board
 
 import engine.board.bitboards.Bitboard._
-import engine.board.bitboards.Implicits.Piece._
+import engine.utils.Implicits.Pieces._
 import BitboardMoveGenerator._
 import engine.board.{Side, White}
 import engine.board.{Side, White}

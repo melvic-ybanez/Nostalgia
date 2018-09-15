@@ -2,7 +2,7 @@ package engine.movegen
 
 import engine.board.bitboards.Bitboard
 import engine.board.bitboards.Bitboard.U64
-import engine.board.bitboards.Implicits._
+import engine.utils.Implicits._
 
 /**
   * Created by melvic on 8/5/18.

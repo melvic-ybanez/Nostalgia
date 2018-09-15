@@ -2,8 +2,8 @@ package engine.board.bitboards
 
 import engine.board.Piece._
 import engine.board.bitboards.Bitboard.{PieceTypeOffset, U64}
-import engine.board.bitboards.Implicits.Piece._
-import engine.board.bitboards.Implicits.Location._
+import engine.utils.Implicits.Pieces._
+import engine.utils.Implicits.Locations._
 import engine.movegen.{BitboardMove, Location, Move}
 import scala.annotation.tailrec
 import engine.board._
@@ -130,11 +130,13 @@ case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) exte
 
   def at(location: Location): Option[Piece] = at(locationToInt(location))
 
+  def apply: Int => Option[Piece] = at
+
   def whitePieces = bitsets(White)
   def blackPieces = bitsets(White)
   def pawns = bitsets(Pawn)
   def knights = bitsets(Knight)
-  def bishopts = bitsets(Bishop)
+  def bishops = bitsets(Bishop)
   def rooks = bitsets(Rook)
   def queens = bitsets(Queen)
   def kings = bitsets(King)

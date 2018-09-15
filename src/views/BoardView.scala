@@ -9,7 +9,7 @@ import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
 
 import controllers.BoardController
 import engine.board.Board
-import engine.board.bitboards.Implicits.Location._
+import engine.utils.Implicits.Locations._
 import engine.movegen.Location
 
 /**
