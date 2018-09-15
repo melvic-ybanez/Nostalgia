@@ -1,7 +1,7 @@
 package engine.movegen
 
 import engine.board.bitboards.Bitboard._
-import engine.utils.Implicits.Pieces._
+import engine.board.Piece._
 import BitboardMoveGenerator._
 import engine.board.{Board, Side, White}
 import engine.board.bitboards.Bitboard
@@ -49,7 +49,7 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   def enPassant: PawnMove = {
     case (pawns, opponent, sideToMove) =>
       // Decide whether to move north or south based on the color
-      val (setwiseOp, action): (SetwiseOperator, U64 => U64) = sideToMove match {
+      val (setwiseOp, action): (SetwiseOp, U64 => U64) = sideToMove match {
         case White => (_ << _, north)
         case _ => (_ >> _, south)
       }

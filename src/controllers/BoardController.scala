@@ -21,9 +21,9 @@ trait BoardController {
   def rotate(): Unit
 }
 
-case class DefaultBoardController(board: Board, moveValidator: MoveValidator) extends BoardController {
+case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValidator) extends BoardController {
   private var side: Side = White
-  private var accessor: BoardAccessor = SimpleBoardAccessor(board)
+  private var accessor: BoardAccessor = SimpleBoardAccessor(initialBoard)
 
   override lazy val boardView = DefaultBoardView(this)
 
@@ -43,7 +43,7 @@ case class DefaultBoardController(board: Board, moveValidator: MoveValidator) ex
   override
   def newGame(lowerSide: Side): Unit = {
     setSideToMove(lowerSide)
-    accessor = accessor.updatedBoard(_ => board)
+    accessor = accessor.updatedBoard(_ => initialBoard)
     lowerSide match {
       case Black => rotate()
       case _ => boardView.resetBoard()

@@ -9,12 +9,14 @@ import controllers.BoardController
   * Created by melvic on 9/15/18.
   */
 case class GameMenu(boardController: BoardController) extends Menu {
+  setText("Game")
+
   val gameDialog = new NewGameDialog
   val newGameItem = new MenuItem("New Game...")
   newGameItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN))
   newGameItem.setOnAction(_ => {
     gameDialog.showAndWait().ifPresent(result => {
-      if (result == ButtonType.APPLY) {
+      if (result == ButtonType.OK) {
         boardController.newGame(gameDialog.sideToPlay)
       }
     })

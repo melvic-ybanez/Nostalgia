@@ -2,9 +2,8 @@ package engine.board.bitboards
 
 import engine.board.Piece._
 import engine.board.bitboards.Bitboard.{PieceTypeOffset, U64}
-import engine.utils.Implicits.Pieces._
-import engine.utils.Implicits.Locations._
 import engine.movegen.{Location, Move}
+import engine.movegen.Location._
 import engine.movegen.Move.BitboardMove
 import scala.annotation.tailrec
 import engine.board._
@@ -14,7 +13,7 @@ import engine.board._
   */
 object Bitboard {
   type U64 = Long
-  type SetwiseOperator = (U64, Int) => U64
+  type SetwiseOp = (U64, Int) => U64
 
   /**
     * The side-to-move bitboards come first before the piece type ones,
@@ -38,21 +37,20 @@ object Bitboard {
       */
     @tailrec
     def rotate(bitboard: Bitboard, i: Int): Bitboard =
-      if (i == 6) bitboard
+      if (i == Board.Size) bitboard
       else {
-        val pieceType: PieceType = i
-        val pieceTypeBitSet = bitboard.bitsets(pieceType)
-        val newBitboard = bitboard.updatePiece(blackOf(pieceType),
-          _ => Transformers.rotate180(pieceTypeBitSet))
+        val pieceTypeBitset = bitboard.bitsets(i)
+        val newBitboard = bitboard.updatePiece(blackOf(i),
+          _ | Transformers.rotate180(pieceTypeBitset))
         rotate(newBitboard, i + 1)
       }
 
-    val fullBitboard = rotate(partialBitboard, 0)
+    val fullBitboard = rotate(partialBitboard, PieceTypeOffset)
 
     // Swap the positions of the black king and the black queen
     val toggleKingQueen: U64 => U64 = _ ^ 0x1800000000000000L
-    fullBitboard.updatedBitset(Queen, toggleKingQueen)
-      .updatedBitset(King, toggleKingQueen)
+    fullBitboard.updatePiece(blackOf(Queen), toggleKingQueen)
+      .updatePiece(blackOf(King), toggleKingQueen)
   }
 
   def toBitPosition(location: Location): Int = location.file + location.rank * Board.Size
@@ -63,7 +61,7 @@ object Bitboard {
 
   def isNonEmptySet(bitboard: U64) = !isEmptySet(bitboard)
 
-  def intersectedWith(bitset: U64): U64 => Boolean = x => isNonEmptySet(x & bitset)
+  def intersectedWith(bitset: U64)(x: U64): Boolean = isNonEmptySet(x & bitset)
 
   def leastSignificantOneBit(bitboard: U64) = bitboard & -bitboard
 
@@ -83,17 +81,12 @@ object Bitboard {
 }
 
 case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) extends Board {
-  lazy val (sideBitsets, pieceTypeBitsets) = bitsets.splitAt(PieceTypeOffset)
-
   def updatePiece(piece: Piece, f: U64 => U64): Bitboard = piece match {
     case Piece(pieceType, side) =>
       val updatedPieceType = bitsets.updated(pieceType, f(bitsets(pieceType)))
       val updateBitSets = updatedPieceType.updated(side, f(updatedPieceType(side)))
       Bitboard(updateBitSets, optLastMove)
   }
-
-  def updatedBitset(i: Int, f: U64 => U64): Bitboard =
-    Bitboard(bitsets.updated(i, f(bitsets(i))), optLastMove)
 
   def updateByMove(move: Move[Location], piece: Piece) =
     updateByBitboardMove(Move[Int](move.source, move.destination, move.moveType), piece)
@@ -119,17 +112,20 @@ case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) exte
   }
 
   def at(position: Int): Option[Piece] = {
+    val (sideBitsets, pieceTypeBitsets) = bitsets.splitAt(PieceTypeOffset)
+
     val bitset = Bitboard.singleBitset(position)
 
     val sideIndex = sideBitsets.indexWhere(Bitboard.intersectedWith(bitset))
     if (sideIndex == -1) None
     else {
       val pieceIndex = pieceTypeBitsets.indexWhere(Bitboard.intersectedWith(bitset))
-      Some(Piece(pieceIndex, sideIndex))
+      if (pieceIndex == -1) None
+      else Some(Piece(pieceIndex + PieceTypeOffset, sideIndex))
     }
   }
 
-  def at(location: Location): Option[Piece] = at(locationToInt(location))
+  def at(location: Location): Option[Piece] = at(Bitboard.toBitPosition(location))
 
   def apply: Int => Option[Piece] = at
 

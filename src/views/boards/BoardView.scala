@@ -3,14 +3,16 @@ package views.boards
 import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
+import javafx.scene.image.Image
 import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.scene.paint.Color
 import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
 
 import controllers.BoardController
-import engine.board.Board
+import engine.board.{Board, Piece}
 import engine.movegen.Location
-import engine.utils.Implicits.Locations._
+import engine.movegen.Location._
+import main.Resources
 
 /**
   * Created by melvic on 9/11/18.
@@ -40,7 +42,6 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     setPadding(new Insets(20))
     setStyle("-fx-background-color: white")
 
-    //registerEvents()
     resetBoard()
 
     def createRanksPane: GridPane =
@@ -76,7 +77,6 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
   }
 
   def resetBoard(gc: GraphicsContext): Unit = {
-    gc.restore()
     gc.setFill(Color.WHITE)
 
     for (row <- 0 until Board.Size) {
@@ -88,6 +88,7 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
         val x = col * squareSize
         val y = row * squareSize
         gc.fillRect(x, y, squareSize, squareSize)
+        boardController.boardAccessor(row, col).foreach(drawPiece(gc, x, y))
       }
     }
   }
@@ -107,6 +108,13 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
 
     gc.setLineWidth(2.5)
     gc.strokeRect(col * squareSize, row * squareSize, squareSize, squareSize)
+  }
+
+  def drawPiece(gc: GraphicsContext, x: Int, y: Int)(piece: Piece): Unit = {
+    val pieceImage = new Image(Resources.piecePathOf(piece))
+    val offsetX = (squareSize - pieceImage.getWidth) / 2
+    val offsetY = (squareSize - pieceImage.getHeight) / 2
+    gc.drawImage(pieceImage, x + offsetX, y + offsetY)
   }
 }
 

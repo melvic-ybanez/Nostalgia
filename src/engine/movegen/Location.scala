@@ -1,6 +1,6 @@
 package engine.movegen
 
-import engine.utils.Implicits.Locations._
+import engine.board.bitboards.Bitboard
 
 /**
   * Created by melvic on 8/6/18.
@@ -30,5 +30,15 @@ case class Location(file: File, rank: Rank)
 object Location {
   lazy val Files: List[File] = A :: B :: C :: D :: E :: F :: G :: H :: Nil
   lazy val Ranks: List[Rank] = _1 :: _2 :: _3 :: _4 :: _5 :: _6 :: _7 :: _8 :: Nil
+
+  implicit def fileToInt(file: File): Int = Location.Files.indexOf(file)
+
+  implicit def rankToInt(rank: Rank): Int = Location.Ranks.indexOf(rank)
+
+  implicit def intToFile(i: Int): File = Location.Files(i)
+
+  implicit def intToRank(i: Int): Rank = Location.Ranks(i)
+
+  implicit def locationToInt(location: Location): Int = Bitboard.toBitPosition(location)
 }
 

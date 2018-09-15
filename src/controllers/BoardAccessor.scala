@@ -2,14 +2,14 @@ package controllers
 
 import engine.board.{Board, Piece}
 import engine.movegen.{Location, Move}
-import engine.utils.Implicits.Locations._
+import engine.movegen.Location._
 
 /**
   * Created by melvic on 9/14/18.
   */
 trait BoardAccessor {
   def apply(location: Location): Option[Piece] = board.at(accessorLocation(location))
-  def apply(row: Int, col: Int): Option[Piece] = board.at(accessorLocation(Location(col, row)))
+  def apply(row: Int, col: Int): Option[Piece] = board.at(accessorLocation(locate(row, col)))
   def board: Board
 
   def accessorLocation: Location => Location = identity
@@ -26,6 +26,9 @@ trait BoardAccessor {
     }
     accessorType(f(board))
   }
+
+  def locate(row: Int, col: Int) =
+    Location(Location.Files(col), Location.Ranks(Board.Size - 1 - row))
 }
 
 case class SimpleBoardAccessor(board: Board) extends BoardAccessor

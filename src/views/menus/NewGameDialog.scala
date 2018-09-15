@@ -17,7 +17,7 @@ class NewGameDialog extends Dialog[ButtonType] {
 
   setTitle("New Game")
 
-  val contentPane = {
+  getDialogPane.setContent {
     val contentPane = new VBox
     contentPane.getChildren.addAll(createGameTypePane, createSideToPlayPane)
     contentPane.setPadding(new Insets(20))
@@ -57,7 +57,11 @@ class NewGameDialog extends Dialog[ButtonType] {
 
       CustomTitledPane("Side to Play", mainPane)
     }
+
+    contentPane
   }
+
+  getDialogPane.getButtonTypes.addAll(ButtonType.OK, ButtonType.CANCEL)
 
   def sideToPlay: Side = if (whiteRB.isSelected) White else Black
 }

@@ -1,10 +1,10 @@
 package engine.movegen
 
-import java.engine.board.{Board, Piece}
+import engine.board.{Board, Piece, Side}
 
 /**
   * Created by melvic on 8/5/18.
   */
 trait MoveGenerator[B <: Board] {
-  def apply(board: B, sideToMove: Piece.Side): Stream[B]
+  def apply(board: B, sideToMove: Side): Stream[B]
 }

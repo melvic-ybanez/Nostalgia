@@ -1,7 +1,6 @@
 package engine.movegen
 
-import java.engine.board.Board
-
+import engine.board.Board
 import engine.board.bitboards.Bitboard.U64
 import engine.utils.Masks
 
@@ -23,8 +22,8 @@ trait OneStep {
 }
 
 trait PostShiftOneStep extends OneStep {
-  def north = bitboard => bitboard << Board.SIZE
-  def south = bitboard => bitboard >>> Board.SIZE
+  def north = bitboard => bitboard << Board.Size
+  def south = bitboard => bitboard >>> Board.Size
   def east = bitboard => (bitboard << 1) & Masks.NotAFile
   def west = bitboard => (bitboard >>> 1) & Masks.NotHFile
 }

@@ -5,7 +5,6 @@ import javafx.scene.layout.BorderPane
 import controllers.DefaultBoardController
 import engine.board.bitboards.Bitboard
 import validators.DefaultMoveValidator
-import views.boards.DefaultBoardView
 import views.menus.MenuBarView
 
 /**
@@ -15,5 +14,5 @@ class MainView extends BorderPane {
   val boardController = DefaultBoardController(Bitboard(), new DefaultMoveValidator)
   val boardView = boardController.boardView
   setTop(MenuBarView(boardView))
-  setCenter(DefaultBoardView(boardController))
+  setCenter(boardView)
 }

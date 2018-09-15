@@ -2,7 +2,7 @@ package engine.board
 
 import engine.board.bitboards.Bitboard
 import engine.movegen.{Location, Move}
-import engine.utils.Implicits.Locations._
+import engine.movegen.Location._
 
 /**
   * Created by melvic on 8/6/18.
