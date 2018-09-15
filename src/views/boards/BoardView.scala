@@ -1,4 +1,4 @@
-package views
+package views.boards
 
 import javafx.geometry.Insets
 import javafx.scene.Cursor
@@ -9,8 +9,8 @@ import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
 
 import controllers.BoardController
 import engine.board.Board
-import engine.utils.Implicits.Locations._
 import engine.movegen.Location
+import engine.utils.Implicits.Locations._
 
 /**
   * Created by melvic on 9/11/18.
@@ -22,7 +22,7 @@ sealed trait BoardView {
   def squareSize: Int
 }
 
-class DefaultBoardView(boardController: BoardController) extends GridPane with BoardView {
+case class DefaultBoardView(boardController: BoardController) extends GridPane with BoardView {
   // TODO: Improve this number (e.g. make it dynamically generated)
   override val squareSize = 51
 

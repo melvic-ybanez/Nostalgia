@@ -4,7 +4,8 @@ import engine.board.Piece._
 import engine.board.bitboards.Bitboard.{PieceTypeOffset, U64}
 import engine.utils.Implicits.Pieces._
 import engine.utils.Implicits.Locations._
-import engine.movegen.{BitboardMove, Location, Move}
+import engine.movegen.{Location, Move}
+import engine.movegen.Move.BitboardMove
 import scala.annotation.tailrec
 import engine.board._
 
@@ -95,7 +96,7 @@ case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) exte
     Bitboard(bitsets.updated(i, f(bitsets(i))), optLastMove)
 
   def updateByMove(move: Move[Location], piece: Piece) =
-    updateByBitboardMove(BitboardMove(move.source, move.destination, move.moveType), piece)
+    updateByBitboardMove(Move[Int](move.source, move.destination, move.moveType), piece)
 
   def updateByBitboardMove(move: BitboardMove, piece: Piece): Board = {
     val sourceBitset = Bitboard.singleBitset(move.source)

@@ -2,6 +2,8 @@ package views
 
 import javafx.scene.layout.BorderPane
 
+import views.boards.DefaultBoardView
+
 /**
   * Created by melvic on 9/12/18.
   */

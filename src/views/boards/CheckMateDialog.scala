@@ -1,8 +1,8 @@
-package views
+package views.boards
 
 import javafx.scene.control.{ButtonType, Dialog, Label}
 
-import engine.board.{Piece, Side}
+import engine.board.Side
 
 /**
   * Created by melvic on 9/11/18.

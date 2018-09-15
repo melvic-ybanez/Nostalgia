@@ -1,12 +1,9 @@
 package engine.movegen
 
-import java.engine.board.Board
-
 import engine.board.bitboards.Bitboard._
 import engine.utils.Implicits.Pieces._
 import BitboardMoveGenerator._
-import engine.board.{Side, White}
-import engine.board.{Side, White}
+import engine.board.{Board, Side, White}
 import engine.board.bitboards.Bitboard
 
 /**
@@ -57,14 +54,14 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
         case _ => (_ >> _, south)
       }
 
-      val newOpponent = setwiseOp(pawns, Board.SIZE)
+      val newOpponent = setwiseOp(pawns, Board.Size)
 
       // Decide whether to move east or west for the attack
       val attack = {
         val pawnPosition = Bitboard.oneBitIndex(pawns)
         val opponentPosition = Bitboard.oneBitIndex(opponent)
         action andThen (
-          if (pawnPosition % Board.SIZE > opponentPosition % Board.SIZE) west
+          if (pawnPosition % Board.Size > opponentPosition % Board.Size) west
           else east
         )
       }

@@ -18,6 +18,14 @@ trait BoardAccessor {
   def moveBoard(move: Move[Location], piece: Piece): Unit = {
     board.updateByMove(accessorMove(move), piece)
   }
+
+  def updatedBoard(f: Board => Board): BoardAccessor = {
+    val accessorType = this match {
+      case SimpleBoardAccessor(_) => SimpleBoardAccessor
+      case RotatedBoardAccessor(_) => RotatedBoardAccessor
+    }
+    accessorType(f(board))
+  }
 }
 
 case class SimpleBoardAccessor(board: Board) extends BoardAccessor
