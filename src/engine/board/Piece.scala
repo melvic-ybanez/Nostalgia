@@ -32,10 +32,9 @@ object Piece {
   lazy val types = Pawn :: Knight :: Bishop :: Rook :: Queen :: King :: Nil
   lazy val sides = White :: Black :: Nil
 
-  implicit def pieceTypeToInt(pieceType: PieceType): Int =
-    types.indexOf(pieceType) + Bitboard.PieceTypeOffset
+  implicit def pieceTypeToInt(pieceType: PieceType): Int = types.indexOf(pieceType)
 
-  implicit def intToPieceType(i: Int): PieceType = types(i - Bitboard.PieceTypeOffset)
+  implicit def intToPieceType(i: Int): PieceType = types(i)
 
   implicit def pieceSideToInt(side: Side): Int = side match {
     case White => 0

@@ -40,7 +40,7 @@ object Bitboard {
       if (i == Board.Size) bitboard
       else {
         val pieceTypeBitset = bitboard.bitsets(i)
-        val newBitboard = bitboard.updatePiece(blackOf(i),
+        val newBitboard = bitboard.updatePiece(blackOf(i - PieceTypeOffset),
           _ | Transformers.rotate180(pieceTypeBitset))
         rotate(newBitboard, i + 1)
       }
@@ -81,9 +81,12 @@ object Bitboard {
 }
 
 case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) extends Board {
+  lazy val (sideBitsets, pieceTypeBitsets) = bitsets.splitAt(PieceTypeOffset)
+
   def updatePiece(piece: Piece, f: U64 => U64): Bitboard = piece match {
     case Piece(pieceType, side) =>
-      val updatedPieceType = bitsets.updated(pieceType, f(bitsets(pieceType)))
+      val pieceTypeIndex = pieceType + PieceTypeOffset
+      val updatedPieceType = bitsets.updated(pieceTypeIndex, f(bitsets(pieceTypeIndex)))
       val updateBitSets = updatedPieceType.updated(side, f(updatedPieceType(side)))
       Bitboard(updateBitSets, optLastMove)
   }
@@ -98,8 +101,8 @@ case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) exte
 
     // handle captures
     val oppositeSide = piece.side.opposite
-    val oppositeSideBitset = bitsets(oppositeSide)
-    val capturedIndex = bitsets.indexWhere { bitset =>
+    val oppositeSideBitset = sideBitsets(oppositeSide)
+    val capturedIndex = pieceTypeBitsets.indexWhere { bitset =>
       val oppositePieceTypeBitset = bitset & oppositeSideBitset
       Bitboard.isNonEmptySet(oppositePieceTypeBitset & destBitset)
     }
@@ -112,16 +115,13 @@ case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) exte
   }
 
   def at(position: Int): Option[Piece] = {
-    val (sideBitsets, pieceTypeBitsets) = bitsets.splitAt(PieceTypeOffset)
-
     val bitset = Bitboard.singleBitset(position)
-
     val sideIndex = sideBitsets.indexWhere(Bitboard.intersectedWith(bitset))
     if (sideIndex == -1) None
     else {
       val pieceIndex = pieceTypeBitsets.indexWhere(Bitboard.intersectedWith(bitset))
       if (pieceIndex == -1) None
-      else Some(Piece(pieceIndex + PieceTypeOffset, sideIndex))
+      else Some(Piece(pieceIndex, sideIndex))
     }
   }
 
