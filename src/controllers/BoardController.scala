@@ -51,8 +51,8 @@ case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValida
   }
 
   override
-  def move(move: LocationMove): Unit = boardAccessor.board(move.source).foreach { piece =>
-    boardAccessor = boardAccessor.moveBoard(move, piece)
+  def move(move: LocationMove): Unit = {
+    boardAccessor = boardAccessor.moveBoard(move)
     boardView.resetBoard()
     boardView.highlight(move.destination)
     sideToMove = sideToMove.opposite

@@ -15,8 +15,11 @@ trait BoardAccessor {
   def accessorLocation: Location => Location = identity
   def accessorMove: Move[Location] => Move[Location] = Move.transform(accessorLocation)
 
-  def moveBoard(move: Move[Location], piece: Piece) = {
-    updatedBoard(_.updateByMove(accessorMove(move), piece))
+  def moveBoard(move: Move[Location]): BoardAccessor = {
+    val netMove = accessorMove(move)
+    board(netMove.source).map { piece =>
+      updatedBoard(_.updateByMove(netMove, piece))
+    } getOrElse this
   }
 
   def updatedBoard(f: Board => Board): BoardAccessor = {
@@ -31,6 +34,7 @@ trait BoardAccessor {
 case class SimpleBoardAccessor(board: Board) extends BoardAccessor
 
 case class RotatedBoardAccessor(board: Board) extends BoardAccessor {
-  override def accessorLocation = location => Location(7 - location.file, 7 - location.rank)
+  override def accessorLocation = location =>
+    Location(Board.Size - 1 - location.file, Board.Size -1 - location.rank)
 }
 
