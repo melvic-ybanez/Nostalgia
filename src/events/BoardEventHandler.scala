@@ -31,9 +31,9 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
 
 case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandler {
   override def performAction(selectedPiece: Option[Piece], selectedLocation: Location): Unit = {
-    boardView.toggleHover(selectedPiece.map { case Piece(pieceType, side) =>
+    boardView.toggleHover(sourcePiece.isDefined || selectedPiece.map { case Piece(_, side) =>
       side == boardView.boardController.sideToMove
-    } getOrElse sourcePiece.isDefined)
+    }.get)
   }
 }
 
