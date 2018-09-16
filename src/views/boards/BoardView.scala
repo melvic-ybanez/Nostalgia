@@ -4,6 +4,7 @@ import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.image.Image
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.scene.paint.Color
 import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
@@ -12,6 +13,7 @@ import controllers.BoardController
 import engine.board.{Board, Piece}
 import engine.movegen.Location
 import engine.movegen.Location._
+import events.{MoveEventHandler, PieceHoverEventHandler}
 import main.Resources
 
 /**
@@ -74,6 +76,11 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
       filesPane.addRow(0, textPane)
       filesPane
     }
+
+    // register events
+    val hoverEventHandler = PieceHoverEventHandler(this)
+    canvas.addEventHandler(MouseEvent.MOUSE_MOVED, hoverEventHandler)
+    canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, MoveEventHandler(this, hoverEventHandler))
   }
 
   def resetBoard(gc: GraphicsContext): Unit = {

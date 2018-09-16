@@ -11,7 +11,7 @@ case object DoublePawnPush extends MoveType
 case object EnPassant extends MoveType
 
 
-case class Move[A](source: A, destination: A, moveType: A)
+case class Move[A](source: A, destination: A, moveType: MoveType = Normal)
 
 object Move {
   type BitboardMove = Move[Int]

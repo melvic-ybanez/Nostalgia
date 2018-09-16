@@ -10,7 +10,7 @@ import views.MainView;
  */
 public class Main extends Application {
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         MainView root = new MainView();
         primaryStage.setTitle("Nostalgia");
         primaryStage.setScene(new Scene(root));

@@ -15,8 +15,8 @@ trait BoardAccessor {
   def accessorLocation: Location => Location = identity
   def accessorMove: Move[Location] => Move[Location] = Move.transform(accessorLocation)
 
-  def moveBoard(move: Move[Location], piece: Piece): Unit = {
-    board.updateByMove(accessorMove(move), piece)
+  def moveBoard(move: Move[Location], piece: Piece) = {
+    updatedBoard(_.updateByMove(accessorMove(move), piece))
   }
 
   def updatedBoard(f: Board => Board): BoardAccessor = {
@@ -26,9 +26,6 @@ trait BoardAccessor {
     }
     accessorType(f(board))
   }
-
-  def locate(row: Int, col: Int) =
-    Location(Location.Files(col), Location.Ranks(Board.Size - 1 - row))
 }
 
 case class SimpleBoardAccessor(board: Board) extends BoardAccessor

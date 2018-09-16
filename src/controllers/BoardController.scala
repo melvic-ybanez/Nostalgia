@@ -1,6 +1,5 @@
 package controllers
 
-import engine.board.bitboards.Bitboard
 import engine.board.{Black, Board, Side, White}
 import engine.movegen.Move.LocationMove
 import validators.MoveValidator
@@ -15,25 +14,26 @@ trait BoardController {
   def moveValidator: MoveValidator
   def boardView: BoardView
 
-  def setSideToMove(sideToMove: Side): Unit
   def newGame(lowerSide: Side): Unit
   def move(move: LocationMove): Unit
   def rotate(): Unit
 }
 
 case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValidator) extends BoardController {
-  private var side: Side = White
-  private var accessor: BoardAccessor = SimpleBoardAccessor(initialBoard)
+  private var _sideToMove: Side = White
+  private var _boardAccessor: BoardAccessor = SimpleBoardAccessor(initialBoard)
+
+  override def sideToMove = _sideToMove
+  override def boardAccessor = _boardAccessor
+
+  def sideToMove_=(sideToMove: Side): Unit = _sideToMove = sideToMove
+  def boardAccessor_=(boardAccessor: BoardAccessor): Unit = _boardAccessor = boardAccessor
 
   override lazy val boardView = DefaultBoardView(this)
 
-  override def setSideToMove(sideToMove: Side): Unit = this.side = sideToMove
-  override def sideToMove = side
-  override def boardAccessor = accessor
-
   override
   def rotate(): Unit = {
-    accessor = accessor match {
+    boardAccessor = boardAccessor match {
       case SimpleBoardAccessor(b) => RotatedBoardAccessor(b)
       case RotatedBoardAccessor(b) => SimpleBoardAccessor(b)
     }
@@ -42,8 +42,8 @@ case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValida
 
   override
   def newGame(lowerSide: Side): Unit = {
-    setSideToMove(lowerSide)
-    accessor = accessor.updatedBoard(_ => initialBoard)
+    sideToMove = lowerSide
+    boardAccessor = boardAccessor.updatedBoard(_ => initialBoard)
     lowerSide match {
       case Black => rotate()
       case _ => boardView.resetBoard()
@@ -51,7 +51,10 @@ case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValida
   }
 
   override
-  def move(move: LocationMove): Unit = accessor.board(move.source).foreach { piece =>
-    accessor.board.updateByMove(move, piece)
+  def move(move: LocationMove): Unit = boardAccessor.board(move.source).foreach { piece =>
+    boardAccessor = boardAccessor.moveBoard(move, piece)
+    boardView.resetBoard()
+    boardView.highlight(move.destination)
+    sideToMove = sideToMove.opposite
   }
 }

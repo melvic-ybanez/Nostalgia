@@ -1,5 +1,6 @@
 package engine.movegen
 
+import engine.board.Board
 import engine.board.bitboards.Bitboard
 
 /**
@@ -40,5 +41,8 @@ object Location {
   implicit def intToRank(i: Int): Rank = Location.Ranks(i)
 
   implicit def locationToInt(location: Location): Int = Bitboard.toBitPosition(location)
+
+  def locate(row: Int, col: Int) =
+    Location(Location.Files(col), Location.Ranks(Board.Size - 1 - row))
 }
 
