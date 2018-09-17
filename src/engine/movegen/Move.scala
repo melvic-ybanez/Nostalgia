@@ -1,5 +1,7 @@
 package engine.movegen
 
+import engine.movegen.Location._
+
 /**
   * Created by melvic on 8/5/18.
   */
@@ -9,7 +11,6 @@ case object Normal extends MoveType
 case object Attack extends MoveType
 case object DoublePawnPush extends MoveType
 case object EnPassant extends MoveType
-
 
 case class Move[A](source: A, destination: A, moveType: MoveType = Normal)
 

@@ -2,7 +2,7 @@ package controllers
 
 import engine.board.{Black, Board, Side, White}
 import engine.movegen.Move.LocationMove
-import validators.MoveValidator
+import validators.MoveValidator._
 import views.boards.{BoardView, DefaultBoardView}
 
 /**

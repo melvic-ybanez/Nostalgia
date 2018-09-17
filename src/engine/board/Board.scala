@@ -1,7 +1,7 @@
 package engine.board
 
 import engine.board.bitboards.Bitboard
-import engine.movegen.{Location, Move}
+import engine.movegen.{File, Location, Move, Rank}
 import engine.movegen.Location._
 
 /**
@@ -14,7 +14,7 @@ object Board {
 
 trait Board {
   def at(location: Location): Option[Piece]
-  def at(row: Int, col: Int): Option[Piece] = at(Location(col, row))
+  def at(file: File, rank: Rank): Option[Piece] = at(Location(file, rank))
 
   def updateByMove(move: Move[Location], piece: Piece): Board
 
