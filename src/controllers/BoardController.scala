@@ -11,7 +11,7 @@ import views.boards.{BoardView, DefaultBoardView}
 trait BoardController {
   def sideToMove: Side
   def boardAccessor: BoardAccessor
-  def moveValidator: MoveValidator
+  def moveValidator: MoveValidation
   def boardView: BoardView
 
   def newGame(lowerSide: Side): Unit
@@ -19,7 +19,7 @@ trait BoardController {
   def rotate(): Unit
 }
 
-case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValidator) extends BoardController {
+case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValidation) extends BoardController {
   private var _sideToMove: Side = White
   private var _boardAccessor: BoardAccessor = SimpleBoardAccessor(initialBoard)
 
@@ -52,6 +52,9 @@ case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValida
 
   override
   def move(move: LocationMove): Unit = {
+    if (!moveValidator(boardAccessor.accessorMove(move))(boardAccessor.board))
+      return
+
     boardAccessor = boardAccessor.moveBoard(move)
     boardView.resetBoard()
     boardView.highlight(move.destination)

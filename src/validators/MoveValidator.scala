@@ -9,27 +9,23 @@ import engine.movegen.Move.LocationMove
   * Created by melvic on 9/14/18.
   */
 object MoveValidator {
-  type MoveValidator = LocationMove => Board => Option[String]
+  type MoveValidation = LocationMove => Board => Boolean
 
-  def error(message: String) = Some(s"Invalid move: $message.")
+  def validateMove: MoveValidation =
+    move => board => board(move.source) map {
+      case Piece(Pawn, side) => validatePawnMove(side)
+    } exists (_(move)(board))
 
-  def findPiece(pieceType: PieceType)(f: Side => MoveValidator): MoveValidator =
-    move => board => board(move.source) match {
-      case Some(Piece(pieceType0, side)) if pieceType0 == pieceType => f(side)(move)(board)
-      case _ => Some(s"$pieceType not found")
-    }
-
-  def validatePawnMove: MoveValidator = findPiece(Pawn) { side => move => board =>
-    lazy val direction = if (side == White) 1 else -1
-    lazy val invalidDirection = error("Invalid pawn direction.")
+  def validatePawnMove(side: Side): MoveValidation = move => board => {
+    def validatePush(step: Int) =
+      board(move.destination.file, move.source.rank + step).isEmpty
 
     (delta(move), side) match {
-      case ((_, 0), _) => error(s"Not pushing")
-      case ((_, rankDelta), Black) if rankDelta > 0 => invalidDirection
-      case ((_, rankDelta), White) if rankDelta < 0 => invalidDirection
-      case ((_, rankDelta), _) if rankDelta > 2 => error("Pushing more than 2 steps")
-      case ((fileDelta, _), _) if fileDelta > 1 => error("Moving to the side with more than a step")
-      case (())
+      case ((0, 1), White) => validatePush(1)
+      case ((0, 2), White) => validatePush(1) && validatePush(2)
+      case ((0, -1), Black) => validatePush(-1)
+      case ((0, -2), Black) => validatePush(-1) && validatePush(-2)
+      case _ => false
     }
   }
 

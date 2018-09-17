@@ -19,6 +19,7 @@ trait Board {
   def updateByMove(move: Move[Location], piece: Piece): Board
 
   def apply(location: Location): Option[Piece] = at(location)
+  def apply(file: File, rank: Rank) = at(file, rank)
 }
 
 
