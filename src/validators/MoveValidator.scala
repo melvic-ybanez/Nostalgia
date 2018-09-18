@@ -13,6 +13,7 @@ object MoveValidator {
 
   def validateMove: MoveValidation = move => board => board(move.source) map {
       case Piece(Pawn, side) => validatePawnMove(side)
+      case Piece(Knight, side) => validateKnightMove(side)
     } map (_(move)(board)) getOrElse None
 
   def validatePawnMove(side: Side): MoveValidation = move => board => {
@@ -34,10 +35,9 @@ object MoveValidator {
         else None
       }
 
-    def validateCapture(side: Side, direction: Int) = board(move.destination).flatMap {
-      case Piece(_, destSide) if destSide == side.opposite =>
-        handlePromotion(side, Normal)
-    } orElse validateEnPassant(side, direction)
+    def validateCapture(side: Side, direction: Int) =
+      MoveValidator.validateCapture(side, move.destination, board)(() => handlePromotion(side, Normal))
+        .orElse(validateEnPassant(side, direction))
 
     def validateEnPassant(side: Side, direction: Int) = {
       val sideLocation: Location = Location(move.source.file + direction, move.source.rank)
@@ -68,8 +68,30 @@ object MoveValidator {
     }
   }
 
-  def delta(move: LocationMove): (Int, Int) = {
-    def delta(locOp: Location => Int): Int = locOp(move.destination) - locOp(move.source)
+  def validateKnightMove(side: Side): MoveValidation = move => board => {
+    implicit val optMoveType = () => Some(Normal)
+
+    delta(move, abs = true) match {
+      case (1, 2) => captureOrEmpty(side, move.destination, board)
+      case (2, 1) => captureOrEmpty(side, move.destination, board)
+      case _ => None
+    }
+  }
+
+  def validateCapture(side: Side, location: Location, board: Board)(implicit  f: () => Option[MoveType]) =
+    board(location) flatMap {
+      case Piece(_, destSide) if destSide == side.opposite => f()
+      case _ => None
+    }
+
+  def captureOrEmpty(side: Side, location: Location, board: Board)(implicit f: () => Option[MoveType]) =
+    validateCapture(side, location, board) orElse f()
+
+  def delta(move: LocationMove, abs: Boolean = false): (Int, Int) = {
+    def delta(locOp: Location => Int): Int = {
+      val _delta = locOp(move.destination) - locOp(move.source)
+      if (abs) Math.abs(_delta) else _delta
+    }
     (delta(_.file), delta(_.rank))
   }
 }

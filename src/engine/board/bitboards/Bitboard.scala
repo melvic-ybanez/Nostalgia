@@ -127,7 +127,7 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
           else destBitset << Board.Size
         })
       case Move(_, _, PawnPromotion(promotionPiece)) =>
-        // remove the pawn and recplace it with the specified officer
+        // remove the pawn and replace it with the specified officer
         partialBoard.updatePiece(piece, _ ^ destBitset)
           .updatePiece(promotionPiece, _ ^ destBitset)
       case _ => partialBoard
