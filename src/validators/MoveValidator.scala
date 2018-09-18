@@ -19,6 +19,7 @@ object MoveValidator {
         case Piece(Knight, _) => validateKnightMove
         case Piece(Bishop, _) => validateBishopMove
         case Piece(Rook, _) => validateRookMove
+        case Piece(Queen, _) => validateQueenMove
       }
       validator(piece.side)(move)(board)
     } getOrElse None
@@ -93,6 +94,9 @@ object MoveValidator {
       if (delta > 0) 1 else if (delta < 0) -1 else 0
     }
 
+  def validateQueenMove(side: Side): MoveValidation = move => board =>
+    validateBishopMove(side)(move)(board) orElse validateRookMove(side)(move)(board)
+
   def validateSlidingMove(side: Side)
       (notAllowed: (Int, Int) => Boolean)
       (step: Int => Int): MoveValidation = move => board => {
@@ -101,7 +105,7 @@ object MoveValidator {
     else {
       val fileStep = step(fileDelta)
       val rankStep = step(rankDelta)
-      
+
       @tailrec
       def recurse(file: File, rank: Rank): Option[MoveType] =
         if (file == move.destination.file && rank == move.destination.rank)
