@@ -5,16 +5,22 @@ import engine.movegen._
 import engine.movegen.Location._
 import engine.movegen.Move.LocationMove
 
+import scala.annotation.tailrec
+
 /**
   * Created by melvic on 9/14/18.
   */
 object MoveValidator {
   type MoveValidation = LocationMove => Board => Option[MoveType]
 
-  def validateMove: MoveValidation = move => board => board(move.source) map {
-      case Piece(Pawn, side) => validatePawnMove(side)
-      case Piece(Knight, side) => validateKnightMove(side)
-    } map (_(move)(board)) getOrElse None
+  def validateMove: MoveValidation = move => board => board(move.source) map { piece =>
+      val validator: Side => MoveValidation = piece match {
+        case Piece(Pawn, _) => validatePawnMove
+        case Piece(Knight, _) => validateKnightMove
+        case Piece(Bishop, _) => validateBishopMove
+      }
+      validator(piece.side)(move)(board)
+    } getOrElse None
 
   def validatePawnMove(side: Side): MoveValidation = move => board => {
     def validateSinglePush(direction: Int) =
@@ -75,6 +81,25 @@ object MoveValidator {
       case (1, 2) => captureOrEmpty(side, move.destination, board)
       case (2, 1) => captureOrEmpty(side, move.destination, board)
       case _ => None
+    }
+  }
+
+  def validateBishopMove(side: Side): MoveValidation = move => board => {
+    val (fileDelta, rankDelta) = delta(move)
+    if (Math.abs(fileDelta) != Math.abs(rankDelta)) None
+    else {
+      def computeStep(delta: Int) = if (delta > 0) 1 else -1
+      val fileStep = computeStep(fileDelta)
+      val rankStep = computeStep(rankDelta)
+
+      @tailrec
+      def recurse(file: File, rank: Rank): Option[MoveType] =
+        if (file == move.destination.file)
+          captureOrEmpty(side, move.destination, board)(() => Some(Normal))
+        else if (board(file, rank).isDefined) None
+        else recurse(file + fileStep, rank + rankStep)
+
+      recurse(move.source.file + fileStep, move.source.rank + rankStep)
     }
   }
 
