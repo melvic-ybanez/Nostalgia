@@ -25,11 +25,18 @@ object MoveValidator {
       case Black => _7
     }) == move.source.rank && validateSinglePush(step) && validateSinglePush(step * 2)
 
+    def validateCapture(side: Side) = board(move.destination).exists {
+      case Piece(_, destSide) => destSide == side.opposite
+      case _ => false
+    }
+
     (delta(move), side) match {
       case ((0, 1), White) => validateSinglePush(1)
       case ((0, 2), White) => validateDoublePush(1, White)
       case ((0, -1), Black) => validateSinglePush(-1)
       case ((0, -2), Black) => validateDoublePush(-1, Black)
+      case ((fd, 1), White) if Math.abs(fd) == 1 => validateCapture(White)
+      case ((fd, -1), Black) if Math.abs(fd) == 1 => validateCapture(Black)
       case _ => false
     }
   }
