@@ -20,6 +20,7 @@ object MoveValidator {
         case Piece(Bishop, _) => validateBishopMove
         case Piece(Rook, _) => validateRookMove
         case Piece(Queen, _) => validateQueenMove
+        case Piece(King, _) => validateKingMove
       }
       validator(piece.side)(move)(board)
     } getOrElse None
@@ -96,6 +97,11 @@ object MoveValidator {
 
   def validateQueenMove(side: Side): MoveValidation = move => board =>
     validateBishopMove(side)(move)(board) orElse validateRookMove(side)(move)(board)
+
+  def validateKingMove(side: Side): MoveValidation = move => board => delta(move, abs = true) match {
+    case (1, 1) | (1, 0) | (0, 1) => captureOrEmpty(side, move.destination, board)(() => Some(Normal))
+    case _ => None
+  }
 
   def validateSlidingMove(side: Side)
       (notAllowed: (Int, Int) => Boolean)
