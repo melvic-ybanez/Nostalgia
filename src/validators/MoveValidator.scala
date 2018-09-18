@@ -19,7 +19,7 @@ object MoveValidator {
     def validateSinglePush(direction: Int) =
       board(move.destination.file, move.source.rank + direction) match {
         case Some(_) => None
-        case None => Some(Normal)
+        case None => handlePromotion(side, Normal)
       }
 
     def validateDoublePush(step: Int, side: Side) =
@@ -34,8 +34,9 @@ object MoveValidator {
         else None
       }
 
-    def validateCapture(side: Side, direction: Int) = board(move.destination).map {
-      case Piece(_, destSide) if destSide == side.opposite => Normal
+    def validateCapture(side: Side, direction: Int) = board(move.destination).flatMap {
+      case Piece(_, destSide) if destSide == side.opposite =>
+        handlePromotion(side, Normal)
     } orElse validateEnPassant(side, direction)
 
     def validateEnPassant(side: Side, direction: Int) = {
@@ -45,6 +46,14 @@ object MoveValidator {
           case Some(Move(_, lastDest, DoublePawnPush)) if lastDest == sideLocation => Some(EnPassant)
           case _ => None
         }
+      }
+    }
+
+    def handlePromotion(side: Side, moveType: MoveType) = Some {
+      (side, move) match {
+        case (White, Move(_, Location(_, _8), promotion: PawnPromotion)) => promotion
+        case (Black, Move(_, Location(_, _1), promotion: PawnPromotion)) => promotion
+        case _ => moveType
       }
     }
 

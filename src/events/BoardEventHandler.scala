@@ -1,11 +1,12 @@
 package events
 
 import javafx.event.EventHandler
+import javafx.scene.control.ButtonType
 import javafx.scene.input.MouseEvent
 
-import engine.board.Piece
-import engine.movegen.{Location, Move}
-import views.boards.BoardView
+import engine.board._
+import engine.movegen._
+import views.boards.{BoardView, PawnPromotionDialog}
 
 /**
   * Created by melvic on 9/16/18.
@@ -58,16 +59,40 @@ case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverE
     (sourcePiece, selectedPiece) match {
       case (None, None) => ()
       case (None, Some(Piece(_, side))) =>
-        if (side == boardView.boardController.sideToMove) updateSourceSquare()
+        if (side == boardController.sideToMove) updateSourceSquare()
         else ()
 
       // If the execution has made it this far, we can assume the source piece is present.
       case (_, _) if sourcePiece eq selectedPiece => undoSelection()
       case (Some(Piece(_, sourceSide)), Some(Piece(_, selectedSide))) if sourceSide == selectedSide =>
         updateSourceSquare()
-      case _ =>
-        if (boardView.boardController.move(Move[Location](sourceLocation, selectedLocation)))
-          resetSourcePiece()
+
+      // handle potential pawn promotion (or proceed normally if there is none)
+      case (Some(Piece(Pawn, sourceSide)), _) =>
+        val accessorSelectedLocation = boardController.boardAccessor
+          .accessorLocation(selectedLocation)
+        sourceSide match {
+          case White if accessorSelectedLocation.rank == _8 => promotePawn(White)
+          case Black if accessorSelectedLocation.rank == _1 => promotePawn(Black)
+          case _ => validateAndMove()
+        }
+
+      case _ => validateAndMove()
+    }
+
+    def validateAndMove(moveType: MoveType = Normal): Unit = {
+      if (boardController.move(Move[Location](sourceLocation, selectedLocation, moveType)))
+        resetSourcePiece()
+    }
+
+    def promotePawn(side: Side): Unit = {
+      val promotionDialog = PawnPromotionDialog(side)
+      promotionDialog.showAndWait().ifPresent { result =>
+        if (result == ButtonType.OK) {
+          val newPiece = Piece(promotionDialog.selectedPieceType, side)
+          validateAndMove(PawnPromotion(newPiece))
+        }
+      }
     }
 
     def updateSourceSquare(): Unit = {
@@ -87,4 +112,6 @@ case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverE
       resetSourcePiece()
     }
   }
+
+  def boardController = boardView.boardController
 }
