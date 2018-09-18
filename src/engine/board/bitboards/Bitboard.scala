@@ -2,7 +2,7 @@ package engine.board.bitboards
 
 import engine.board.Piece._
 import engine.board.bitboards.Bitboard.{PieceTypeOffset, U64}
-import engine.movegen.{Location, Move}
+import engine.movegen.{EnPassant, Location, Move}
 import engine.movegen.Location._
 import engine.movegen.Move.{BitboardMove, LocationMove}
 
@@ -114,11 +114,18 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
     }
 
     val newBoard =
-      if (capturedIndex == -1) this
-      else updatePiece(Piece(capturedIndex, oppositeSide), _ ^ destBitset)
+      if (capturedIndex == -1) move match {
+        case Move(_, _, EnPassant) => updatePiece(Piece(Pawn, oppositeSide), _ ^ {
+          if (piece.side == White) destBitset >> Board.Size
+          else destBitset << Board.Size
+        })
+        case _ => this
+      } else updatePiece(Piece(capturedIndex, oppositeSide), _ ^ destBitset)
 
-    newBoard.updatePiece(piece, _ ^ moveBitset)
+    newBoard.updatePiece(piece, _ ^ moveBitset).updateLastMove(move)
   }
+
+  def updateLastMove(move: BitboardMove) = Bitboard(bitsets, Some(move))
 
   def at(position: Int): Option[Piece] = {
     val bitset = Bitboard.singleBitset(position)
