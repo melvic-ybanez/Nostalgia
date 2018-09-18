@@ -47,7 +47,7 @@ case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandle
         val controller = boardView.boardController
         controller.validateMove(controller.boardAccessor.move(sourceLocation, selectedLocation)) {
           controller.boardAccessor.board
-        }
+        }.isDefined
       case _ => false
     }
   }

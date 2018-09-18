@@ -4,9 +4,11 @@ import engine.board.Piece._
 import engine.board.bitboards.Bitboard.{PieceTypeOffset, U64}
 import engine.movegen.{Location, Move}
 import engine.movegen.Location._
-import engine.movegen.Move.BitboardMove
+import engine.movegen.Move.{BitboardMove, LocationMove}
+
 import scala.annotation.tailrec
 import engine.board._
+import Bitboard._
 
 /**
   * Created by melvic on 8/5/18.
@@ -55,6 +57,10 @@ object Bitboard {
 
   def toBitPosition(location: Location): Int = location.file + location.rank * Board.Size
 
+  def fileOf(position: Int) = position % Board.Size
+
+  def rankOf(position: Int) = position / Board.Size
+
   def singleBitset(position: Int) = 1L << position
 
   def isEmptySet(bitboard: U64) = bitboard == 0
@@ -80,7 +86,7 @@ object Bitboard {
   }
 }
 
-case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) extends Board {
+case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove]) extends Board {
   lazy val (sideBitsets, pieceTypeBitsets) = bitsets.splitAt(PieceTypeOffset)
 
   def updatePiece(piece: Piece, f: U64 => U64): Bitboard = piece match {
@@ -88,10 +94,10 @@ case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) exte
       val pieceTypeIndex = pieceType + PieceTypeOffset
       val updatedPieceType = bitsets.updated(pieceTypeIndex, f(bitsets(pieceTypeIndex)))
       val updateBitSets = updatedPieceType.updated(side, f(updatedPieceType(side)))
-      Bitboard(updateBitSets, optLastMove)
+      Bitboard(updateBitSets, lastBitboardMove)
   }
 
-  def updateByMove(move: Move[Location], piece: Piece) =
+  override def updateByMove(move: LocationMove, piece: Piece) =
     updateByBitboardMove(Move[Int](move.source, move.destination, move.moveType), piece)
 
   def updateByBitboardMove(move: BitboardMove, piece: Piece): Board = {
@@ -116,16 +122,20 @@ case class Bitboard(bitsets: Array[U64], optLastMove: Option[BitboardMove]) exte
 
   def at(position: Int): Option[Piece] = {
     val bitset = Bitboard.singleBitset(position)
-    val sideIndex = sideBitsets.indexWhere(Bitboard.intersectedWith(bitset))
+    val sideIndex = sideBitsets.indexWhere(intersectedWith(bitset))
     if (sideIndex == -1) None
     else {
-      val pieceIndex = pieceTypeBitsets.indexWhere(Bitboard.intersectedWith(bitset))
+      val pieceIndex = pieceTypeBitsets.indexWhere(intersectedWith(bitset))
       if (pieceIndex == -1) None
       else Some(Piece(pieceIndex, sideIndex))
     }
   }
 
-  def at(location: Location): Option[Piece] = at(Bitboard.toBitPosition(location))
+  override def at(location: Location): Option[Piece] = at(toBitPosition(location))
+
+  override def lastMove = lastBitboardMove.map { move =>
+    Move[Location](move.source, move.destination, move.moveType)
+  }
 
   def apply: Int => Option[Piece] = at
 

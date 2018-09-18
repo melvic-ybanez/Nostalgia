@@ -52,11 +52,11 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
 
   override
   def move(move: LocationMove): Boolean =
-    if (validateMove(boardAccessor.accessorMove(move))(boardAccessor.board)) {
-      boardAccessor = boardAccessor.moveBoard(move)
+    validateMove(boardAccessor.accessorMove(move))(boardAccessor.board).exists { moveType =>
+      boardAccessor = boardAccessor.moveBoard(move.updatedType(moveType))
       boardView.resetBoard()
       boardView.highlight(move.destination)
       sideToMove = sideToMove.opposite
       true
-    } else false
+    }
 }

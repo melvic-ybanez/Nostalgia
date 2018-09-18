@@ -12,7 +12,9 @@ case object Attack extends MoveType
 case object DoublePawnPush extends MoveType
 case object EnPassant extends MoveType
 
-case class Move[A](source: A, destination: A, moveType: MoveType = Normal)
+case class Move[A](source: A, destination: A, moveType: MoveType = Normal) {
+  def updatedType(newType: MoveType) = Move(source, destination, newType)
+}
 
 object Move {
   type BitboardMove = Move[Int]

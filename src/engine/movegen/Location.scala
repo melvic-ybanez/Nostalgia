@@ -42,6 +42,9 @@ object Location {
 
   implicit def locationToInt(location: Location): Int = Bitboard.toBitPosition(location)
 
+  implicit def intToLocation(position: Int): Location = Location(
+    Bitboard.fileOf(position), Bitboard.rankOf(position))
+
   def locate(row: Int, col: Int) =
     Location(Location.Files(col), Location.Ranks(Board.Size - 1 - row))
 }

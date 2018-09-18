@@ -1,7 +1,7 @@
 package validators
 
 import engine.board._
-import engine.movegen.{Location, Move, _2, _7}
+import engine.movegen._
 import engine.movegen.Location._
 import engine.movegen.Move.LocationMove
 
@@ -9,25 +9,32 @@ import engine.movegen.Move.LocationMove
   * Created by melvic on 9/14/18.
   */
 object MoveValidator {
-  type MoveValidation = LocationMove => Board => Boolean
+  type MoveValidation = LocationMove => Board => Option[MoveType]
 
   def validateMove: MoveValidation =
     move => board => board(move.source) map {
       case Piece(Pawn, side) => validatePawnMove(side)
-    } exists (_(move)(board))
+    } map (_(move)(board)) getOrElse None
 
   def validatePawnMove(side: Side): MoveValidation = move => board => {
     def validateSinglePush(direction: Int) =
-      board(move.destination.file, move.source.rank + direction).isEmpty
+      board(move.destination.file, move.source.rank + direction)
+        .flatMap(_ => None).orElse(Some(Normal))
 
-    def validateDoublePush(step: Int, side: Side) = (side match {
-      case White => _2
-      case Black => _7
-    }) == move.source.rank && validateSinglePush(step) && validateSinglePush(step * 2)
+    def validateDoublePush(step: Int, side: Side) = {
+      val expectedRank = side match {
+        case White => _2
+        case Black => _7
+      }
+      if (expectedRank == move.source.rank) Some(DoublePawnPush)
+      else None
+    }.flatMap(_ => validateSinglePush(step))
+      .flatMap(_ => validateSinglePush(step * 2))
 
-    def validateCapture(side: Side) = board(move.destination).exists {
-      case Piece(_, destSide) => destSide == side.opposite
-      case _ => false
+    def validateCapture(side: Side) = board(move.destination).flatMap {
+      case Piece(_, destSide) =>
+        if (destSide == side.opposite) Some(Normal)
+        else None
     }
 
     (delta(move), side) match {
@@ -37,7 +44,7 @@ object MoveValidator {
       case ((0, -2), Black) => validateDoublePush(-1, Black)
       case ((fd, 1), White) if Math.abs(fd) == 1 => validateCapture(White)
       case ((fd, -1), Black) if Math.abs(fd) == 1 => validateCapture(Black)
-      case _ => false
+      case _ => None
     }
   }
 
