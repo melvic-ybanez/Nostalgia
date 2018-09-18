@@ -15,7 +15,7 @@ trait BoardController {
   def boardView: BoardView
 
   def newGame(lowerSide: Side): Unit
-  def move(move: LocationMove): Unit
+  def move(move: LocationMove): Boolean
   def rotate(): Unit
 }
 
@@ -51,13 +51,12 @@ case class DefaultBoardController(initialBoard: Board, moveValidator: MoveValida
   }
 
   override
-  def move(move: LocationMove): Unit = {
-    if (!moveValidator(boardAccessor.accessorMove(move))(boardAccessor.board))
-      return
-
-    boardAccessor = boardAccessor.moveBoard(move)
-    boardView.resetBoard()
-    boardView.highlight(move.destination)
-    sideToMove = sideToMove.opposite
-  }
+  def move(move: LocationMove): Boolean =
+    if (moveValidator(boardAccessor.accessorMove(move))(boardAccessor.board)) {
+      boardAccessor = boardAccessor.moveBoard(move)
+      boardView.resetBoard()
+      boardView.highlight(move.destination)
+      sideToMove = sideToMove.opposite
+      true
+    } else false
 }
