@@ -1,8 +1,9 @@
 package controllers
 
 import engine.board.{Board, Piece}
-import engine.movegen.{Location, Move}
+import engine.movegen.{File, Location, Move, Rank}
 import engine.movegen.Location._
+import engine.movegen.Move.LocationMove
 
 /**
   * Created by melvic on 9/14/18.
@@ -13,7 +14,9 @@ trait BoardAccessor {
   def board: Board
 
   def accessorLocation: Location => Location = identity
-  def accessorMove: Move[Location] => Move[Location] = Move.transform(accessorLocation)
+  def accessorMove: LocationMove => LocationMove = Move.transform(accessorLocation)
+  def move(source: Location, destination: Location): LocationMove =
+    accessorMove(Move[Location](source, destination))
 
   def moveBoard(move: Move[Location]): BoardAccessor = {
     val netMove = accessorMove(move)

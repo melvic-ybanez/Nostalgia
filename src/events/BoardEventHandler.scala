@@ -45,7 +45,7 @@ case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandle
       case (Some(Piece(_, sourceSide)), Some(Piece(_, selectedSide))) if sourceSide == selectedSide => true
       case (Some(_), _) =>
         val controller = boardView.boardController
-        controller.validateMove(Move[Location](sourceLocation, selectedLocation)) {
+        controller.validateMove(controller.boardAccessor.move(sourceLocation, selectedLocation)) {
           controller.boardAccessor.board
         }
       case _ => false
