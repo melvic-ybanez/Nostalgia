@@ -42,6 +42,7 @@ case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandle
   override def performAction(selectedPiece: Option[Piece], selectedLocation: Location): Unit = boardView.toggleHover {
     (sourcePiece, selectedPiece) match {
       case (None, Some(Piece(_, side))) if side == boardView.boardController.sideToMove => true
+      case (Some(Piece(_, sourceSide)), Some(Piece(_, selectedSide))) if sourceSide == selectedSide => true
       case (Some(_), _) =>
         val controller = boardView.boardController
         controller.validateMove(Move[Location](sourceLocation, selectedLocation)) {

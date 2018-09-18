@@ -1,7 +1,7 @@
 package validators
 
 import engine.board._
-import engine.movegen.{Location, Move}
+import engine.movegen.{Location, Move, _2, _7}
 import engine.movegen.Location._
 import engine.movegen.Move.LocationMove
 
@@ -17,14 +17,19 @@ object MoveValidator {
     } exists (_(move)(board))
 
   def validatePawnMove(side: Side): MoveValidation = move => board => {
-    def validatePush(step: Int) =
-      board(move.destination.file, move.source.rank + step).isEmpty
+    def validateSinglePush(direction: Int) =
+      board(move.destination.file, move.source.rank + direction).isEmpty
+
+    def validateDoublePush(step: Int, side: Side) = (side match {
+      case White => _2
+      case Black => _7
+    }) == move.source.rank && validateSinglePush(step) && validateSinglePush(step * 2)
 
     (delta(move), side) match {
-      case ((0, 1), White) => validatePush(1)
-      case ((0, 2), White) => validatePush(1) && validatePush(2)
-      case ((0, -1), Black) => validatePush(-1)
-      case ((0, -2), Black) => validatePush(-1) && validatePush(-2)
+      case ((0, 1), White) => validateSinglePush(1)
+      case ((0, 2), White) => validateDoublePush(1, White)
+      case ((0, -1), Black) => validateSinglePush(-1)
+      case ((0, -2), Black) => validateDoublePush(-1, Black)
       case _ => false
     }
   }
