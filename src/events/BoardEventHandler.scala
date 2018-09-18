@@ -22,47 +22,57 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
   }
 
   def boardView: BoardView
-  def performAction(selectedPiece: Option[Piece], selectedLocation: Location)
+  def performAction(selectedPiece: Option[Piece], selectedLocation: Location): Unit
 
   private var _sourcePiece: Option[Piece] = None
   def sourcePiece = _sourcePiece
   def sourcePiece_=(sourcePiece: Option[Piece]) = _sourcePiece = sourcePiece
+
+  private var _sourceLocation: Option[Location] = None
+  def sourceLocation = _sourceLocation.get
+  def sourceLocation_=(sourceLocation: Location) = _sourceLocation = Some(sourceLocation)
+
+  def updateSourceSquare(selectedPiece: Option[Piece], selectedLocation: Location): Unit = {
+    sourcePiece = selectedPiece
+    sourceLocation = selectedLocation
+  }
 }
 
 case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandler {
-  override def performAction(selectedPiece: Option[Piece], selectedLocation: Location): Unit = {
-    boardView.toggleHover(sourcePiece.isDefined || selectedPiece.exists { case Piece(_, side) =>
-      side == boardView.boardController.sideToMove
-    })
+  override def performAction(selectedPiece: Option[Piece], selectedLocation: Location): Unit = boardView.toggleHover {
+    (sourcePiece, selectedPiece) match {
+      case (None, Some(Piece(_, side))) if side == boardView.boardController.sideToMove => true
+      case (Some(_), _) =>
+        val controller = boardView.boardController
+        controller.validateMove(Move[Location](sourceLocation, selectedLocation)) {
+          controller.boardAccessor.board
+        }
+      case _ => false
+    }
   }
 }
 
 case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverEventHandler) extends BoardEventHandler {
-  private var _sourceLocation: Option[Location] = None
-
-  def sourceLocation = _sourceLocation.get
-  def sourceLocation_=(sourceLocation: Location) = _sourceLocation = Some(sourceLocation)
-
   override def performAction(selectedPiece: Option[Piece], selectedLocation: Location) = {
     (sourcePiece, selectedPiece) match {
       case (None, None) => ()
       case (None, Some(Piece(_, side))) =>
-        if (side == boardView.boardController.sideToMove) replaceSourceSquare()
+        if (side == boardView.boardController.sideToMove) updateSourceSquare()
         else ()
 
       // If the execution has made it this far, we can assume the source piece is present.
       case (_, _) if sourcePiece eq selectedPiece => undoSelection()
       case (Some(Piece(_, sourceSide)), Some(Piece(_, selectedSide))) if sourceSide == selectedSide =>
-        replaceSourceSquare()
+        updateSourceSquare()
       case _ =>
         if (boardView.boardController.move(Move[Location](sourceLocation, selectedLocation)))
           resetSourcePiece()
     }
 
-    def replaceSourceSquare(): Unit = {
-      this.sourcePiece = selectedPiece
-      this.sourceLocation = selectedLocation
-      hoverEventHandler.sourcePiece = sourcePiece
+    def updateSourceSquare(): Unit = {
+      this.updateSourceSquare(selectedPiece, selectedLocation)
+      hoverEventHandler.updateSourceSquare(selectedPiece, selectedLocation)
+
       boardView.highlight(selectedLocation)
     }
 
