@@ -12,9 +12,10 @@ import scala.annotation.tailrec
   */
 object MoveValidator {
   type MoveValidation = LocationMove => Board => Option[MoveType]
+  type PieceMoveValidation = Piece => MoveValidation
 
-  def validateMove: MoveValidation = move => board => board(move.source) map { piece =>
-      val validator: Side => MoveValidation = piece match {
+  def validateMove: MoveValidation = move => board => board(move.source) flatMap { piece =>
+      val validator: PieceMoveValidation = piece match {
         case Piece(Pawn, _) => validatePawnMove
         case Piece(Knight, _) => validateKnightMove
         case Piece(Bishop, _) => validateBishopMove
@@ -22,10 +23,10 @@ object MoveValidator {
         case Piece(Queen, _) => validateQueenMove
         case Piece(King, _) => validateKingMove
       }
-      validator(piece.side)(move)(board)
-    } getOrElse None
+      validator(piece)(move)(board)
+    }
 
-  def validatePawnMove(side: Side): MoveValidation = move => board => {
+  def validatePawnMove: PieceMoveValidation = { case Piece(_, side) => move => board =>
     def validateSinglePush(direction: Int) =
       board(move.destination.file, move.source.rank + direction) match {
         case Some(_) => None
@@ -44,7 +45,7 @@ object MoveValidator {
         else None
       }
 
-    def validateCapture(side: Side, direction: Int) =
+    def validatePawnCapture(side: Side, direction: Int) =
       MoveValidator.validateCapture(side, move.destination, board)(() => handlePromotion(side, Normal))
         .orElse(validateEnPassant(side, direction))
 
@@ -71,13 +72,13 @@ object MoveValidator {
       case ((0, 2), White) => validateDoublePush(1, White)
       case ((0, -1), Black) => validateSinglePush(-1)
       case ((0, -2), Black) => validateDoublePush(-1, Black)
-      case ((fd, 1), White) if Math.abs(fd) == 1 => validateCapture(White, fd)
-      case ((fd, -1), Black) if Math.abs(fd) == 1 => validateCapture(Black, fd)
+      case ((fd, 1), White) if Math.abs(fd) == 1 => validatePawnCapture(White, fd)
+      case ((fd, -1), Black) if Math.abs(fd) == 1 => validatePawnCapture(Black, fd)
       case _ => None
     }
   }
 
-  def validateKnightMove(side: Side): MoveValidation = move => board => {
+  def validateKnightMove: PieceMoveValidation = { case Piece(_, side) => move => board =>
     implicit val optMoveType = () => Some(Normal)
 
     delta(move, abs = true) match {
@@ -87,25 +88,28 @@ object MoveValidator {
     }
   }
 
-  def validateBishopMove(side: Side): MoveValidation =
-    validateSlidingMove(side)(_ != _)(delta => if (delta > 0) 1 else -1)
+  def validateBishopMove: PieceMoveValidation = piece =>
+    validateSlidingMove(piece.side)(_ != _)(delta => if (delta > 0) 1 else -1)
 
-  def validateRookMove(side: Side): MoveValidation =
-    validateSlidingMove(side)(_ != 0 && _ != 0) { delta =>
+  def validateRookMove: PieceMoveValidation = piece =>
+    validateSlidingMove(piece.side)(_ != 0 && _ != 0) { delta =>
       if (delta > 0) 1 else if (delta < 0) -1 else 0
     }
 
-  def validateQueenMove(side: Side): MoveValidation = move => board =>
-    validateBishopMove(side)(move)(board) orElse validateRookMove(side)(move)(board)
+  def validateQueenMove: PieceMoveValidation = piece => move => board =>
+        validateBishopMove(piece)(move)(board) orElse validateRookMove(piece)(move)(board)
 
-  def validateKingMove(side: Side): MoveValidation = move => board => delta(move, abs = true) match {
-    case (1, 1) | (1, 0) | (0, 1) => captureOrEmpty(side, move.destination, board)(() => Some(Normal))
-    case _ => None
-  }
+
+  def validateKingMove: PieceMoveValidation = piece => move => board =>
+    delta(move, abs = true) match {
+      case (1, 1) | (1, 0) | (0, 1) =>
+        captureOrEmpty(piece.side, move.destination, board)(() => Some(Normal))
+      case _ => None
+    }
 
   def validateSlidingMove(side: Side)
       (notAllowed: (Int, Int) => Boolean)
-      (step: Int => Int): MoveValidation = move => board => {
+      (step: Int => Int): MoveValidation = { case move @ Move(source, destination, _) => board =>
     val (fileDelta, rankDelta) = delta(move)
     if (notAllowed(Math.abs(fileDelta), Math.abs(rankDelta))) None
     else {
@@ -114,12 +118,12 @@ object MoveValidator {
 
       @tailrec
       def recurse(file: File, rank: Rank): Option[MoveType] =
-        if (file == move.destination.file && rank == move.destination.rank)
-          captureOrEmpty(side, move.destination, board)(() => Some(Normal))
+        if (file == destination.file && rank == destination.rank)
+          captureOrEmpty(side, destination, board)(() => Some(Normal))
         else if (board(file, rank).isDefined) None
         else recurse(file + fileStep, rank + rankStep)
 
-      recurse(move.source.file + fileStep, move.source.rank + rankStep)
+      recurse(source.file + fileStep, source.rank + rankStep)
     }
   }
 
@@ -128,6 +132,21 @@ object MoveValidator {
       case Piece(_, destSide) if destSide == side.opposite => f()
       case _ => None
     }
+
+  def isChecked: PieceMoveValidation = { case piece @ Piece(_, side) => move => board =>
+    def checkAttacker(attacker: Piece): MoveType => Option[MoveType] =
+      _ => board(move.destination) flatMap { p => if (p == attacker) Some(Normal) else None }
+
+    val attackFunctions = List(
+      (validateKnightMove, Knight),
+      (validateBishopMove, Bishop),
+      (validateRookMove, Rook),
+      (validateQueenMove, Queen))
+
+    attackFunctions.foldLeft[Option[MoveType]](None) { case (result, (f, attackerType)) =>
+      result.orElse(f(piece)(move)(board).flatMap(checkAttacker(Piece(attackerType, side.opposite))))
+    }
+  }
 
   def captureOrEmpty(side: Side, location: Location, board: Board)(implicit f: () => Option[MoveType]) =
     validateCapture(side, location, board) orElse f()

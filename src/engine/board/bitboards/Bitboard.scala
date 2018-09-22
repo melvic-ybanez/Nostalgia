@@ -8,7 +8,6 @@ import engine.movegen.Move.{BitboardMove, LocationMove}
 
 import scala.annotation.tailrec
 import engine.board._
-import Bitboard._
 
 /**
   * Created by melvic on 8/5/18.
@@ -37,17 +36,11 @@ object Bitboard {
       * Rotate each of the white piece positions to get the
       * corresponding black piece positions.
       */
-    @tailrec
-    def rotate(bitboard: Bitboard, i: Int): Bitboard =
-      if (i == Board.Size) bitboard
-      else {
-        val pieceTypeBitset = bitboard.bitsets(i)
-        val newBitboard = bitboard.updatePiece(blackOf(i - PieceTypeOffset),
-          _ | Transformers.rotate180(pieceTypeBitset))
-        rotate(newBitboard, i + 1)
-      }
-
-    val fullBitboard = rotate(partialBitboard, PieceTypeOffset)
+    val fullBitboard = (PieceTypeOffset until Board.Size).foldLeft(partialBitboard) { (bitboard, i) =>
+      val pieceTypeBitset = bitboard.bitsets(i)
+      bitboard.updatePiece(blackOf(i - PieceTypeOffset),
+        _ | Transformers.rotate180(pieceTypeBitset))
+    }
 
     // Swap the positions of the black king and the black queen
     val toggleKingQueen: U64 => U64 = _ ^ 0x1800000000000000L
@@ -79,7 +72,7 @@ object Bitboard {
   def oneBitIndex(bitboard: U64) = {
     @tailrec
     def recurse(ls1b: Long, i: Int): Int =
-      if (Bitboard.isNonEmptySet(ls1b)) recurse(ls1b >>> 1, i + 1)
+      if (isNonEmptySet(ls1b)) recurse(ls1b >>> 1, i + 1)
       else i
 
     recurse(leastSignificantOneBit(bitboard), -1)
@@ -87,6 +80,8 @@ object Bitboard {
 }
 
 case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove]) extends Board {
+  import Bitboard._
+
   lazy val (sideBitsets, pieceTypeBitsets) = bitsets.splitAt(PieceTypeOffset)
 
   def updatePiece(piece: Piece, f: U64 => U64): Bitboard = piece match {
@@ -101,8 +96,8 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
     updateByBitboardMove(Move[Int](move.source, move.destination, move.moveType), piece)
 
   def updateByBitboardMove(move: BitboardMove, piece: Piece): Board = {
-    val sourceBitset = Bitboard.singleBitset(move.source)
-    val destBitset = Bitboard.singleBitset(move.destination)
+    val sourceBitset = singleBitset(move.source)
+    val destBitset = singleBitset(move.destination)
     val moveBitset = sourceBitset ^ destBitset
 
     // handle captures
@@ -110,7 +105,7 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
     val oppositeSideBitset = sideBitsets(oppositeSide)
     val capturedIndex = pieceTypeBitsets.indexWhere { bitset =>
       val oppositePieceTypeBitset = bitset & oppositeSideBitset
-      Bitboard.isNonEmptySet(oppositePieceTypeBitset & destBitset)
+      isNonEmptySet(oppositePieceTypeBitset & destBitset)
     }
 
     val captureBoard =
@@ -153,16 +148,27 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
     Move[Location](move.source, move.destination, move.moveType)
   }
 
+  override def locate(piece: Piece): List[Location] = bitLocations(piece).map(intToLocation)
+
+  /**
+    * Get the locations of a particular type (and color) of a piece.
+    *
+    * Note: This may not be a very efficient approach. Consider optimizing this
+    * if speed becomes an issue.
+    */
+  def bitLocations(piece: Piece): List[Int] = {
+    @tailrec
+    def recurse(bitboard: U64, acc: List[Int]): List[Int] =
+      if (isEmptySet(bitboard)) acc
+      else recurse(bitboard ^ leastSignificantOneBit(bitboard), oneBitIndex(bitboard) :: acc)
+
+    recurse(sideBitsets(piece.side) & pieceTypeBitsets(piece.pieceType), Nil)
+  }
+
   def apply: Int => Option[Piece] = at
 
   def whitePieces = bitsets(White)
-  def blackPieces = bitsets(White)
-  def pawns = bitsets(Pawn)
-  def knights = bitsets(Knight)
-  def bishops = bitsets(Bishop)
-  def rooks = bitsets(Rook)
-  def queens = bitsets(Queen)
-  def kings = bitsets(King)
+  def blackPieces = bitsets(Black)
 
   def occupied = whitePieces | blackPieces
   def emptySquares = ~occupied

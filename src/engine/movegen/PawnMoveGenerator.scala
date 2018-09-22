@@ -12,7 +12,7 @@ import engine.board.bitboards.Bitboard
 object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   type PawnMove = (U64, U64, Side) => U64
 
-  def singlePush: PawnMove = (pawns, emptySquares, sideToMove) => {
+  def singlePush: PawnMove = { (pawns, emptySquares, sideToMove) =>
     // Move north first,
     val pushedNorth = north(pawns)
 
@@ -24,7 +24,7 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
     board & emptySquares
   }
 
-  def doublePush: PawnMove = (pawns, emptySquares, sideToMove) => {
+  def doublePush: PawnMove = { (pawns, emptySquares, sideToMove) =>
     val destinationMasks = List(
       0x00000000FF000000L,  // rank 4 (white's double push destination)
       0x000000FF00000000L   // rank 5 (black's double push destination)

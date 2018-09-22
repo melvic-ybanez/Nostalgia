@@ -17,12 +17,14 @@ trait Board {
   def at(location: Location): Option[Piece]
   def at(file: File, rank: Rank): Option[Piece] = at(Location(file, rank))
 
-  def updateByMove(move: LocationMove, piece: Piece): Board
-
   def apply(location: Location): Option[Piece] = at(location)
   def apply(file: File, rank: Rank) = at(file, rank)
 
+  def updateByMove(move: LocationMove, piece: Piece): Board
+
   def lastMove: Option[LocationMove]
+
+  def locate(piece: Piece): List[Location]
 }
 
 
