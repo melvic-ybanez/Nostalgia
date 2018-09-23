@@ -10,20 +10,20 @@ import engine.movegen.BitboardMoveGenerator._
   */
 trait BitboardMoveGenerator {
   type Generator[A] = (Bitboard, Int, Side) => A
-  type GeneratorStream[A] = Generator[Stream[A]]
+  type StreamGen[A] = Generator[Stream[A]]
   type WithMove[A] = (A, MoveType)
 
-  def destinationBitsets: GeneratorStream[WithMove[U64]]
+  def destinationBitsets: StreamGen[WithMove[U64]]
 
-  def validDestinationBitsets: GeneratorStream[WithMove[U64]] = destinationBitsets(_, _, _)
+  def validDestinationBitsets: StreamGen[WithMove[U64]] = destinationBitsets(_, _, _)
     .filter { case (board, _) => Bitboard.isNonEmptySet(board) }
 
-  def attackBitsets: GeneratorStream[U64] = validDestinationBitsets(_, _, _).filter {
+  def attackBitsets: StreamGen[U64] = validDestinationBitsets(_, _, _).filter {
     case (_, Attack) => true
     case _ => false
   } map { case (bitboard, _) => bitboard }
 
-  def destinations: GeneratorStream[WithMove[Int]] = validDestinationBitsets(_, _, _)
+  def destinations: StreamGen[WithMove[Int]] = validDestinationBitsets(_, _, _)
     .map(withMoveType(Bitboard.oneBitIndex))
 
   def emptyOrOpponent(emptySquares: U64, opponents: U64): U64 => U64 = _ & (emptySquares | opponents)

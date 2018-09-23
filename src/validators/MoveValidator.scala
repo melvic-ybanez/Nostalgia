@@ -46,7 +46,7 @@ object MoveValidator {
       }
 
     def validatePawnCapture(side: Side, direction: Int) =
-      MoveValidator.validateCapture(side, move.destination, board)(() => handlePromotion(side, Normal))
+      MoveValidator.validateCapture(side, move.destination, board)(() => handlePromotion(side, Attack))
         .orElse(validateEnPassant(side, direction))
 
     def validateEnPassant(side: Side, direction: Int) = {
@@ -98,7 +98,6 @@ object MoveValidator {
 
   def validateQueenMove: PieceMoveValidation = piece => move => board =>
         validateBishopMove(piece)(move)(board) orElse validateRookMove(piece)(move)(board)
-
 
   def validateKingMove: PieceMoveValidation = piece => move => board =>
     delta(move, abs = true) match {

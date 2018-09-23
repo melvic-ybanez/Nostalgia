@@ -1,11 +1,12 @@
 package engine.movegen
 
+import engine.board.bitboards.Bitboard
 import engine.board.bitboards.Bitboard.U64
 
 /**
   * Created by melvic on 8/7/18.
   */
-object KnightMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
+object KnightMoveGenerator extends NonSlidingMoveGenerator with PostShiftOneStep {
   def northNorthEast: U64 => U64 = north andThen northEast
 
   def northNorthWest: U64 => U64 = north andThen northWest
@@ -22,5 +23,8 @@ object KnightMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
 
   def southSouthWest: U64 => U64 = south andThen southWest
 
-  override def destinationBitsets = ???
+  override lazy val moves: Stream[U64 => U64] = Stream(
+    northEastEast, northNorthWest, northEastEast, northWestWest,
+    southEastEast, southWestWest, southSouthEast, southSouthWest
+  )
 }

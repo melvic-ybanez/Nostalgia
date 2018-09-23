@@ -70,7 +70,7 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   }
 
   def generatePawnMoves(moves: Stream[WithMove[PawnMove]],
-                        getTargets: (Bitboard, Side) => U64): GeneratorStream[WithMove[U64]] = {
+                        getTargets: (Bitboard, Side) => U64): StreamGen[WithMove[U64]] = {
     case (bitboard, source, sideToMove) =>
       val pawns = Bitboard.singleBitset(source)
       moves.map(withMoveType(_(pawns, getTargets(bitboard, sideToMove), sideToMove)))
@@ -82,6 +82,6 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   def generatePushes = generatePawnMoves(pushMoves, (board, side) => board.emptySquares)
   def generateAttacks = generatePawnMoves(attackMoves, (board, side) => board.opponents(side))
 
-  def destinationBitsets: GeneratorStream[WithMove[U64]] = (bitboard, source, sideToMove) =>
+  def destinationBitsets: StreamGen[WithMove[U64]] = (bitboard, source, sideToMove) =>
     generatePushes(bitboard, source, sideToMove) ++ generateAttacks(bitboard, source, sideToMove)
 }
