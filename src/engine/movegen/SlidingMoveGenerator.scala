@@ -83,6 +83,9 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
     slide(sliderPosition, targetSquares) & mask
   }
 
+  lazy val positiveRay = ray(positiveSlide)
+  lazy val negativeRay = ray(negativeSlide)
+
   def fileMask(sliderPosition: Int) = Masks.Files(sliderPosition % Board.Size)
 
   def rankMask(sliderPosition: Int) = Masks.Ranks(sliderPosition / Board.Size)
