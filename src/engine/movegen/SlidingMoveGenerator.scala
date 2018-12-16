@@ -10,6 +10,9 @@ import scala.annotation.tailrec
   * Created by melvic on 9/23/18.
   */
 trait SlidingMoveGenerator extends BitboardMoveGenerator {
+  /**
+    * A mapping of a slider position and a bitset to a bitset
+    */
   type Slide = (Int, U64) => U64
 
   object Masks {
@@ -83,8 +86,8 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
     slide(sliderPosition, targetSquares) & mask
   }
 
-  lazy val positiveRay = ray(positiveSlide)
-  lazy val negativeRay = ray(negativeSlide)
+  lazy val positiveRay: (Int => U64) => Slide = ray(positiveSlide)
+  lazy val negativeRay: (Int => U64) => Slide = ray(negativeSlide)
 
   def fileMask(sliderPosition: Int) = Masks.Files(sliderPosition % Board.Size)
 
@@ -93,4 +96,13 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
   def diagonalMask(sliderPosition: Int) = Masks.Diagonals(sliderPosition)
 
   def antiDiagonalMask(sliderPosition: Int) = Masks.AntiDiagonals(sliderPosition)
+
+  //def moves: Stream[Slide]
+
+  /*
+  override def destinationBitsets: StreamGen[WithMove[U64]] = { (board, source, side) =>
+    val occupied = board.occupied
+    moves map { f =>
+    }
+  }*/
 }

@@ -3,8 +3,8 @@ package engine.movegen
 /**
   * Created by melvic on 9/23/18.
   */
-object RookMoveGenerator extends SlidingMoveGenerator {
-  def north: Slide = positiveRay(fileMask)
+object RookMoveGenerator /*extends SlidingMoveGenerator*/ {
+  /*def north: Slide = positiveRay(fileMask)
 
   def south: Slide = negativeRay(fileMask)
 
@@ -12,5 +12,5 @@ object RookMoveGenerator extends SlidingMoveGenerator {
 
   def west: Slide = negativeRay(rankMask)
 
-  override def destinationBitsets = ???
+  override def destinationBitsets = ???*/
 }

@@ -1,7 +1,7 @@
 package engine.board.bitboards
 
 import engine.board.Piece._
-import engine.board.bitboards.Bitboard.{PieceTypeOffset, U64}
+import engine.board.bitboards.Bitboard.U64
 import engine.movegen.{EnPassant, Location, Move, PawnPromotion}
 import engine.movegen.Location._
 import engine.movegen.Move.{BitboardMove, LocationMove}
@@ -68,14 +68,27 @@ object Bitboard {
     * Retrieve the index of a 1 bit in a given bitboard.
     * It is assumed that the bitboard contains only one
     * 1 bit, and that the rest are zeroes.
+    *
+    * TODO: See algorithms for Bit scan forward for a more
+    * efficient approach. Also, change the name to bitScanForward.
     */
-  def oneBitIndex(bitboard: U64) = {
+  def oneBitIndex(bitset: U64) = {
     @tailrec
     def recurse(ls1b: Long, i: Int): Int =
       if (isNonEmptySet(ls1b)) recurse(ls1b >>> 1, i + 1)
       else i
 
-    recurse(leastSignificantOneBit(bitboard), -1)
+    recurse(leastSignificantOneBit(bitset), -1)
+  }
+
+  def serializeToStream(bitset: U64): Stream[U64] = {
+    @tailrec
+    def recurse(bitset: U64, bitsets: Stream[U64]): Stream[U64] =
+      if (isNonEmptySet(bitset))
+        recurse(bitset & bitset - 1, leastSignificantOneBit(bitset) +: bitsets)
+      else bitsets
+
+    recurse(bitset, Stream())
   }
 }
 
@@ -153,7 +166,7 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
   /**
     * Get the locations of a particular type (and color) of a piece.
     *
-    * Note: This may not be a very efficient approach. Consider optimizing this
+    * TODO: This may not be a very efficient approach. Consider optimizing this
     * if speed becomes an issue.
     */
   def bitLocations(piece: Piece): List[Int] = {

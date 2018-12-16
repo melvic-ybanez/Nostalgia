@@ -9,8 +9,21 @@ import engine.movegen.BitboardMoveGenerator._
   * Created by melvic on 8/5/18.
   */
 trait BitboardMoveGenerator {
+  /**
+    * A function that takes a bitboard, an integer and the side to move,
+    * and generates an instance of A, where A is a type parameter.
+    */
   type Generator[A] = (Bitboard, Int, Side) => A
+
+  /**
+    * A generator of stream
+    * @tparam A the type of the elements in the generated stream.
+    */
   type StreamGen[A] = Generator[Stream[A]]
+
+  /**
+    * A pair comprised of a value of type A and a particular move type.
+    */
   type WithMove[A] = (A, MoveType)
 
   def destinationBitsets: StreamGen[WithMove[U64]]
