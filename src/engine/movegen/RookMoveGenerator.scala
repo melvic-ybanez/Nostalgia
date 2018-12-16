@@ -12,5 +12,5 @@ object RookMoveGenerator extends SlidingMoveGenerator {
 
   def west: Slide = negativeRay(rankMask)
 
-  override def moves = ???
+  override def moves = Stream(north, south, east, west)
 }
