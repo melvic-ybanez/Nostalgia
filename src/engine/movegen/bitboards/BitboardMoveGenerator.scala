@@ -1,9 +1,9 @@
-package engine.movegen
+package engine.movegen.bitboards
 
 import engine.board.Side
 import engine.board.bitboards.Bitboard
 import engine.board.bitboards.Bitboard.U64
-import engine.movegen.BitboardMoveGenerator._
+import engine.movegen.{Attack, MoveType}
 
 /**
   * Created by melvic on 8/5/18.
@@ -16,7 +16,7 @@ trait BitboardMoveGenerator {
   type Generator[A] = (Bitboard, Int, Side) => A
 
   /**
-    * A generator of stream
+    * A generator of a stream.
     * @tparam A the type of the elements in the generated stream.
     */
   type StreamGen[A] = Generator[Stream[A]]

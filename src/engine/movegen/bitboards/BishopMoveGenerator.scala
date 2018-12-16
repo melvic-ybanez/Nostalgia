@@ -1,8 +1,4 @@
-package engine.movegen
-
-import engine.board.Piece
-import engine.board.bitboards.Bitboard
-import engine.board.bitboards.Bitboard.U64
+package engine.movegen.bitboards
 
 /**
   * Created by melvic on 9/23/18.

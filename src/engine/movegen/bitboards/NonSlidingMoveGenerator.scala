@@ -1,8 +1,8 @@
-package engine.movegen
+package engine.movegen.bitboards
 
 import engine.board.bitboards.Bitboard
 import engine.board.bitboards.Bitboard.U64
-import engine.movegen.KnightMoveGenerator.emptyOrOpponent
+import engine.movegen.Attack
 
 /**
   * Created by melvic on 8/5/18.

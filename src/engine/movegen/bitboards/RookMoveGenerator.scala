@@ -1,4 +1,4 @@
-package engine.movegen
+package engine.movegen.bitboards
 
 /**
   * Created by melvic on 9/23/18.

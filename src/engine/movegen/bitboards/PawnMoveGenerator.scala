@@ -1,10 +1,11 @@
-package engine.movegen
+package engine.movegen.bitboards
 
-import engine.board.bitboards.Bitboard._
 import engine.board.Piece._
-import BitboardMoveGenerator._
-import engine.board.{Board, Side, White}
 import engine.board.bitboards.Bitboard
+import engine.board.bitboards.Bitboard._
+import engine.board.{Board, Side, White}
+import engine.movegen._
+import engine.movegen.bitboards.BitboardMoveGenerator._
 
 /**
   * Created by melvic on 8/5/18.

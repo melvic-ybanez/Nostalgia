@@ -1,9 +1,9 @@
-package engine.movegen
+package engine.movegen.bitboards
 
-import engine.board.{Board, Piece}
-import engine.board.bitboards.{Bitboard, Transformers}
 import engine.board.bitboards.Bitboard.U64
-import engine.movegen.BishopMoveGenerator.{StreamGen, WithMove}
+import engine.board.bitboards.{Bitboard, Transformers}
+import engine.board.{Board, Piece}
+import engine.movegen.Attack
 
 import scala.annotation.tailrec
 

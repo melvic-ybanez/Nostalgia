@@ -1,4 +1,4 @@
-package engine.movegen
+package engine.movegen.bitboards
 
 import engine.board.Board
 import engine.board.bitboards.Bitboard.U64
