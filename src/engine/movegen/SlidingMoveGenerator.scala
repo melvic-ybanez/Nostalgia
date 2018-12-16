@@ -1,8 +1,9 @@
 package engine.movegen
 
-import engine.board.Board
+import engine.board.{Board, Piece}
 import engine.board.bitboards.{Bitboard, Transformers}
 import engine.board.bitboards.Bitboard.U64
+import engine.movegen.BishopMoveGenerator.{StreamGen, WithMove}
 
 import scala.annotation.tailrec
 
@@ -97,12 +98,21 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
 
   def antiDiagonalMask(sliderPosition: Int) = Masks.AntiDiagonals(sliderPosition)
 
-  //def moves: Stream[Slide]
+  def moves: Stream[Slide]
 
-  /*
   override def destinationBitsets: StreamGen[WithMove[U64]] = { (board, source, side) =>
-    val occupied = board.occupied
-    moves map { f =>
+    moves flatMap { slide =>
+      val moveBitset = slide(source, board.occupied)
+      val blocker = board.occupied & moveBitset
+
+      // remove the blocker from the set of valid destinations if it's not an enemy and is not empty
+      val validMoveBitSet = board(Bitboard.oneBitIndex(blocker)) match {
+        case Some(Piece(_, blockerSide)) if blockerSide == side =>
+          moveBitset ^ blocker
+        case _ => moveBitset
+      }
+
+      Bitboard.serializeToStream(validMoveBitSet).map((_, Attack))
     }
-  }*/
+  }
 }
