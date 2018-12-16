@@ -132,21 +132,6 @@ object MoveValidator {
       case _ => None
     }
 
-  def isChecked: PieceMoveValidation = { case piece @ Piece(_, side) => move => board =>
-    def checkAttacker(attacker: Piece): MoveType => Option[MoveType] =
-      _ => board(move.destination) flatMap { p => if (p == attacker) Some(Normal) else None }
-
-    val attackFunctions = List(
-      (validateKnightMove, Knight),
-      (validateBishopMove, Bishop),
-      (validateRookMove, Rook),
-      (validateQueenMove, Queen))
-
-    attackFunctions.foldLeft[Option[MoveType]](None) { case (result, (f, attackerType)) =>
-      result.orElse(f(piece)(move)(board).flatMap(checkAttacker(Piece(attackerType, side.opposite))))
-    }
-  }
-
   def captureOrEmpty(side: Side, location: Location, board: Board)(implicit f: () => Option[MoveType]) =
     validateCapture(side, location, board) orElse f()
 
