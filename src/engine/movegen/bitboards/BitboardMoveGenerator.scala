@@ -3,6 +3,7 @@ package engine.movegen.bitboards
 import engine.board.Side
 import engine.board.bitboards.Bitboard
 import engine.board.bitboards.Bitboard.U64
+import engine.movegen.bitboards.BitboardMoveGenerator.{withMoveType}
 import engine.movegen.{Attack, MoveType}
 
 /**
@@ -16,7 +17,7 @@ trait BitboardMoveGenerator {
   type Generator[A] = (Bitboard, Int, Side) => A
 
   /**
-    * A generator of a stream.
+    * A stream generator.
     * @tparam A the type of the elements in the generated stream.
     */
   type StreamGen[A] = Generator[Stream[A]]

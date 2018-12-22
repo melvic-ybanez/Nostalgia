@@ -1,7 +1,7 @@
 package engine.board
 
 import engine.board.bitboards.Bitboard
-import engine.movegen.{File, Location, Move, Rank}
+import engine.movegen._
 import engine.movegen.Location._
 import engine.movegen.Move.LocationMove
 
@@ -25,6 +25,8 @@ trait Board {
   def lastMove: Option[LocationMove]
 
   def locate(piece: Piece): List[Location]
+
+  def isChecked(side: Side): Boolean
 }
 
 

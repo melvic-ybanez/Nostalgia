@@ -18,6 +18,8 @@ sealed trait Side {
     case White => Black
     case Black => White
   }
+
+  def of: PieceType => Piece = Piece(_, this)
 }
 
 case object White extends Side

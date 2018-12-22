@@ -2,12 +2,13 @@ package engine.board.bitboards
 
 import engine.board.Piece._
 import engine.board.bitboards.Bitboard.U64
-import engine.movegen.{EnPassant, Location, Move, PawnPromotion}
 import engine.movegen.Location._
 import engine.movegen.Move.{BitboardMove, LocationMove}
 
 import scala.annotation.tailrec
 import engine.board._
+import engine.movegen._
+import engine.movegen.bitboards.{BishopMoveGenerator, KnightMoveGenerator, PawnMoveGenerator, RookMoveGenerator}
 
 /**
   * Created by melvic on 8/5/18.
@@ -85,7 +86,7 @@ object Bitboard {
     @tailrec
     def recurse(bitset: U64, bitsets: Stream[U64]): Stream[U64] =
       if (isNonEmptySet(bitset))
-        recurse(bitset & bitset - 1, leastSignificantOneBit(bitset) +: bitsets)
+        recurse(bitset & bitset - 1, leastSignificantOneBit(bitset) #:: bitsets)
       else bitsets
 
     recurse(bitset, Stream())
@@ -144,8 +145,9 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
 
   def updateLastMove(move: BitboardMove) = Bitboard(bitsets, Some(move))
 
-  def at(position: Int): Option[Piece] = {
-    val bitset = Bitboard.singleBitset(position)
+  def at(position: Int): Option[Piece] = at(Bitboard.singleBitset(position))
+
+  def at(bitset: U64): Option[Piece] = {
     val sideIndex = sideBitsets.indexWhere(intersectedWith(bitset))
     if (sideIndex == -1) None
     else {
@@ -161,21 +163,25 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
     Move[Location](move.source, move.destination, move.moveType)
   }
 
-  override def locate(piece: Piece): List[Location] = bitLocations(piece).map(intToLocation)
+  override def locate(piece: Piece): List[Location] = bitPositions(piece).map(intToLocation)
 
   /**
-    * Get the locations of a particular type (and color) of a piece.
+    * Get the positions of a particular type (and color) of a piece.
     *
     * TODO: This may not be a very efficient approach. Consider optimizing this
     * if speed becomes an issue.
     */
-  def bitLocations(piece: Piece): List[Int] = {
+  def bitPositions(piece: Piece): List[Int] = {
     @tailrec
     def recurse(bitboard: U64, acc: List[Int]): List[Int] =
       if (isEmptySet(bitboard)) acc
       else recurse(bitboard ^ leastSignificantOneBit(bitboard), oneBitIndex(bitboard) :: acc)
 
-    recurse(sideBitsets(piece.side) & pieceTypeBitsets(piece.pieceType), Nil)
+    recurse(pieceBitset(piece), Nil)
+  }
+
+  def pieceBitset: Piece => U64 = {
+    case Piece(side, pieceType) => sideBitsets(side) & pieceTypeBitsets(pieceType)
   }
 
   def apply: Int => Option[Piece] = at
@@ -186,4 +192,19 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
   def occupied = whitePieces | blackPieces
   def emptySquares = ~occupied
   def opponents(side: Side) = bitsets(side.opposite)
+
+  override def isChecked(side: Side) = {
+    val kingPosition = bitPositions(side.of(King)).head
+    val moveGenerators = (PawnMoveGenerator, Pawn) ::
+      (KnightMoveGenerator, Knight) ::
+      (BishopMoveGenerator, Bishop) ::
+      (RookMoveGenerator, Rook) :: Nil
+
+    moveGenerators.exists { case (generator, pieceType) =>
+      generator.validDestinationBitsets(this, kingPosition, side) exists {
+        case (destination, Attack) => at(destination).exists(_.pieceType == pieceType)
+        case _ => false
+      }
+    }
+  }
 }
