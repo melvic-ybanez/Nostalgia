@@ -18,19 +18,21 @@ trait BoardAccessor {
   def move(source: Location, destination: Location): LocationMove =
     accessorMove(Move[Location](source, destination))
 
-  def moveBoard(move: Move[Location]): BoardAccessor = {
+  def moveBoard(move: Move[Location]): Option[BoardAccessor] = {
     val netMove = accessorMove(move)
-    board(netMove.source).map { piece =>
-      updatedBoard(_.updateByMove(netMove, piece))
-    } getOrElse this
+    board(netMove.source).flatMap { piece =>
+      val newBoard = board.updateByMove(netMove, piece)
+      if (newBoard.isChecked(piece.side)) None
+      else Some(updatedBoard(newBoard))
+    }
   }
 
-  def updatedBoard(f: Board => Board): BoardAccessor = {
-    val accessorType = this match {
+  def updatedBoard(f: => Board): BoardAccessor = {
+    val accessor = this match {
       case SimpleBoardAccessor(_) => SimpleBoardAccessor
       case RotatedBoardAccessor(_) => RotatedBoardAccessor
     }
-    accessorType(f(board))
+    accessor(f)
   }
 }
 

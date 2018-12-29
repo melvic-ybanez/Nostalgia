@@ -23,7 +23,7 @@ object KnightMoveGenerator extends NonSlidingMoveGenerator with PostShiftOneStep
   def southSouthWest: U64 => U64 = south andThen southWest
 
   override lazy val moves: Stream[U64 => U64] = Stream(
-    northEastEast, northNorthWest, northEastEast, northWestWest,
-    southEastEast, southWestWest, southSouthEast, southSouthWest
+    northEastEast, northNorthEast, northNorthWest, northWestWest,
+    southWestWest, southSouthWest, southSouthEast, southEastEast
   )
 }

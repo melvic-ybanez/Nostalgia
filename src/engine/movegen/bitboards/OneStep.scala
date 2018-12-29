@@ -8,7 +8,7 @@ import engine.utils.Masks
   * Created by melvic on 8/5/18.
   */
 trait OneStep {
-  type Step = U64 => U64
+  import OneStep._
 
   def north: Step
   def south: Step
@@ -19,6 +19,10 @@ trait OneStep {
   def northWest: Step = north andThen west
   def southEast: Step = south andThen east
   def southWest: Step = south andThen west
+}
+
+object OneStep {
+  type Step = U64 => U64
 }
 
 trait PostShiftOneStep extends OneStep {

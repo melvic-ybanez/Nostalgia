@@ -17,41 +17,71 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
   type Slide = (Int, U64) => U64
 
   object Masks {
-    lazy val Files = Array(
-      0x0101010101010101L,
-      0x0202020202020202L,
-      0x0404040404040404L,
-      0x0808080808080808L,
-      0x1010101010101010L,
-      0x2020202020202020L,
-      0x4040404040404040L,
-      0x8080808080808080L)
+    lazy val Files = (0 until Board.Size).map { i =>
+      // position the one-bit (representing the file) in the rank
+      val rank = Math.pow(2, i).toLong
 
-    lazy val Ranks = Array(
-      0x00000000000000ffL,
-      0x000000000000ff00L,
-      0x0000000000ff0000L,
-      0x00000000ff000000L,
-      0x000000ff00000000L,
-      0x0000ff0000000000L,
-      0x00ff000000000000L,
-      0xff00000000000000L)
-
-    // TODO: Consider optimizing this
-    def diagonals(f: U64 => U64) = (0 until Board.Size * Board.Size).foldLeft(List[U64]()) { (acc, i) =>
-      val bitboard = Bitboard.singleBitset(i)
-
-      @tailrec
-      def recurse(bitboard: U64, acc: U64): U64 =
-        if (Bitboard.isEmptySet(bitboard)) acc
-        else recurse(f(bitboard), acc | bitboard)
-
-      recurse(bitboard, 0L) :: acc
+      // replicate the rank
+      (1 until Board.Size).foldLeft(rank) { (bitset, rankIndex) =>
+        bitset | (bitset << Board.Size)
+      }
     }
 
-    lazy val oneStep = new PostShiftOneStep {}
-    lazy val Diagonals = diagonals(oneStep.northEast) ++ diagonals(oneStep.southWest)
-    lazy val AntiDiagonals = diagonals(oneStep.northWest) ++ diagonals(oneStep.southEast)
+    /**
+      * A sequence of bitsets, each having at least one rank
+      * filled with 1s at a given file.
+      */
+    lazy val Ranks = (0 until Board.Size).map(file => 0xffL << Board.Size * file)
+
+    /*lazy val Diagonals = diagonals(bitset => oneStep.northEast(bitset) | oneStep.southWest(bitset))
+    lazy val Diagonals = Array(
+      0x8040201008040201L, 0x4020100804020100L,
+      0x2010080402010000L, 0x1008040201000000L,
+      0x0804020100000000L, 0x0402010000000000L,
+      0x0201000000000000L, 0x0100000000000000L,
+      0x0000000000000000L, 0x0000000000000080L,
+      0x0000000000008040L, 0x0000000000804020L,
+      0x0000000000804010L, 0x0000000080401008L,
+      0x0000008040100804L, 0x0000804010080402L
+    )*/
+    def diagonals = (0 until Board.Size * 2).map { i =>
+      val oneStep = new PostShiftOneStep {}
+      val init: Long = 1 << Board.Size * i
+      (i + 1 until Board.Size).foldLeft(init) { (bitset, _) =>
+        bitset | oneStep.northEast(bitset)
+      }
+    }
+
+    /**
+      * 07 06 05 04 03 02 01 00
+      * 06 05 04 03 02 01 00 15
+      * 05 04 03 02 01 00 15 14
+      * 04 03 02 01 00 15 14 13
+      * 03 02 01 00 15 14 13 12
+      * 02 01 00 15 14 13 12 11
+      * 01 00 15 14 13 12 11 10
+      * 00 15 14 13 12 11 10 09
+      */
+    lazy val Diagonals = {
+      val upperDiagonals = diagonals
+      val lowerDiagonals = (1 until Board.Size).map(i => Transformers.rotate180(upperDiagonals(i)))
+      upperDiagonals ++ IndexedSeq(0L) ++ lowerDiagonals
+    }
+
+    /**
+      * 00 15 14 13 12 11 10 09
+      * 01 00 15 14 13 12 11 10
+      * 02 01 00 15 14 13 12 11
+      * 03 02 01 00 15 14 13 12
+      * 04 03 02 01 00 15 14 13
+      * 05 04 03 02 01 00 15 14
+      * 06 05 04 03 02 01 00 15
+      * 07 06 05 04 03 02 01 00
+      */
+    //lazy val AntiDiagonals = diagonals(bitset => oneStep.northWest(bitset) | oneStep.southEast(bitset))
+    lazy val AntiDiagonals = Array(
+
+    )
   }
 
   /**

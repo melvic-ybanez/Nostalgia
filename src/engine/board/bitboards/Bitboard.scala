@@ -8,7 +8,10 @@ import engine.movegen.Move.{BitboardMove, LocationMove}
 import scala.annotation.tailrec
 import engine.board._
 import engine.movegen._
-import engine.movegen.bitboards.{BishopMoveGenerator, KnightMoveGenerator, PawnMoveGenerator, RookMoveGenerator}
+import engine.movegen.bitboards.{
+  BishopMoveGenerator, KnightMoveGenerator,
+  PawnMoveGenerator, RookMoveGenerator
+}
 
 /**
   * Created by melvic on 8/5/18.
@@ -181,7 +184,7 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
   }
 
   def pieceBitset: Piece => U64 = {
-    case Piece(side, pieceType) => sideBitsets(side) & pieceTypeBitsets(pieceType)
+    case Piece(pieceType, side) => sideBitsets(side) & pieceTypeBitsets(pieceType)
   }
 
   def apply: Int => Option[Piece] = at
@@ -194,15 +197,20 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
   def opponents(side: Side) = bitsets(side.opposite)
 
   override def isChecked(side: Side) = {
-    val kingPosition = bitPositions(side.of(King)).head
-    val moveGenerators = (PawnMoveGenerator, Pawn) ::
-      (KnightMoveGenerator, Knight) ::
-      (BishopMoveGenerator, Bishop) ::
-      (RookMoveGenerator, Rook) :: Nil
+    val kingPosition = oneBitIndex(pieceBitset(side.of(King)))
+    val moveGenerators = (PawnMoveGenerator, Pawn :: Nil) ::
+      (KnightMoveGenerator, Knight :: Nil) ::
+      (BishopMoveGenerator, Bishop :: Queen :: Nil) :: Nil
+      //(RookMoveGenerator, Rook :: Queen :: Nil) :: Nil
 
-    moveGenerators.exists { case (generator, pieceType) =>
+    moveGenerators.exists { case (generator, pieceTypes) =>
       generator.validDestinationBitsets(this, kingPosition, side) exists {
-        case (destination, Attack) => at(destination).exists(_.pieceType == pieceType)
+        case (destination, Attack) => at(destination).exists {
+          case Piece(destType, destSide) =>
+            println(destType)
+            println(destSide)
+            pieceTypes.contains(destType) && destSide == side.opposite
+        }
         case _ => false
       }
     }

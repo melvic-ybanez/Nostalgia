@@ -43,7 +43,7 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
   override
   def newGame(lowerSide: Side): Unit = {
     sideToMove = lowerSide
-    boardAccessor = boardAccessor.updatedBoard(_ => initialBoard)
+    boardAccessor = boardAccessor.updatedBoard(initialBoard)
     lowerSide match {
       case Black => rotate()
       case _ => boardView.resetBoard()
@@ -53,10 +53,12 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
   override
   def move(move: LocationMove): Boolean =
     validateMove(boardAccessor.accessorMove(move))(boardAccessor.board).exists { moveType =>
-      boardAccessor = boardAccessor.moveBoard(move.updatedType(moveType))
-      boardView.resetBoard()
-      boardView.highlight(move.destination)
-      sideToMove = sideToMove.opposite
-      true
+      boardAccessor.moveBoard(move.updatedType(moveType)).exists { accessor =>
+        boardAccessor = accessor
+        boardView.resetBoard()
+        boardView.highlight(move.destination)
+        sideToMove = sideToMove.opposite
+        true
+      }
     }
 }
