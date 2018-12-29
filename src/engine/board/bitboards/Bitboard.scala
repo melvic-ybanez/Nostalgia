@@ -200,8 +200,8 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
     val kingPosition = oneBitIndex(pieceBitset(side.of(King)))
     val moveGenerators = (PawnMoveGenerator, Pawn :: Nil) ::
       (KnightMoveGenerator, Knight :: Nil) ::
-      (BishopMoveGenerator, Bishop :: Queen :: Nil) :: Nil
-      //(RookMoveGenerator, Rook :: Queen :: Nil) :: Nil
+      (BishopMoveGenerator, Bishop :: Queen :: Nil) ::
+      (RookMoveGenerator, Rook :: Queen :: Nil) :: Nil
 
     moveGenerators.exists { case (generator, pieceTypes) =>
       generator.validDestinationBitsets(this, kingPosition, side) exists {
