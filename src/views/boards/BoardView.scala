@@ -38,31 +38,46 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
   init()
 
   def init() {
-    addRow(0, createRanksPane, canvas)
-    add(createFilesPane, 1, 1)
-
     setPadding(new Insets(20))
     setStyle("-fx-background-color: white")
 
     resetBoard()
 
-    def createRanksPane: GridPane =
-      (8 to 1 by -1).foldLeft(new GridPane) { (ranksPane, rank) =>
-        val textPane = new BorderPane
-        textPane.setMinSize(squareSize / 2, squareSize)
-        textPane.setPadding(new Insets(0, 16, 0, 15))
+    // register events
+    val hoverEventHandler = PieceHoverEventHandler(this)
+    canvas.addEventHandler(MouseEvent.MOUSE_MOVED, hoverEventHandler)
+    canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, MoveEventHandler(this, hoverEventHandler))
+  }
 
-        val text = new Text(String.valueOf(rank))
-        text.setTextAlignment(TextAlignment.CENTER)
-        text.setFill(Color.GRAY)
-        text.setFont(Font.font(18))
+  def createRanksPane: GridPane = {
+    val ranks =
+      if (boardController.boardAccessor.isRotated) 1 to 8 by 1
+      else 8 to 1 by -1
 
-        textPane.setCenter(text)
-        ranksPane.addColumn(0, textPane)
-        ranksPane
-      }
+    ranks.foldLeft(new GridPane) { (ranksPane, rank) =>
+      val textPane = new BorderPane
+      textPane.setMinSize(squareSize / 2, squareSize)
+      textPane.setPadding(new Insets(0, 16, 0, 15))
 
-    def createFilesPane = "ABCDEFGH".foldLeft(new GridPane) { (filesPane, label) =>
+      val text = new Text(String.valueOf(rank))
+      text.setTextAlignment(TextAlignment.CENTER)
+      text.setFill(Color.GRAY)
+      text.setFont(Font.font(18))
+
+      textPane.setCenter(text)
+      ranksPane.addColumn(0, textPane)
+      ranksPane
+    }
+  }
+
+  def createFilesPane = {
+    val files = {
+      val files = "ABCDEFGH"
+      if (boardController.boardAccessor.isRotated) files.reverse
+      else files
+    }
+
+    files.foldLeft(new GridPane) { (filesPane, label) =>
       val textPane = new TextFlow()
       textPane.setMinSize(squareSize, squareSize / 2)
       textPane.setTextAlignment(TextAlignment.CENTER)
@@ -76,11 +91,6 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
       filesPane.addRow(0, textPane)
       filesPane
     }
-
-    // register events
-    val hoverEventHandler = PieceHoverEventHandler(this)
-    canvas.addEventHandler(MouseEvent.MOUSE_MOVED, hoverEventHandler)
-    canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, MoveEventHandler(this, hoverEventHandler))
   }
 
   def resetBoard(gc: GraphicsContext): Unit = {
@@ -98,6 +108,10 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
         boardController.boardAccessor(row, col).foreach(drawPiece(gc, x, y))
       }
     }
+
+    getChildren.clear()
+    addRow(0, createRanksPane, canvas)
+    add(createFilesPane, 1, 1)
   }
 
   override def resetBoard(): Unit = resetBoard(canvas.getGraphicsContext2D)

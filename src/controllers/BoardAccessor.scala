@@ -34,6 +34,11 @@ trait BoardAccessor {
     }
     accessor(f)
   }
+
+  lazy val isRotated = this match {
+    case SimpleBoardAccessor(_) => false
+    case RotatedBoardAccessor(_) => true
+  }
 }
 
 case class SimpleBoardAccessor(board: Board) extends BoardAccessor

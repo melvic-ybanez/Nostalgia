@@ -44,10 +44,13 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
     boardAccessor = boardAccessor.updatedBoard(initialBoard)
     lowerSide match {
       case Black => boardAccessor match {
-        case RotatedBoardAccessor(_) => boardView.resetBoard()
-        case _ => rotate()
+        case SimpleBoardAccessor(_) => rotate()
+        case _ => boardView.resetBoard()
       }
-      case _ => boardView.resetBoard()
+      case White => boardAccessor match {
+        case RotatedBoardAccessor(_) => rotate()
+        case _ => boardView.resetBoard()
+      }
     }
   }
 
