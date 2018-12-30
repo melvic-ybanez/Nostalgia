@@ -207,8 +207,6 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
       generator.validDestinationBitsets(this, kingPosition, side) exists {
         case (destination, Attack) => at(destination).exists {
           case Piece(destType, destSide) =>
-            println(destType)
-            println(destSide)
             pieceTypes.contains(destType) && destSide == side.opposite
         }
         case _ => false

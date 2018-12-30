@@ -31,8 +31,7 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
 
   override lazy val boardView = DefaultBoardView(this)
 
-  override
-  def rotate(): Unit = {
+  override def rotate(): Unit = {
     boardAccessor = boardAccessor match {
       case SimpleBoardAccessor(b) => RotatedBoardAccessor(b)
       case RotatedBoardAccessor(b) => SimpleBoardAccessor(b)
@@ -40,18 +39,19 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
     boardView.resetBoard()
   }
 
-  override
-  def newGame(lowerSide: Side): Unit = {
-    sideToMove = lowerSide
+  override def newGame(lowerSide: Side): Unit = {
+    sideToMove = White
     boardAccessor = boardAccessor.updatedBoard(initialBoard)
     lowerSide match {
-      case Black => rotate()
+      case Black => boardAccessor match {
+        case RotatedBoardAccessor(_) => boardView.resetBoard()
+        case _ => rotate()
+      }
       case _ => boardView.resetBoard()
     }
   }
 
-  override
-  def move(move: LocationMove): Boolean =
+  override def move(move: LocationMove): Boolean =
     validateMove(boardAccessor.accessorMove(move))(boardAccessor.board).exists { moveType =>
       boardAccessor.moveBoard(move.updatedType(moveType)).exists { accessor =>
         boardAccessor = accessor
