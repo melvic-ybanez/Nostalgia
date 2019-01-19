@@ -23,6 +23,10 @@ trait BoardAccessor {
     board(netMove.source).flatMap { piece =>
       val newBoard = board.updateByMove(netMove, piece)
       if (newBoard.isChecked(piece.side)) None
+      else if (newBoard.isCheckmate(piece.side)) {
+        println(piece.side + " wins by checkmate")
+        Some(updatedBoard(newBoard))
+      }
       else Some(updatedBoard(newBoard))
     }
   }

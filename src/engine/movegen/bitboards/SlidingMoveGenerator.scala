@@ -9,12 +9,7 @@ import engine.movegen.Attack
 /**
   * Created by melvic on 9/23/18.
   */
-trait SlidingMoveGenerator extends BitboardMoveGenerator {
-  /**
-    * A mapping of a slider position and a bitset to a bitset
-    */
-  type Slide = (Int, U64) => U64
-
+object SlidingMoveGenerator {
   object Masks {
     lazy val Files = (0 until Board.Size).map { i =>
       // position the one-bit (representing the file) in the rank
@@ -32,31 +27,35 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
       */
     lazy val Ranks = (0 until Board.Size).map(file => 0xffL << Board.Size * file)
 
-    def diagonals = (0 until Board.Size).map { i =>
-      val oneStep = new PostShiftOneStep {}
-      val init: Long = 1 << Board.Size * i
-      (i + 1 until Board.Size).foldLeft(init) { (bitset, _) =>
-        bitset | oneStep.northEast(bitset)
-      }
-    }
+    def diagonals(start: Int => Int, step: OneStep.Step) = {
+      def half(initStart: Int => Int, initStep: Int => Int) =
+        (0 until Board.Size).map { i =>
+          val init = (1: U64) << Board.Size * start(initStart(i)) + initStep(i)
+          (i + 1 until Board.Size).foldLeft(init) { (bitset, _) =>
+            bitset | step(bitset)
+          }
+        }
 
-    /**
-      * 07 06 05 04 03 02 01 00
-      * 06 05 04 03 02 01 00 15
-      * 05 04 03 02 01 00 15 14
-      * 04 03 02 01 00 15 14 13
-      * 03 02 01 00 15 14 13 12
-      * 02 01 00 15 14 13 12 11
-      * 01 00 15 14 13 12 11 10
-      * 00 15 14 13 12 11 10 09
-      */
-    lazy val Diagonals = {
-      val upperDiagonals = diagonals
-      val lowerDiagonals = (1 until Board.Size).map(i => Transformers.rotate180(upperDiagonals(i)))
+      val upperDiagonals = half(identity, _ => 0)
+      val lowerDiagonals = half(_ => 0, identity)
       val index8 = IndexedSeq(0L)
 
-      upperDiagonals ++ index8 ++ lowerDiagonals.reverse
+      upperDiagonals ++ index8 ++ lowerDiagonals.tail.reverse
     }
+
+    lazy val oneStep = new PostShiftOneStep {}
+
+    /**
+      * 07 06 05 04 03 02 01 00
+      * 06 05 04 03 02 01 00 15
+      * 05 04 03 02 01 00 15 14
+      * 04 03 02 01 00 15 14 13
+      * 03 02 01 00 15 14 13 12
+      * 02 01 00 15 14 13 12 11
+      * 01 00 15 14 13 12 11 10
+      * 00 15 14 13 12 11 10 09
+      */
+    lazy val Diagonals: IndexedSeq[U64] = diagonals(identity, oneStep.northEast)
 
     /**
       * 00 15 14 13 12 11 10 09
@@ -68,8 +67,38 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
       * 06 05 04 03 02 01 00 15
       * 07 06 05 04 03 02 01 00
       */
-    lazy val AntiDiagonals = Diagonals.map(Transformers.verticalFlip)
+    lazy val AntiDiagonals = diagonals(Board.Size - 1 - _, oneStep.southEast)
   }
+
+  def stringifyMask(xs: IndexedSeq[U64]): String = {
+    val tableSize = Board.Size
+    def row(rowNumber: Int) = (0 until tableSize).map { i =>
+      xs.indexWhere { x =>
+        val step = rowNumber * tableSize + i
+        val bitset = (1: U64) << step
+        Bitboard.isNonEmptySet(x & bitset)
+      }
+    }
+    val table = (0 until tableSize).map(row).reverse
+
+    // TODO: Use built-in string formatter
+    def format(x: Int) = {
+      val xStr = String.valueOf(x)
+      if (xStr.length == 1) "0" + xStr else xStr
+    }
+
+    table.map(_.map(format).mkString(" ")).mkString("\n")
+  }
+}
+
+trait SlidingMoveGenerator extends BitboardMoveGenerator {
+  import SlidingMoveGenerator._
+
+  /**
+    * A mapping of a slider position and a bitset to a bitset
+    */
+  type Slide = (Int, U64) => U64
+  type Mask = Int => U64
 
   /**
     * Multiply the slider by 2 to move it one step closer to the blocker.
@@ -104,14 +133,18 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
     slide(sliderPosition, targetSquares) & mask
   }
 
-  lazy val positiveRay: (Int => U64) => Slide = ray(positiveSlide)
-  lazy val negativeRay: (Int => U64) => Slide = ray(negativeSlide)
+  def positiveRay: Mask => Slide = ray(positiveSlide)
+  def negativeRay: Mask => Slide = ray(negativeSlide)
+
+  def lineAttacks: Mask => Slide = ray({ (sliderPosition, occupied) =>
+    positiveSlide(sliderPosition, occupied) ^ negativeSlide(sliderPosition, occupied)
+  })
 
   def fileMask(sliderPosition: Int) = Masks.Files(sliderPosition % Board.Size)
 
   def rankMask(sliderPosition: Int) = Masks.Ranks(sliderPosition / Board.Size)
 
-  def diagonalMask: Int => U64 = getDiagonalMask {
+  def diagonalMask: Mask = getDiagonalMask {
     (rankIndex, fileIndex) => Masks.Diagonals((rankIndex - fileIndex) & 15)
   }
 
@@ -132,7 +165,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
       val moveBitset = slide(source, board.occupied)
       val blocker = board.occupied & moveBitset
 
-      // remove the blocker from the set of valid destinations if it's not an enemy and is not empty
+      // remove the blocker from the set of valid destinations if it's neither an enemy nor empty
       val validMoveBitSet = board(Bitboard.oneBitIndex(blocker)) match {
         case Some(Piece(_, blockerSide)) if blockerSide == side =>
           moveBitset ^ blocker

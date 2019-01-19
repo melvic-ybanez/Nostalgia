@@ -27,6 +27,8 @@ trait Board {
   def locate(piece: Piece): List[Location]
 
   def isChecked(side: Side): Boolean
+
+  def isCheckmate(winningSide: Side): Boolean
 }
 
 

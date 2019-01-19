@@ -36,7 +36,7 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   }
 
   def attack(northAttack: U64 => U64, southAttack: U64 => U64): PawnMove = {
-    case (pawns, opponents, sideToMove) =>
+    (pawns, opponents, sideToMove) =>
       val move = sideToMove match {
         case White => northAttack
         case _ => southAttack
@@ -47,27 +47,26 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   def attackEast: PawnMove = attack(northEast, southEast)
   def attackWest: PawnMove = attack(northWest, southWest)
 
-  def enPassant: PawnMove = {
-    case (pawns, opponent, sideToMove) =>
-      // Decide whether to move north or south based on the color
-      val (setwiseOp, action): (SetwiseOp, U64 => U64) = sideToMove match {
-        case White => (_ << _, north)
-        case _ => (_ >> _, south)
-      }
+  def enPassant: PawnMove = { (pawns, opponent, sideToMove) =>
+    // Decide whether to move north or south based on the color
+    val (setwiseOp, action): (SetwiseOp, U64 => U64) = sideToMove match {
+      case White => (_ << _, north)
+      case _ => (_ >> _, south)
+    }
 
-      val newOpponent = setwiseOp(pawns, Board.Size)
+    val newOpponent = setwiseOp(pawns, Board.Size)
 
-      // Decide whether to move east or west for the attack
-      val attack = {
-        val pawnPosition = Bitboard.oneBitIndex(pawns)
-        val opponentPosition = Bitboard.oneBitIndex(opponent)
-        action andThen (
-          if (pawnPosition % Board.Size > opponentPosition % Board.Size) west
-          else east
-        )
-      }
+    // Decide whether to move east or west for the attack
+    val attack = {
+      val pawnPosition = Bitboard.oneBitIndex(pawns)
+      val opponentPosition = Bitboard.oneBitIndex(opponent)
+      action andThen (
+        if (pawnPosition % Board.Size > opponentPosition % Board.Size) west
+        else east
+      )
+    }
 
-      attack(pawns) & newOpponent
+    attack(pawns) & newOpponent
   }
 
   def generatePawnMoves(moves: Stream[WithMove[PawnMove]],

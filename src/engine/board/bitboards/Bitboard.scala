@@ -8,10 +8,7 @@ import engine.movegen.Move.{BitboardMove, LocationMove}
 import scala.annotation.tailrec
 import engine.board._
 import engine.movegen._
-import engine.movegen.bitboards.{
-  BishopMoveGenerator, KnightMoveGenerator,
-  PawnMoveGenerator, RookMoveGenerator
-}
+import engine.movegen.bitboards._
 
 /**
   * Created by melvic on 8/5/18.
@@ -94,6 +91,8 @@ object Bitboard {
 
     recurse(bitset, Stream())
   }
+
+  def toSquareIndexes: U64 => Stream[Int] = serializeToStream(_).map(oneBitIndex)
 }
 
 case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove]) extends Board {
@@ -183,8 +182,8 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
     recurse(pieceBitset(piece), Nil)
   }
 
-  def pieceBitset: Piece => U64 = {
-    case Piece(pieceType, side) => sideBitsets(side) & pieceTypeBitsets(pieceType)
+  def pieceBitset: Piece => U64 = { case Piece(pieceType, side) =>
+    sideBitsets(side) & pieceTypeBitsets(pieceType)
   }
 
   def apply: Int => Option[Piece] = at
@@ -201,15 +200,30 @@ case class Bitboard(bitsets: Array[U64], lastBitboardMove: Option[BitboardMove])
     val moveGenerators = (PawnMoveGenerator, Pawn :: Nil) ::
       (KnightMoveGenerator, Knight :: Nil) ::
       (BishopMoveGenerator, Bishop :: Queen :: Nil) ::
-      (RookMoveGenerator, Rook :: Queen :: Nil) :: Nil
+      (RookMoveGenerator, Rook :: Queen :: Nil) ::
+      (KingMoveGenerator, King :: Nil) :: Nil
 
     moveGenerators.exists { case (generator, pieceTypes) =>
-      generator.validDestinationBitsets(this, kingPosition, side) exists {
+      generator.nonEmptyDestinationBitsets(this, kingPosition, side) exists {
         case (destination, Attack) => at(destination).exists {
           case Piece(destType, destSide) =>
             pieceTypes.contains(destType) && destSide == side.opposite
         }
         case _ => false
+      }
+    }
+  }
+
+  override def isCheckmate(winningSide:Side) = {
+    val loosingSide = winningSide.opposite
+    val piecesToMove = Pawn :: Knight :: Bishop :: Rook :: Queen :: King :: Nil
+
+    !piecesToMove.exists { pieceType =>
+      val piece = Piece(pieceType, loosingSide)
+      val pieceIndexes = toSquareIndexes(pieceBitset(piece))
+      pieceIndexes.exists { squareIndex =>
+        val moveGenerator = BitboardMoveGenerator.moveGenerator(pieceType)
+        moveGenerator.validMoves(this, squareIndex, loosingSide).nonEmpty
       }
     }
   }

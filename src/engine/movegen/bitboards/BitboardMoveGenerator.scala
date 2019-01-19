@@ -1,10 +1,11 @@
 package engine.movegen.bitboards
 
-import engine.board.Side
+import engine.board._
 import engine.board.bitboards.Bitboard
 import engine.board.bitboards.Bitboard.U64
-import engine.movegen.bitboards.BitboardMoveGenerator.{withMoveType}
-import engine.movegen.{Attack, MoveType}
+import engine.movegen.Move.BitboardMove
+import engine.movegen.bitboards.BitboardMoveGenerator.withMoveType
+import engine.movegen.{Attack, Move, MoveType}
 
 /**
   * Created by melvic on 8/5/18.
@@ -29,16 +30,26 @@ trait BitboardMoveGenerator {
 
   def destinationBitsets: StreamGen[WithMove[U64]]
 
-  def validDestinationBitsets: StreamGen[WithMove[U64]] = destinationBitsets(_, _, _)
-    .filter { case (board, _) => Bitboard.isNonEmptySet(board) }
+  def nonEmptyDestinationBitsets: StreamGen[WithMove[U64]] = destinationBitsets(_, _, _)
+    .filter { case (bitboard, _) => Bitboard.isNonEmptySet(bitboard) }
 
-  def attackBitsets: StreamGen[U64] = validDestinationBitsets(_, _, _).filter {
+  def attackBitsets: StreamGen[U64] = nonEmptyDestinationBitsets(_, _, _).filter {
     case (_, Attack) => true
     case _ => false
   } map { case (bitboard, _) => bitboard }
 
-  def destinations: StreamGen[WithMove[Int]] = validDestinationBitsets(_, _, _)
+  def destinations: StreamGen[WithMove[Int]] = nonEmptyDestinationBitsets(_, _, _)
     .map(withMoveType(Bitboard.oneBitIndex))
+
+  def validMoves: StreamGen[WithMove[BitboardMove]] = { (bitboard, source, side) =>
+    destinations(bitboard, source, side).map { case (destination, moveType) =>
+      (Move[Int](source, destination, moveType), moveType)
+    }.filter { case (move, moveType) =>
+      bitboard(source).exists { piece =>
+        !bitboard.updateByBitboardMove(move, piece).isChecked(side)
+      }
+    }
+  }
 
   def emptyOrOpponent(emptySquares: U64, opponents: U64): U64 => U64 = _ & (emptySquares | opponents)
 }
@@ -46,6 +57,15 @@ trait BitboardMoveGenerator {
 object BitboardMoveGenerator {
   def withMoveType[A, B](f: A => B)(pair: (A, MoveType)) = pair match {
     case (value, moveType) => (f(value), moveType)
+  }
+
+  def moveGenerator: PieceType => BitboardMoveGenerator = {
+    case Pawn => PawnMoveGenerator
+    case Knight => KnightMoveGenerator
+    case Bishop => BishopMoveGenerator
+    case Rook => RookMoveGenerator
+    case Queen => QueenMoveGenerator
+    case King => KingMoveGenerator
   }
 }
 
