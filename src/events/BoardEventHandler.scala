@@ -37,6 +37,11 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
     sourcePiece = selectedPiece
     sourceLocation = selectedLocation
   }
+
+  def reset() = {
+    this.sourcePiece = None
+    this._sourceLocation = None
+  }
 }
 
 case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandler {

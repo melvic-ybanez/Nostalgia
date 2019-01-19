@@ -52,6 +52,7 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
         case _ => boardView.resetBoard()
       }
     }
+    boardView.resetEventHandlers()
   }
 
   override def move(move: LocationMove): Boolean =

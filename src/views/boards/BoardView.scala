@@ -35,6 +35,9 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
   val canvas = new Canvas(Board.Size * squareSize, Board.Size * squareSize)
   val checkMateDialog = new CheckMateDialog
 
+  val hoverEventHandler = PieceHoverEventHandler(this)
+  val moveEventHandler = MoveEventHandler(this, hoverEventHandler)
+
   init()
 
   def init() {
@@ -44,9 +47,8 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     resetBoard()
 
     // register events
-    val hoverEventHandler = PieceHoverEventHandler(this)
     canvas.addEventHandler(MouseEvent.MOUSE_MOVED, hoverEventHandler)
-    canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, MoveEventHandler(this, hoverEventHandler))
+    canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, moveEventHandler)
   }
 
   def createRanksPane: GridPane = {
@@ -112,6 +114,11 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     getChildren.clear()
     addRow(0, createRanksPane, canvas)
     add(createFilesPane, 1, 1)
+  }
+
+  def resetEventHandlers(): Unit = {
+    hoverEventHandler.reset()
+    moveEventHandler.reset()
   }
 
   override def resetBoard(): Unit = resetBoard(canvas.getGraphicsContext2D)
