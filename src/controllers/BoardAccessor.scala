@@ -1,5 +1,7 @@
 package controllers
 
+import javafx.scene.control.{Alert, ButtonType, Dialog}
+
 import engine.board.{Board, Piece}
 import engine.movegen.{File, Location, Move, Rank}
 import engine.movegen.Location._
@@ -24,7 +26,11 @@ trait BoardAccessor {
       val newBoard = board.updateByMove(netMove, piece)
       if (newBoard.isChecked(piece.side)) None
       else if (newBoard.isCheckmate(piece.side)) {
-        println(piece.side + " wins by checkmate")
+        val checkMateAlert = new Alert(Alert.AlertType.INFORMATION)
+        checkMateAlert.setHeaderText(null)
+        checkMateAlert.setTitle("Checkmate")
+        checkMateAlert.setContentText(s"${piece.side} wins by checkmate.")
+        checkMateAlert.showAndWait()
         Some(updatedBoard(newBoard))
       }
       else Some(updatedBoard(newBoard))
