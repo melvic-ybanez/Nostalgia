@@ -103,38 +103,74 @@ object MoveValidator {
     delta(move, abs = true) match {
       case (1, 1) | (1, 0) | (0, 1) =>
         captureOrEmpty(piece.side, move.destination, board)(() => Some(Normal))
+
+      // handle castling case
+      case (2, 0) if !board.canCastle(move) => None
+      case (2, 0) if board.isChecked(piece.side) => None
+      case (2, 0) =>
+        val direction = move.destination.file - move.source.file
+
+        // move one step closer to the destination
+        val singleStep = if (direction > 0) 1 else -1
+        val singleStepFile: File = move.source.file + singleStep
+        val singleStepLocation = Location(singleStepFile, move.destination.rank)
+
+        board.at(singleStepLocation)
+          .flatMap(_ => None)   // the next square is occupied; abort
+          .orElse {
+            val singleStepMove = Move[Location](
+              move.source, Location(singleStepFile, move.destination.rank))
+            val singleStepBoard = board.updateByMove(singleStepMove, piece)
+
+            if (singleStepBoard.isChecked(piece.side)) None
+            else board.at(move.destination)
+              .flatMap(_ => None)   // destination is occupied; abort
+              .orElse(Some(Castle(move)))
+          }
+
       case _ => None
     }
 
   def validateSlidingMove(side: Side)
       (notAllowed: (Int, Int) => Boolean)
-      (step: Int => Int): MoveValidation = { case move @ Move(source, destination, _) => board =>
-    val (fileDelta, rankDelta) = delta(move)
-    if (notAllowed(Math.abs(fileDelta), Math.abs(rankDelta))) None
-    else {
-      val fileStep = step(fileDelta)
-      val rankStep = step(rankDelta)
+      (step: Int => Int): MoveValidation = {
+    case move @ Move(source, destination, _) => board =>
+      val (fileDelta, rankDelta) = delta(move)
+      if (notAllowed(Math.abs(fileDelta), Math.abs(rankDelta))) None
+      else {
+        val fileStep = step(fileDelta)
+        val rankStep = step(rankDelta)
 
-      @tailrec
-      def recurse(file: File, rank: Rank): Option[MoveType] =
-        if (file == destination.file && rank == destination.rank)
-          captureOrEmpty(side, destination, board)(() => Some(Normal))
-        else if (board(file, rank).isDefined) None
-        else recurse(file + fileStep, rank + rankStep)
+        @tailrec
+        def recurse(file: File, rank: Rank): Option[MoveType] =
+          if (file == destination.file && rank == destination.rank)
+            captureOrEmpty(side, destination, board)(() => Some(Normal))
+          else if (board(file, rank).isDefined) None
+          else recurse(file + fileStep, rank + rankStep)
 
-      recurse(source.file + fileStep, source.rank + rankStep)
-    }
+        recurse(source.file + fileStep, source.rank + rankStep)
+      }
   }
 
-  def validateCapture(side: Side, location: Location, board: Board)(implicit  f: () => Option[MoveType]) =
-    board(location) flatMap {
+  def validateCapture(side: Side, destination: Location, board: Board)
+      (implicit  f: () => Option[MoveType]) =
+    board(destination) flatMap {
       case Piece(_, destSide) if destSide == side.opposite => f()
       case _ => None
     }
 
-  def captureOrEmpty(side: Side, location: Location, board: Board)(implicit f: () => Option[MoveType]) =
-    validateCapture(side, location, board) orElse f()
+  def captureOrEmpty(side: Side, destination: Location, board: Board)
+      (implicit f: () => Option[MoveType]) =
+    validateCapture(side, destination, board).orElse {
+      board(destination).flatMap(_ => None).orElse(f())
+    }
 
+  /**
+    * Computes the distance between the source and destination of a move.
+    * @param move the given move
+    * @param abs whether the distance should be absoluate or not
+    * @return A pair of integers representing the file and rank distances
+    */
   def delta(move: LocationMove, abs: Boolean = false): (Int, Int) = {
     def delta(locOp: Location => Int): Int = {
       val _delta = locOp(move.destination) - locOp(move.source)

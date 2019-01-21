@@ -27,8 +27,19 @@ trait Board {
   def locate(piece: Piece): List[Location]
 
   def isChecked(side: Side): Boolean
-
   def isCheckmate(winningSide: Side): Boolean
+
+  /**
+    * Checks if the king, given its move, can still castle. That is, if the king
+    * and the rook has not moved yet.
+    * Note that this method does not check if a castle is possible with the current
+    * board position. For instance, if the path to the castling destination is blocked or
+    * is being threaten by an opponent piece, this method might still return true if the
+    * conditions above are met.
+    * @param kingMove Location of the king
+    * @return Whether the king can still castle.
+    */
+  def canCastle(kingMove: LocationMove): Boolean
 }
 
 

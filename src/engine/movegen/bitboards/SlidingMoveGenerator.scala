@@ -72,6 +72,7 @@ object SlidingMoveGenerator {
 
   def stringifyMask(xs: IndexedSeq[U64]): String = {
     val tableSize = Board.Size
+
     def row(rowNumber: Int) = (0 until tableSize).map { i =>
       xs.indexWhere { x =>
         val step = rowNumber * tableSize + i
@@ -79,19 +80,14 @@ object SlidingMoveGenerator {
         Bitboard.isNonEmptySet(x & bitset)
       }
     }
+
     val table = (0 until tableSize).map(row).reverse
-
-    // TODO: Use built-in string formatter
-    def format(x: Int) = {
-      val xStr = String.valueOf(x)
-      if (xStr.length == 1) "0" + xStr else xStr
-    }
-
-    table.map(_.map(format).mkString(" ")).mkString("\n")
+    table.map(_.map("%02d".format(_)).mkString(" ")).mkString("\n")
   }
 }
 
 trait SlidingMoveGenerator extends BitboardMoveGenerator {
+
   import SlidingMoveGenerator._
 
   /**
@@ -134,6 +130,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
   }
 
   def positiveRay: Mask => Slide = ray(positiveSlide)
+
   def negativeRay: Mask => Slide = ray(negativeSlide)
 
   def lineAttacks: Mask => Slide = ray({ (sliderPosition, occupied) =>
