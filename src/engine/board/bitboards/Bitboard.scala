@@ -23,8 +23,8 @@ object Bitboard {
     */
   val PieceTypeOffset = 2
 
-  val KingSideCastleOffset = 2
-  val QueenSideCastleOffset = 3
+  val KingSideCastlingIndex = 1
+  val QueenSideCastlingIndex = 2
 
   def apply(): Bitboard = {
     // Initialize the white pieces
@@ -53,13 +53,10 @@ object Bitboard {
       .updatePiece(blackOf(King))(toggleKingQueen)
 
       // update the castling bitsets
-      .updateCastleBitsets(Vector(
-        fullBitboard.pieceBitset(whiteOf(King)),
-        fullBitboard.pieceBitset(blackOf(King)),
-        fullBitboard.pieceBitset(fullBitboard(H, _1).get),
-        fullBitboard.pieceBitset(fullBitboard(A, _1).get),
-        fullBitboard.pieceBitset(fullBitboard(H, _8).get),
-        fullBitboard.pieceBitset(fullBitboard(A, _8).get)))
+      .withCastlingBitsets(Vector(
+        singleBitset(Location(E, _1)) | singleBitset(Location(E, _8)),
+        singleBitset(Location(H, _1)) | singleBitset(Location(H, _8)),
+        singleBitset(Location(A, _1)) | singleBitset(Location(A, _8))))
   }
 
   def toBitPosition(location: Location): Int = location.file + location.rank * Board.Size
@@ -145,6 +142,10 @@ case class Bitboard(
       else updatePiece(Piece(capturedIndex, oppositeSide))( _ ^ destBitset)
 
     val partialBoard = captureBoard.updatePiece(piece)(_ ^ moveBitset).updateLastMove(move)
+      .withCastlingBitsets(castlingBitsets.map { bitset =>
+        if (isNonEmptySet(bitset & sourceBitset)) bitset ^ sourceBitset
+        else bitset
+      })
 
     // handle special cases
     move match {
@@ -157,32 +158,37 @@ case class Bitboard(
         // remove the pawn and replace it with the specified officer
         partialBoard.updatePiece(piece)( _ ^ destBitset)
           .updatePiece(promotionPiece)(_ ^ destBitset)
-      case Move(_, _, Castle(kingMove)) => partialBoard.castle(kingMove, piece.side)
+      case Move(_, _, Castling(kingMove)) => partialBoard.castle(kingMove, piece.side)
       case _ => partialBoard
     }
   }
 
   def castle(kingMove: LocationMove, side: Side) = {
-    val offset = castlingRookIndexOffset(kingMove, side)
-    val rookIndex = side + offset
+    val index = castlingRookIndex(kingMove, side)
 
-    val updatedCastleBitsets = castlingBitsets
-      .updated(side, 0L)    // remove the king
-      .updated(rookIndex, 0L)   // remove the rook
-
-    updatePiece(Piece(Rook, side)) { rookBitset =>
-      val castlingRookBitset = castlingBitsets(rookIndex)
+    val updatedBoard = updatePiece(Piece(Rook, side)) { rookBitset =>
+      val castlingRookBitset = castlingBitsets(index) & sideBitsets(side)
       val movedCastlingRookBitset =
-        if (offset == KingSideCastleOffset) castlingRookBitset >> 2
+        if (index == KingSideCastlingIndex) castlingRookBitset >>> 2
         else castlingRookBitset << 3
+
       rookBitset ^ castlingRookBitset | movedCastlingRookBitset
-    }.updateCastleBitsets(updatedCastleBitsets)
+    }
+
+    val updatedCastlingBitsets = castlingBitsets
+      // remove the king
+      .updated(0, castlingBitsets(0) & pieceTypeBitsets(King))
+
+      // remove the rook
+      .updated(index, castlingBitsets(index) & updatedBoard.pieceTypeBitsets(Rook))
+
+    updatedBoard.withCastlingBitsets(updatedCastlingBitsets)
   }
 
   def updateLastMove(move: BitboardMove) = Bitboard(bitsets, castlingBitsets, Some(move))
 
-  def updateCastleBitsets(castleBitsets: Vector[U64]) =
-    Bitboard(bitsets, castleBitsets, lastBitboardMove)
+  def withCastlingBitsets(castlingBitsets: Vector[U64]) =
+    Bitboard(bitsets, castlingBitsets, lastBitboardMove)
 
   def at(position: Int): Option[Piece] = at(Bitboard.singleBitset(position))
 
@@ -268,16 +274,19 @@ case class Bitboard(
   override def canCastle(kingMove: LocationMove) = at(kingMove.source) exists {
     case piece@Piece(King, side) =>
       val kingBitset = pieceBitset(piece)
-      if (isEmptySet(castlingBitsets(side) & kingBitset)) false
-      else {
-        val offset = castlingRookIndexOffset(kingMove, side)
-        isNonEmptySet(castlingBitsets(side + offset))
+      val sideBitset = sideBitsets(side)
+
+      val kingHasBeenMoved = isEmptySet(castlingBitsets(0) & kingBitset & sideBitset)
+      val rookHasBeenMoved = {
+        val index = castlingRookIndex(kingMove, side)
+        isEmptySet(castlingBitsets(index) & sideBitset)
       }
+      !kingHasBeenMoved && !rookHasBeenMoved
     case _ => false
   }
 
-  def castlingRookIndexOffset(kingMove: LocationMove, side: Side) = {
+  def castlingRookIndex(kingMove: LocationMove, side: Side) = {
     val delta = kingMove.destination.file - kingMove.source.file
-    if (delta < 0) QueenSideCastleOffset else KingSideCastleOffset
+    if (delta < 0) QueenSideCastlingIndex else KingSideCastlingIndex
   }
 }
