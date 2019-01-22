@@ -3,7 +3,7 @@ package controllers
 import engine.board.{Black, Board, Side, White}
 import engine.movegen.Move.LocationMove
 import validators.MoveValidator._
-import views.boards.{BoardView, DefaultBoardView}
+import views.boards.{BoardView, DefaultBoardView, HistoryView}
 
 /**
   * Created by melvic on 9/11/18.
@@ -12,7 +12,9 @@ trait BoardController {
   def sideToMove: Side
   def boardAccessor: BoardAccessor
   def validateMove: MoveValidation
+
   def boardView: BoardView
+  def historyView: HistoryView
 
   def newGame(lowerSide: Side): Unit
   def move(move: LocationMove): Boolean
@@ -29,7 +31,8 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
   def sideToMove_=(sideToMove: Side): Unit = _sideToMove = sideToMove
   def boardAccessor_=(boardAccessor: BoardAccessor): Unit = _boardAccessor = boardAccessor
 
-  override lazy val boardView = DefaultBoardView(this)
+  override val boardView = DefaultBoardView(this)
+  override val historyView = new HistoryView
 
   override def rotate(): Unit = {
     boardAccessor = boardAccessor match {
@@ -55,14 +58,17 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
     boardView.resetEventHandlers()
   }
 
-  override def move(move: LocationMove): Boolean =
-    validateMove(boardAccessor.accessorMove(move))(boardAccessor.board).exists { moveType =>
-      boardAccessor.moveBoard(move.updatedType(moveType)).exists { accessor =>
+  override def move(move: LocationMove): Boolean = {
+    val netMove = boardAccessor.accessorMove(move)
+    validateMove(netMove)(boardAccessor.board).exists { moveType =>
+      boardAccessor.moveBoard(move.updatedType(moveType)).exists { case (accessor, piece) =>
         boardAccessor = accessor
         boardView.resetBoard()
         boardView.highlight(move.destination)
+        historyView.addMove(piece, netMove)
         sideToMove = sideToMove.opposite
         true
       }
     }
+  }
 }

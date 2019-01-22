@@ -6,6 +6,7 @@ import javafx.scene.layout.BorderPane
 import controllers.DefaultBoardController
 import engine.board.bitboards.Bitboard
 import validators.MoveValidator
+import views.boards.HistoryView
 import views.menus.MenuBarView
 import views.misc.CustomTitledPane
 
@@ -15,12 +16,13 @@ import views.misc.CustomTitledPane
 class MainView extends BorderPane {
   val boardController = DefaultBoardController(Bitboard(), MoveValidator.validateMove)
   val boardView = boardController.boardView
-  val historyView = new ListView[String]()
-  historyView.getItems().addAll("e4 Nf3", "Be5 Ng7", "e4 Nf3", "Be5 Ng7", "e4 Nf3", "Be5 Ng7")
-  historyView.setFocusTraversable(false)
-  historyView.setStyle("-fx-font-size: 14")
+  val historyView = boardController.historyView
+
+  val historyPane = CustomTitledPane("History", historyView)
+  historyPane.setPadding(boardView.getPadding)
+  setStyle(boardView.getStyle)
 
   setTop(MenuBarView(boardView))
   setCenter(boardView)
-  setRight(CustomTitledPane("History",historyView))
+  setRight(historyPane)
 }
