@@ -1,6 +1,8 @@
 package controllers
 
-import engine.board.{Black, Board, Side, White}
+import javafx.scene.control.Alert
+
+import engine.board._
 import engine.movegen.Move.LocationMove
 import validators.MoveValidator._
 import views.boards.{BoardView, DefaultBoardView, HistoryView}
@@ -56,18 +58,21 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
       }
     }
     boardView.resetEventHandlers()
+    historyView.getItems.clear()
   }
 
   override def move(move: LocationMove): Boolean = {
     val netMove = boardAccessor.accessorMove(move)
     validateMove(netMove)(boardAccessor.board).exists { moveType =>
-      boardAccessor.moveBoard(move.updatedType(moveType)).exists { case (accessor, piece) =>
-        historyView.addMove(netMove, boardAccessor.board, piece)
-        boardAccessor = accessor
-        boardView.resetBoard()
-        boardView.highlight(move.destination)
-        sideToMove = sideToMove.opposite
-        true
+      boardAccessor.moveBoard(move.updatedType(moveType)).exists {
+        case (accessor, piece, checkmate) =>
+          historyView.addMove(netMove, boardAccessor.board, piece)
+          boardAccessor = accessor
+          boardView.resetBoard()
+          boardView.highlight(move.destination)
+          sideToMove = sideToMove.opposite
+          if (checkmate) boardView.showCheckmateDialog(piece.side)
+          true
       }
     }
   }

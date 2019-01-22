@@ -20,21 +20,12 @@ trait BoardAccessor {
   def move(source: Location, destination: Location): LocationMove =
     accessorMove(Move[Location](source, destination))
 
-  def moveBoard(move: Move[Location]): Option[(BoardAccessor, Piece)] = {
+  def moveBoard(move: Move[Location]): Option[(BoardAccessor, Piece, Boolean)] = {
     val netMove = accessorMove(move)
     board(netMove.source).flatMap { piece =>
       val newBoard = board.updateByMove(netMove, piece)
       if (newBoard.isChecked(piece.side)) None
-      else {
-        if (newBoard.isCheckmate(piece.side)) {
-          val checkMateAlert = new Alert(Alert.AlertType.INFORMATION)
-          checkMateAlert.setHeaderText(null)
-          checkMateAlert.setTitle("Checkmate")
-          checkMateAlert.setContentText(s"${piece.side} wins by checkmate.")
-          checkMateAlert.showAndWait()
-        }
-        Some(updatedBoard(newBoard), piece)
-      }
+      else Some(updatedBoard(newBoard), piece, newBoard.isCheckmate(piece.side))
     }
   }
 

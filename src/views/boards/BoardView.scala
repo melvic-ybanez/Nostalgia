@@ -3,6 +3,7 @@ package views.boards
 import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
+import javafx.scene.control.Alert
 import javafx.scene.image.Image
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{BorderPane, GridPane}
@@ -10,7 +11,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
 
 import controllers.BoardController
-import engine.board.{Board, Piece}
+import engine.board.{Board, Piece, Side}
 import engine.movegen.Location
 import engine.movegen.Location._
 import events.{MoveEventHandler, PieceHoverEventHandler}
@@ -143,6 +144,14 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     val offsetX = (squareSize - pieceImage.getWidth) / 2
     val offsetY = (squareSize - pieceImage.getHeight) / 2
     gc.drawImage(pieceImage, x + offsetX, y + offsetY)
+  }
+
+  def showCheckmateDialog(winningSide: Side): Unit = {
+    val checkMateAlert = new Alert(Alert.AlertType.INFORMATION)
+    checkMateAlert.setHeaderText(null)
+    checkMateAlert.setTitle("Checkmate")
+    checkMateAlert.setContentText(s"$winningSide wins by checkmate.")
+    checkMateAlert.showAndWait()
   }
 }
 
