@@ -62,10 +62,10 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
     val netMove = boardAccessor.accessorMove(move)
     validateMove(netMove)(boardAccessor.board).exists { moveType =>
       boardAccessor.moveBoard(move.updatedType(moveType)).exists { case (accessor, piece) =>
+        historyView.addMove(netMove, boardAccessor.board, piece)
         boardAccessor = accessor
         boardView.resetBoard()
         boardView.highlight(move.destination)
-        historyView.addMove(piece, netMove)
         sideToMove = sideToMove.opposite
         true
       }

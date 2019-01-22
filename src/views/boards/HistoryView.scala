@@ -2,7 +2,7 @@ package views.boards
 
 import javafx.scene.control.ListView
 
-import engine.board.{Notation, Piece}
+import engine.board.{Board, Notation, Piece, White}
 import engine.movegen.Move.LocationMove
 
 /**
@@ -12,10 +12,17 @@ class HistoryView extends ListView[String] {
   setFocusTraversable(false)
   setStyle("-fx-font-size: 14")
 
-  def addMove(piece: Piece, move: LocationMove): Unit = {
-    val moveNotation = Notation(piece, move).toString
-    val moveNumber = "%2d".format(getItems.size + 1)
-    val moveString = s"$moveNumber. $moveNotation"
-    getItems.add(moveString)
+  def addMove(move: LocationMove, board: Board, piece: Piece): Unit = {
+    val moveNotation = Notation.of(move, board)
+
+    if (piece.side == White) {
+      val moveNumber = "%2d".format(getItems.size + 1)
+      val moveString = s"$moveNumber. $moveNotation"
+      getItems.add(moveString)
+    } else {
+      val lastIndex = getItems.size - 1
+      val lastItem = getItems.get(lastIndex)
+      getItems.set(lastIndex, s"$lastItem $moveNotation")
+    }
   }
 }

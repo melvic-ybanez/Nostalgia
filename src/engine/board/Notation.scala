@@ -1,6 +1,6 @@
 package engine.board
 
-import engine.movegen.Location
+import engine.movegen.{Location, Move}
 import engine.movegen.Move.LocationMove
 
 /**
@@ -21,12 +21,14 @@ object Notation {
     val rankNotation = location.rank.toString.tail
     fileNotation + rankNotation
   }
-}
 
-case class Notation(piece: Piece, move: LocationMove) {
-  override def toString = {
-    val pieceTypeNotation = Notation.of(piece.pieceType)
-    val moveNotation = Notation.of(move.destination)
-    pieceTypeNotation + moveNotation
+  def of(move: LocationMove, board: Board): String = move match {
+    case Move(source, destination, moveType) => board(source) map { movingPiece =>
+      val captureString = board(destination).map(_ => "x") getOrElse ""
+      val pieceTypeNotation = Notation.of(movingPiece.pieceType)
+      val moveNotation = Notation.of(destination)
+
+      s"$pieceTypeNotation$captureString$moveNotation"
+    } getOrElse ""
   }
 }
