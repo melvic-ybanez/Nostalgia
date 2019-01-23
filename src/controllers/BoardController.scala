@@ -66,7 +66,7 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
     validateMove(netMove)(boardAccessor.board).exists { moveType =>
       boardAccessor.moveBoard(move.updatedType(moveType)).exists {
         case (accessor, piece, checkmate) =>
-          historyView.addMove(netMove, boardAccessor.board, piece)
+          historyView.addMove(netMove, boardAccessor.board, piece, checkmate)
           boardAccessor = accessor
           boardView.resetBoard()
           boardView.highlight(move.destination)

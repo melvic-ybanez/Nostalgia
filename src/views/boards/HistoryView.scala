@@ -12,8 +12,8 @@ class HistoryView extends ListView[String] {
   setFocusTraversable(false)
   setStyle("-fx-font-size: 14")
 
-  def addMove(move: LocationMove, board: Board, piece: Piece): Unit = {
-    val moveNotation = Notation.of(move, board)
+  def addMove(move: LocationMove, board: Board, piece: Piece, checkmate: Boolean): Unit = {
+    val moveNotation = Notation.of(move, board, checkmate)
 
     if (piece.side == White) {
       val moveNumber = "%2d".format(getItems.size + 1)
