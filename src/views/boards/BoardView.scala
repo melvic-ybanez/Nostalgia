@@ -3,7 +3,7 @@ package views.boards
 import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
-import javafx.scene.control.Alert
+import javafx.scene.control.{Alert, ButtonType}
 import javafx.scene.image.Image
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{BorderPane, GridPane}
@@ -147,11 +147,14 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
   }
 
   def showCheckmateDialog(winningSide: Side): Unit = {
-    val checkMateAlert = new Alert(Alert.AlertType.INFORMATION)
+    val checkMateAlert = new Alert(Alert.AlertType.CONFIRMATION)
     checkMateAlert.setHeaderText(null)
     checkMateAlert.setTitle("Checkmate")
-    checkMateAlert.setContentText(s"$winningSide wins by checkmate.")
-    checkMateAlert.showAndWait()
+    checkMateAlert.setContentText(s"$winningSide wins by checkmate. Do you want to start a new game?")
+    checkMateAlert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
+    checkMateAlert.showAndWait().ifPresent { result =>
+      if (result == ButtonType.YES) boardController.menuController.newGame()
+    }
   }
 }
 

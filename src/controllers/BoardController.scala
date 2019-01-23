@@ -15,6 +15,8 @@ trait BoardController {
   def boardAccessor: BoardAccessor
   def validateMove: MoveValidation
 
+  def menuController: MenuController
+
   def boardView: BoardView
   def historyView: HistoryView
 
@@ -23,7 +25,10 @@ trait BoardController {
   def rotate(): Unit
 }
 
-case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidation) extends BoardController {
+case class DefaultBoardController(
+    menuController: MenuController,
+    initialBoard: Board,
+    validateMove: MoveValidation) extends BoardController {
   private var _sideToMove: Side = White
   private var _boardAccessor: BoardAccessor = SimpleBoardAccessor(initialBoard)
 
