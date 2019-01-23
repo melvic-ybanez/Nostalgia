@@ -1,6 +1,6 @@
 package engine.board
 
-import engine.movegen.{Location, Move}
+import engine.movegen._
 import engine.movegen.Move.LocationMove
 
 /**
@@ -22,16 +22,16 @@ object Notation {
     fileNotation + rankNotation
   }
 
-  def of(move: LocationMove, board: Board, specs: NotationExtraSpecs): String = move match {
-    case Move(source, destination, moveType) => board(source) map { movingPiece =>
-      val captureString = board(destination).map(_ => "x") getOrElse ""
-      val checkString = if (specs.checkmate) "#" else if (specs.check) "+" else ""
-      val pieceTypeNotation = Notation.of(movingPiece.pieceType)
+  def of(move: LocationMove, piece: Piece, board: Board): String = move match {
+    case Move(_, destination, _) =>
+      val pieceTypeNotation = Notation.of(piece.pieceType)
       val moveNotation = Notation.of(destination)
-
+      val captureString = board(destination) map (_ => "x") getOrElse ""
+      val newBoard = board.updateByMove(move, piece)
+      val checkString =
+        if (newBoard.isCheckmate(piece.side)) "#"
+        else if (newBoard.isChecked(piece.side.opposite)) "+"
+        else ""
       s"$pieceTypeNotation$captureString$moveNotation$checkString"
-    } getOrElse ""
   }
 }
-
-case class NotationExtraSpecs(check: Boolean, checkmate: Boolean)

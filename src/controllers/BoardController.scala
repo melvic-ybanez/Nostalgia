@@ -66,11 +66,7 @@ case class DefaultBoardController(initialBoard: Board, validateMove: MoveValidat
     validateMove(netMove)(boardAccessor.board).exists { moveType =>
       boardAccessor.moveBoard(move.updatedType(moveType)).exists {
         case (accessor, piece, checkmate) =>
-          // add move to the history view
-          val specs = NotationExtraSpecs(
-            accessor.board.isChecked(piece.side.opposite), checkmate)
-          historyView.addMove(netMove, boardAccessor.board, piece, specs)
-
+          historyView.addMove(netMove, boardAccessor.board, piece)
           boardAccessor = accessor
           boardView.resetBoard()
           boardView.highlight(move.destination)
