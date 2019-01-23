@@ -22,14 +22,16 @@ object Notation {
     fileNotation + rankNotation
   }
 
-  def of(move: LocationMove, board: Board, checkmate: Boolean): String = move match {
+  def of(move: LocationMove, board: Board, specs: NotationExtraSpecs): String = move match {
     case Move(source, destination, moveType) => board(source) map { movingPiece =>
       val captureString = board(destination).map(_ => "x") getOrElse ""
-      val checkmateString = if (checkmate) "#" else ""
+      val checkString = if (specs.checkmate) "#" else if (specs.check) "+" else ""
       val pieceTypeNotation = Notation.of(movingPiece.pieceType)
       val moveNotation = Notation.of(destination)
 
-      s"$pieceTypeNotation$captureString$moveNotation$checkmateString"
+      s"$pieceTypeNotation$captureString$moveNotation$checkString"
     } getOrElse ""
   }
 }
+
+case class NotationExtraSpecs(check: Boolean, checkmate: Boolean)
