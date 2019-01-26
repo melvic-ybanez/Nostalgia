@@ -28,7 +28,9 @@ sealed trait AlphaBeta {
   def initialBestScore(implicit bounds: Bounds): Int
 
   /**
-    * Recursively evaluates a given board and remaining depth using the Alpha-Beta algorithm.
+    * Recursively evaluates a given board using the Alpha-Beta Pruning algorithm.
+    * @param board board to evaluate
+    * @param depth remaining depth in the search tree
     */
   def evaluate(board: Board, depth: Int)(implicit bounds: Bounds): Int =
     if (depth == 0) evaluate(board)
@@ -51,10 +53,10 @@ sealed trait AlphaBeta {
 }
 
 class AlphaBetaMax extends AlphaBeta {
-  override def evaluate(board: Board) = board.evaluate
-
   override def whenCutOff(score: Int)(implicit bounds: Bounds) =
     if (score >= bounds.beta) Some(bounds.beta) else None
+
+  override def evaluate(board: Board) = board.evaluate
 
   override def isBetterScore(score: Int)(implicit bounds: Bounds) = score > bounds.alpha
 
