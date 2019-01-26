@@ -26,6 +26,10 @@ trait Board {
 
   def locate(piece: Piece): List[Location]
 
+  def evaluate: Int = 0
+
+  def generateMoves: Stream[(LocationMove, Piece)] = Stream()
+
   def isChecked(side: Side): Boolean
   def isCheckmate(winningSide: Side): Boolean
 
