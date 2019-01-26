@@ -9,13 +9,27 @@ import scala.annotation.tailrec
   * Created by melvic on 1/27/19.
   */
 sealed trait AlphaBeta {
+
+  /**
+    * Represents the alpha (lower) and beta (upper) bounds.
+    */
   case class Bounds(alpha: Int, beta: Int)
 
   def evaluate(board: Board): Int
+
+  /**
+    * Determines whether a cut-off is required or not.
+    * @return An optional integer, denoting a bound.
+    */
   def whenCutOff(score: Int)(implicit bounds: Bounds): Option[Int]
+
   def isBetterScore(score: Int)(implicit bounds: Bounds): Boolean
+
   def initialBestScore(implicit bounds: Bounds): Int
 
+  /**
+    * Recursively evaluates a given board and remaining depth using the Alpha-Beta algorithm.
+    */
   def evaluate(board: Board, depth: Int)(implicit bounds: Bounds): Int =
     if (depth == 0) evaluate(board)
     else {
