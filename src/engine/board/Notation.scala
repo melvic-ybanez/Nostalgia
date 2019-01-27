@@ -23,7 +23,7 @@ object Notation {
   }
 
   def of(move: LocationMove, piece: Piece, board: Board): String = move match {
-    case Move(_, _, Castling(_)) => "O-O"
+    case Move(_, _, Castling) => "O-O"
     case Move(_, destination, _) =>
       val pieceTypeNotation = Notation.of(piece.pieceType)
       val moveNotation = Notation.of(destination)

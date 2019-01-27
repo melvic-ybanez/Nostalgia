@@ -97,10 +97,10 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
   type Mask = Int => U64
 
   /**
-    * Multiply the slider by 2 to move it one step closer to the blocker.
-    * Then subtract the product from the board of occupied squares to
+    * Multiplies the slider by 2 to move it one step closer to the blocker.
+    * It then subtracts the product from the board of occupied squares to
     * flip the zeroes between the slider and the blocker to ones (due
-    * to borrowing), thereby turning the blocker into zero. Then xor the
+    * to borrowing), thereby turning the blocker into zero. Then xors the
     * result with the occupied squares to toggle the bits. The blocker
     * shall be set back to one, the slider to zero, the empty squares
     * between them to ones, and the rest to zeroes.
@@ -162,7 +162,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
       val moveBitset = slide(source, board.occupied)
       val blocker = board.occupied & moveBitset
 
-      // remove the blocker from the set of valid destinations if it's neither an enemy nor empty
+      // removes the blocker from the set of valid destinations if it's neither an enemy nor empty
       val validMoveBitSet = board(Bitboard.oneBitIndex(blocker)) match {
         case Some(Piece(_, blockerSide)) if blockerSide == side =>
           moveBitset ^ blocker

@@ -76,7 +76,7 @@ object Bitboard {
   def leastSignificantOneBit(bitboard: U64) = bitboard & -bitboard
 
   /**
-    * Retrieve the index of a 1 bit in a given bitboard.
+    * Retrieves the index of a 1 bit in a given bitboard.
     * It is assumed that the bitboard contains only one
     * 1 bit, and that the rest are zeroes.
     *
@@ -158,12 +158,12 @@ case class Bitboard(
         // remove the pawn and replace it with the specified officer
         partialBoard.updatePiece(piece)( _ ^ destBitset)
           .updatePiece(promotionPiece)(_ ^ destBitset)
-      case Move(_, _, Castling(kingMove)) => partialBoard.castle(kingMove, piece.side)
+      case Move(_, _, Castling) => partialBoard.castle(move, piece.side)
       case _ => partialBoard
     }
   }
 
-  def castle(kingMove: LocationMove, side: Side) = {
+  def castle(kingMove: BitboardMove, side: Side) = {
     val index = castlingRookIndex(kingMove, side)
 
     val updatedBoard = updatePiece(Piece(Rook, side)) { rookBitset =>
@@ -276,16 +276,17 @@ case class Bitboard(
       val kingBitset = pieceBitset(piece)
       val sideBitset = sideBitsets(side)
 
-      val kingHasBeenMoved = isEmptySet(castlingBitsets(0) & kingBitset & sideBitset)
+      val kingHasBeenMoved = isEmptySet(castlingBitsets(0) & kingBitset)
       val rookHasBeenMoved = {
-        val index = castlingRookIndex(kingMove, side)
+        val kingBitboardMove = Move[Int](kingMove.source, kingMove.destination)
+        val index = castlingRookIndex(kingBitboardMove, side)
         isEmptySet(castlingBitsets(index) & sideBitset)
       }
       !kingHasBeenMoved && !rookHasBeenMoved
     case _ => false
   }
 
-  def castlingRookIndex(kingMove: LocationMove, side: Side) = {
+  def castlingRookIndex(kingMove: BitboardMove, side: Side) = {
     val delta = kingMove.destination.file - kingMove.source.file
     if (delta < 0) QueenSideCastlingIndex else KingSideCastlingIndex
   }

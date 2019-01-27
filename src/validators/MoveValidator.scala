@@ -125,7 +125,7 @@ object MoveValidator {
             if (singleStepBoard.isChecked(piece.side)) None
             else board.at(move.destination)
               .flatMap(_ => None)   // destination is occupied; abort
-              .orElse(Some(Castling(move)))
+              .orElse(Some(Castling))
           }
 
       case _ => None
