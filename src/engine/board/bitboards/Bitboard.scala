@@ -148,17 +148,17 @@ case class Bitboard(
       })
 
     // handle special cases
-    move match {
-      case Move(_, _, EnPassant) =>
+    move.moveType match {
+      case EnPassant =>
         partialBoard.updatePiece(Piece(Pawn, oppositeSide)) { _ ^ {
           if (piece.side == White) destBitset >> Board.Size
           else destBitset << Board.Size
         }}
-      case Move(_, _, PawnPromotion(promotionPiece)) =>
+      case PawnPromotion(promotionPiece) =>
         // remove the pawn and replace it with the specified officer
         partialBoard.updatePiece(piece)( _ ^ destBitset)
           .updatePiece(promotionPiece)(_ ^ destBitset)
-      case Move(_, _, Castling) => partialBoard.castle(move, piece.side)
+      case Castling => partialBoard.castle(move, piece.side)
       case _ => partialBoard
     }
   }
