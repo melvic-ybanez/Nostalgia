@@ -22,6 +22,7 @@ object Notation {
     fileNotation + rankNotation
   }
 
+  // TODO: enPassant, long castling, promotion, ambiguous sources
   def of(move: LocationMove, piece: Piece, board: Board): String = move match {
     case Move(_, _, Castling) => "O-O"
     case Move(_, destination, _) =>

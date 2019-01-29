@@ -66,7 +66,6 @@ case class DefaultBoardController(
     historyView.getItems.clear()
   }
 
-  // TODO: enPassant, long castling, promotion, ambiguous sources
   override def move(move: LocationMove): Boolean = {
     val netMove = boardAccessor.accessorMove(move)
     validateMove(netMove)(boardAccessor.board).exists { moveType =>
