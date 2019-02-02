@@ -3,7 +3,7 @@ package engine.movegen.bitboards
 import engine.board.Piece._
 import engine.board.bitboards.Bitboard
 import engine.board.bitboards.Bitboard._
-import engine.board.{Board, Side, White}
+import engine.board._
 import engine.movegen._
 import engine.movegen.bitboards.BitboardMoveGenerator._
 
@@ -69,11 +69,28 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
     attack(pawns) & newOpponent
   }
 
+  /**
+    * @param getTargets Determines the target square (empty, occupied by opponents, etc.).
+    * @return A move generator of stream of (U64, MoveType) denoting the pawn moves.
+    */
   def generatePawnMoves(moves: Stream[WithMove[PawnMove]],
                         getTargets: (Bitboard, Side) => U64): StreamGen[WithMove[U64]] = {
     case (bitboard, source, sideToMove) =>
       val pawns = Bitboard.singleBitset(source)
-      moves.map(withMoveType(_(pawns, getTargets(bitboard, sideToMove), sideToMove)))
+      moves flatMap { case move@(pawnMove, _) =>
+        val moveBitset: PawnMove => U64 = _(pawns, getTargets(bitboard, sideToMove), sideToMove)
+
+        // Rank == 7 or Rank == 0 (since White == 0 and Black == 1)
+        val promote = (Bitboard.rankOf(source) + sideToMove) % Board.Size == 0
+
+        if (promote)
+          // Generate bitboards for each position promotions
+          Stream(Knight, Bishop, Rook, Queen) map { officerType =>
+            val promotionOptions = (pawnMove, PawnPromotion(Piece(officerType, sideToMove)))
+            withMoveType(promotionOptions)(moveBitset)
+          }
+        else Stream(withMoveType(move)(moveBitset))
+      }
   }
 
   def pushMoves = Stream((singlePush, Normal), (doublePush, DoublePawnPush))

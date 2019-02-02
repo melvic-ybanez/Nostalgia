@@ -39,7 +39,7 @@ trait BitboardMoveGenerator {
   } map { case (bitboard, _) => bitboard }
 
   def destinations: StreamGen[WithMove[Int]] = nonEmptyDestinationBitsets(_, _, _)
-    .map(withMoveType(Bitboard.oneBitIndex))
+    .map(withMoveType(_)(Bitboard.oneBitIndex))
 
   def validMoves: StreamGen[WithMove[BitboardMove]] = { (bitboard, source, side) =>
     destinations(bitboard, source, side).map { case (destination, moveType) =>
@@ -55,7 +55,13 @@ trait BitboardMoveGenerator {
 }
 
 object BitboardMoveGenerator {
-  def withMoveType[A, B](f: A => B)(pair: (A, MoveType)) = pair match {
+  /**
+    * Applies a function A => B to the first element of the pair, preserving
+    * only the second element, which is the move type.
+    * @return A pair consisting of the result of the function application as the
+    *         first element, and the move type as the second element.
+    */
+  def withMoveType[A, B](pair: (A, MoveType))(f: A => B) = pair match {
     case (value, moveType) => (f(value), moveType)
   }
 
