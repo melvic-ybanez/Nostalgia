@@ -28,7 +28,9 @@ trait Board {
 
   def evaluate: Int = 0
 
-  def generateMoves: Stream[(LocationMove, Piece)] = Stream()
+  def generateMoves(sideToMove: Side): Stream[(LocationMove, Piece)]
+
+  def updateByNextMove(sideToMove: Side): Board
 
   def isChecked(side: Side): Boolean
   def isCheckmate(winningSide: Side): Boolean

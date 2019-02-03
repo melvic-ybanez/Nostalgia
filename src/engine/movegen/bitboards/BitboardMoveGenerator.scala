@@ -41,10 +41,10 @@ trait BitboardMoveGenerator {
   def destinations: StreamGen[WithMove[Int]] = nonEmptyDestinationBitsets(_, _, _)
     .map(withMoveType(_)(Bitboard.oneBitIndex))
 
-  def validMoves: StreamGen[WithMove[BitboardMove]] = { (bitboard, source, side) =>
+  def validMoves: StreamGen[BitboardMove] = { (bitboard, source, side) =>
     destinations(bitboard, source, side).map { case (destination, moveType) =>
-      (Move[Int](source, destination, moveType), moveType)
-    }.filter { case (move, moveType) =>
+      Move[Int](source, destination, moveType)
+    }.filter { move =>
       bitboard(source).exists { piece =>
         !bitboard.updateByBitboardMove(move, piece).isChecked(side)
       }

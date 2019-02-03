@@ -9,6 +9,7 @@ import scala.annotation.tailrec
 import engine.board._
 import engine.movegen._
 import engine.movegen.bitboards._
+import engine.search.AlphaBetaMax
 
 /**
   * Created by melvic on 8/5/18.
@@ -247,12 +248,10 @@ case class Bitboard(
       (KingMoveGenerator, King :: Nil) :: Nil
 
     moveGenerators.exists { case (generator, pieceTypes) =>
-      generator.nonEmptyDestinationBitsets(this, kingPosition, side) exists {
-        case (destination, Attack) => at(destination).exists {
-          case Piece(destType, destSide) =>
-            pieceTypes.contains(destType) && destSide == side.opposite
+      generator.attackBitsets(this, kingPosition, side) exists { destination =>
+        at(destination).exists { case Piece(destType, destSide) =>
+          pieceTypes.contains(destType) && destSide == side.opposite
         }
-        case _ => false
       }
     }
   }
@@ -290,4 +289,18 @@ case class Bitboard(
     val delta = kingMove.destination.file - kingMove.source.file
     if (delta < 0) QueenSideCastlingIndex else KingSideCastlingIndex
   }
+
+  override def generateMoves(sideToMove: Side) = types.toStream.flatMap { pieceType =>
+    val moveGenerator = BitboardMoveGenerator.moveGenerator(pieceType)
+    val piece = Piece(pieceType, sideToMove)
+    val bitsets = serializeToStream(pieceBitset(piece))
+    bitsets.flatMap { bitset =>
+      val source = oneBitIndex(bitset)
+      val moves = moveGenerator.validMoves(this, source, sideToMove)
+      moves.map(move => (Move.transform(intToLocation)(move), piece))
+    }
+  }
+
+  override def updateByNextMove(sideToMove: Side) =
+    AlphaBetaMax.move(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, 5)._2
 }

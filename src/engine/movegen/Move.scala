@@ -25,7 +25,7 @@ object Move {
   type BitboardMove = Move[Int]
   type LocationMove = Move[Location]
 
-  def transform[A](f: A => A): Move[A] => Move[A] = {
+  def transform[A, B](f: A => B): Move[A] => Move[B] = {
     case Move(source, destination, moveType) => Move(f(source), f(destination), moveType)
   }
 }

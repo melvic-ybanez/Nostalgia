@@ -47,6 +47,7 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   def attackEast: PawnMove = attack(northEast, southEast)
   def attackWest: PawnMove = attack(northWest, southWest)
 
+  // TODO: Incorporate this.
   def enPassant: PawnMove = { (pawns, opponent, sideToMove) =>
     // Decide whether to move north or south based on the color
     val (setwiseOp, action): (SetwiseOp, U64 => U64) = sideToMove match {
@@ -94,7 +95,7 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   }
 
   def pushMoves = Stream((singlePush, Normal), (doublePush, DoublePawnPush))
-  def attackMoves = Stream((attackEast, Attack), (attackWest, Attack), (enPassant, EnPassant))
+  def attackMoves = Stream((attackEast, Attack), (attackWest, Attack))
 
   def generatePushes = generatePawnMoves(pushMoves, (board, side) => board.emptySquares)
   def generateAttacks = generatePawnMoves(attackMoves, (board, side) => board.opponents(side))

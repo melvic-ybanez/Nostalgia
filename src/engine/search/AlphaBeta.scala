@@ -1,6 +1,6 @@
 package engine.search
 
-import engine.board.{Board, Piece}
+import engine.board.{Board, Piece, Side}
 import engine.movegen.Move.LocationMove
 
 import scala.annotation.tailrec
@@ -9,66 +9,57 @@ import scala.annotation.tailrec
   * Created by melvic on 1/27/19.
   */
 sealed trait AlphaBeta {
+  def evaluateBoard(board: Board): Int
 
-  /**
-    * Represents the alpha (lower) and beta (upper) bounds.
-    */
-  case class Bounds(alpha: Int, beta: Int)
+  def cutOffBound(score: Int, bound: Int): Boolean
 
-  def evaluate(board: Board): Int
+  def isBetterScore(score: Int, bestScore: Int): Boolean
 
-  /**
-    * @return An optional integer, denoting a bound.
-    */
-  def cutOffBound(score: Int)(implicit bounds: Bounds): Option[Int]
-
-  def isBetterScore(score: Int)(implicit bounds: Bounds): Boolean
-
-  def initialBestScore(implicit bounds: Bounds): Int
+  def opponent: AlphaBeta
 
   /**
     * Recursively evaluates a given board using the Alpha-Beta Pruning algorithm.
     * @param board board to evaluate
     * @param depth remaining depth in the search tree
+    * @return A pair consisting of the evaluation score and the chosen next move.
     */
-  def evaluate(board: Board, depth: Int)(implicit bounds: Bounds): Int =
-    if (depth == 0) evaluate(board)
+  def move(board: Board, sideToMove: Side, currentScore: Int, bound: Int, depth: Int): (Int, Board) =
+    if (depth == 0) (evaluateBoard(board), board)
     else {
       @tailrec
-      def recurse(bestScore: Int, moves: Stream[(LocationMove, Piece)]): Int = moves match {
-        case Stream() => bestScore
+      def recurse(bestScore: Int, board: Board, moves: Stream[(LocationMove, Piece)]): (Int, Board) = moves match {
+        case Stream() => (bestScore, board)
         case (move, piece) +: nextMoves =>
           val updatedBoard = board.updateByMove(move, piece)
-          val score = evaluate(updatedBoard, depth - 1)
-          val cutOffScore = cutOffBound(score)
+          val (score, _) = opponent.move(updatedBoard, sideToMove.opposite, bestScore, bound,depth - 1)
 
-          if (cutOffScore.isDefined) cutOffScore.get
-          else if (isBetterScore(score)) recurse(score, nextMoves)
-          else recurse(bestScore, nextMoves)
+          if (cutOffBound(score, bound)) (bound, updatedBoard)
+          else {
+            val newBoard = if (isBetterScore(score, bestScore)) updatedBoard else board
+            recurse(score, newBoard, nextMoves)
+          }
       }
 
-      recurse(initialBestScore, board.generateMoves)
+      recurse(currentScore, board, board.generateMoves(sideToMove))
     }
 }
 
-class AlphaBetaMax extends AlphaBeta {
-  override def cutOffBound(score: Int)(implicit bounds: Bounds) =
-    if (score >= bounds.beta) Some(bounds.beta) else None
+object AlphaBetaMax extends AlphaBeta {
+  override def cutOffBound(score: Int, bound: Int) = score >= bound
 
-  override def evaluate(board: Board) = board.evaluate
+  override def evaluateBoard(board: Board) = board.evaluate
 
-  override def isBetterScore(score: Int)(implicit bounds: Bounds) = score > bounds.alpha
+  override def isBetterScore(score: Int, bestScore: Int) = score > bestScore
 
-  override def initialBestScore(implicit bounds: Bounds) = bounds.alpha
+  override def opponent = AlphaBetaMin
 }
 
-class AlphaBetaMin extends AlphaBeta {
-  override def evaluate(board: Board) = -board.evaluate
+object AlphaBetaMin extends AlphaBeta {
+  override def evaluateBoard(board: Board) = -board.evaluate
 
-  override def cutOffBound(score: Int)(implicit bounds: Bounds) =
-    if (score <= bounds.alpha) Some(bounds.alpha) else None
+  override def cutOffBound(score: Int, bound: Int) = score <= bound
 
-  override def isBetterScore(score: Int)(implicit bounds: Bounds) = score < bounds.beta
+  override def isBetterScore(score: Int, bestScore: Int) = score < bestScore
 
-  override def initialBestScore(implicit bounds: Bounds) = bounds.beta
+  override def opponent = AlphaBetaMax
 }
