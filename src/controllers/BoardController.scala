@@ -4,6 +4,7 @@ import javafx.scene.control.Alert
 
 import engine.board._
 import engine.movegen.Move.LocationMove
+import models.{GameType, HumanVsHuman}
 import validators.MoveValidator._
 import views.boards.{BoardView, DefaultBoardView, HistoryView}
 
@@ -12,6 +13,8 @@ import views.boards.{BoardView, DefaultBoardView, HistoryView}
   */
 trait BoardController {
   def sideToMove: Side
+  def gameType: GameType
+
   def boardAccessor: BoardAccessor
   def validateMove: MoveValidation
 
@@ -20,7 +23,7 @@ trait BoardController {
   def boardView: BoardView
   def historyView: HistoryView
 
-  def newGame(lowerSide: Side): Unit
+  def newGame(lowerSide: Side, gameType: GameType): Unit
   def move(move: LocationMove): Boolean
   def rotate(): Unit
 }
@@ -30,13 +33,16 @@ case class DefaultBoardController(
     initialBoard: Board,
     validateMove: MoveValidation) extends BoardController {
   private var _sideToMove: Side = White
+  private var _gameType: GameType = HumanVsHuman
   private var _boardAccessor: BoardAccessor = SimpleBoardAccessor(initialBoard)
 
   override def sideToMove = _sideToMove
+  override def gameType = _gameType
   override def boardAccessor = _boardAccessor
 
   def sideToMove_=(sideToMove: Side): Unit = _sideToMove = sideToMove
   def boardAccessor_=(boardAccessor: BoardAccessor): Unit = _boardAccessor = boardAccessor
+  def gameType_=(gameType: GameType): Unit = _gameType = gameType
 
   override val boardView = DefaultBoardView(this)
   override val historyView = new HistoryView
@@ -49,8 +55,9 @@ case class DefaultBoardController(
     boardView.resetBoard()
   }
 
-  override def newGame(lowerSide: Side): Unit = {
+  override def newGame(lowerSide: Side, gameType: GameType): Unit = {
     sideToMove = White
+    this.gameType = gameType
     boardAccessor = boardAccessor.updatedBoard(initialBoard)
     lowerSide match {
       case Black => boardAccessor match {

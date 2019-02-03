@@ -5,7 +5,7 @@ import javafx.scene.control.{ButtonType, Dialog, RadioButton, ToggleGroup}
 import javafx.scene.layout.VBox
 
 import engine.board.{Black, Side, White}
-import models.{HumanVsHuman, Preferences}
+import models.{GameType, HumanVsComputer, HumanVsHuman, Preferences}
 import views.misc.CustomTitledPane
 
 /**
@@ -14,6 +14,9 @@ import views.misc.CustomTitledPane
 class NewGameDialog extends Dialog[ButtonType] {
   val whiteRB = new RadioButton("White")
   val blackRB = new RadioButton("Black")
+
+  val humanVsHumanRB = new RadioButton("Human vs Human")
+  val humanVsComputerRB = new RadioButton("Human vs Computer")
 
   setTitle("New Game")
 
@@ -25,9 +28,6 @@ class NewGameDialog extends Dialog[ButtonType] {
 
     def createGameTypePane = {
       val mainPane = new VBox()
-
-      val humanVsHumanRB = new RadioButton("Human vs Human")
-      val humanVsComputerRB = new RadioButton("Human vs Computer")
 
       val newGameGroup = new ToggleGroup()
       humanVsHumanRB.setToggleGroup(newGameGroup)
@@ -64,4 +64,6 @@ class NewGameDialog extends Dialog[ButtonType] {
   getDialogPane.getButtonTypes.addAll(ButtonType.OK, ButtonType.CANCEL)
 
   def sideToPlay: Side = if (whiteRB.isSelected) White else Black
+
+  def gameType: GameType = if (humanVsHumanRB.isSelected) HumanVsHuman else HumanVsComputer(sideToPlay)
 }

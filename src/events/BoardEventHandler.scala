@@ -6,6 +6,7 @@ import javafx.scene.input.MouseEvent
 
 import engine.board._
 import engine.movegen._
+import models.{HumanVsComputer, HumanVsHuman}
 import views.boards.{BoardView, PawnPromotionDialog}
 
 /**
@@ -13,13 +14,25 @@ import views.boards.{BoardView, PawnPromotionDialog}
   */
 trait BoardEventHandler extends EventHandler[MouseEvent] {
   override def handle(event: MouseEvent): Unit = {
-    val col = (event.getX / boardView.squareSize).toInt
-    val row = (event.getY / boardView.squareSize).toInt
+    val controller = boardView.boardController
 
-    val selectedLocation = Location.locate(row, col)
-    val selectedPiece = boardView.boardController.boardAccessor(selectedLocation)
+    def handleEvent() = {
+      val col = (event.getX / boardView.squareSize).toInt
+      val row = (event.getY / boardView.squareSize).toInt
 
-    performAction(selectedPiece, selectedLocation)
+      val selectedLocation = Location.locate (row, col)
+      val selectedPiece = controller.boardAccessor (selectedLocation)
+
+      performAction (selectedPiece, selectedLocation)
+    }
+
+    controller.gameType match {
+      case HumanVsComputer(humanSide) if humanSide == controller.sideToMove => handleEvent()
+      case HumanVsHuman => handleEvent()
+      case _ =>
+        reset()
+        boardView.toggleHover(false)
+    }
   }
 
   def boardView: BoardView
@@ -46,11 +59,11 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
 
 case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandler {
   override def performAction(selectedPiece: Option[Piece], selectedLocation: Location): Unit = boardView.toggleHover {
+    val controller = boardView.boardController
     (sourcePiece, selectedPiece) match {
-      case (None, Some(Piece(_, side))) if side == boardView.boardController.sideToMove => true
+      case (None, Some(Piece(_, side))) if side == controller.sideToMove => true
       case (Some(Piece(_, sourceSide)), Some(Piece(_, selectedSide))) if sourceSide == selectedSide => true
       case (Some(_), _) =>
-        val controller = boardView.boardController
         controller.validateMove(controller.boardAccessor.move(sourceLocation, selectedLocation)) {
           controller.boardAccessor.board
         }.isDefined

@@ -25,7 +25,7 @@ case class GameMenu(boardController: BoardController) extends Menu {
   def showNewGameDialog(): Unit = {
     gameDialog.showAndWait().ifPresent { result =>
       if (result == ButtonType.OK)
-        boardController.newGame(gameDialog.sideToPlay)
+        boardController.newGame(gameDialog.sideToPlay, gameDialog.gameType)
     }
   }
 }
