@@ -125,7 +125,7 @@ case class Bitboard(
   override def updateByMove(move: LocationMove, piece: Piece) =
     updateByBitboardMove(Move[Int](move.source, move.destination, move.moveType), piece)
 
-  def updateByBitboardMove(move: BitboardMove, piece: Piece): Board = {
+  def updateByBitboardMove(move: BitboardMove, piece: Piece): Bitboard = {
     val sourceBitset = singleBitset(move.source)
     val destBitset = singleBitset(move.destination)
     val moveBitset = sourceBitset ^ destBitset
@@ -293,14 +293,13 @@ case class Bitboard(
   override def generateMoves(sideToMove: Side) = types.toStream.flatMap { pieceType =>
     val moveGenerator = BitboardMoveGenerator.moveGenerator(pieceType)
     val piece = Piece(pieceType, sideToMove)
-    val bitsets = serializeToStream(pieceBitset(piece))
-    bitsets.flatMap { bitset =>
-      val source = oneBitIndex(bitset)
+    val piecePositions = toSquareIndexes(pieceBitset(piece))
+    piecePositions.flatMap { source =>
       val moves = moveGenerator.validMoves(this, source, sideToMove)
       moves.map(move => (Move.transform(intToLocation)(move), piece))
     }
   }
 
   override def updateByNextMove(sideToMove: Side) =
-    AlphaBetaMax.move(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, 5)._2
+    AlphaBetaMax.move(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, 4)._2
 }

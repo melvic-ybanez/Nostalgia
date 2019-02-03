@@ -1,6 +1,7 @@
 package engine.search
 
 import engine.board.{Board, Piece, Side}
+import engine.eval.Evaluator
 import engine.movegen.Move.LocationMove
 
 import scala.annotation.tailrec
@@ -9,7 +10,7 @@ import scala.annotation.tailrec
   * Created by melvic on 1/27/19.
   */
 sealed trait AlphaBeta {
-  def evaluateBoard(board: Board): Int
+  def evaluateBoard: (Board, Side) => Int
 
   def cutOffBound(score: Int, bound: Int): Boolean
 
@@ -23,31 +24,32 @@ sealed trait AlphaBeta {
     * @param depth remaining depth in the search tree
     * @return A pair consisting of the evaluation score and the chosen next move.
     */
-  def move(board: Board, sideToMove: Side, currentScore: Int, bound: Int, depth: Int): (Int, Board) =
-    if (depth == 0) (evaluateBoard(board), board)
+  def move(board: Board, side: Side, currentScore: Int, bound: Int, depth: Int): (Int, Board) =
+    if (depth == 0) (evaluateBoard(board, side), board)
     else {
       @tailrec
-      def recurse(bestScore: Int, board: Board, moves: Stream[(LocationMove, Piece)]): (Int, Board) = moves match {
-        case Stream() => (bestScore, board)
-        case (move, piece) +: nextMoves =>
-          val updatedBoard = board.updateByMove(move, piece)
-          val (score, _) = opponent.move(updatedBoard, sideToMove.opposite, bestScore, bound,depth - 1)
+      def recurse(bestScore: Int, nextBoard: Board, updatedBoards: Stream[Board]): (Int, Board) = updatedBoards match {
+        case Stream() => (bestScore, nextBoard)
+        case updatedBoard +: nextMoves =>
+          val (score, _) = opponent.move(updatedBoard, side.opposite,
+            bound, bestScore,   // params positions switched
+            depth - 1)
 
           if (cutOffBound(score, bound)) (bound, updatedBoard)
-          else {
-            val newBoard = if (isBetterScore(score, bestScore)) updatedBoard else board
-            recurse(score, newBoard, nextMoves)
-          }
+          else if (isBetterScore(score, bestScore)) recurse(score, updatedBoard, nextMoves)
+          else recurse(bestScore, nextBoard, nextMoves)
       }
 
-      recurse(currentScore, board, board.generateMoves(sideToMove))
+      recurse(currentScore, board, board.generateMoves(side).map { case (move, piece) =>
+        board.updateByMove(move, piece)
+      })
     }
 }
 
 object AlphaBetaMax extends AlphaBeta {
   override def cutOffBound(score: Int, bound: Int) = score >= bound
 
-  override def evaluateBoard(board: Board) = board.evaluate
+  override def evaluateBoard = Evaluator.evaluate
 
   override def isBetterScore(score: Int, bestScore: Int) = score > bestScore
 
@@ -55,7 +57,7 @@ object AlphaBetaMax extends AlphaBeta {
 }
 
 object AlphaBetaMin extends AlphaBeta {
-  override def evaluateBoard(board: Board) = -board.evaluate
+  override def evaluateBoard = (board, side) => -Evaluator.evaluate(board, side)
 
   override def cutOffBound(score: Int, bound: Int) = score <= bound
 
