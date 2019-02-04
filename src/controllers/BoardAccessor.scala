@@ -11,8 +11,8 @@ import engine.movegen.Move.LocationMove
   * Created by melvic on 9/14/18.
   */
 trait BoardAccessor {
-  def apply(location: Location): Option[Piece] = board.at(accessorLocation(location))
-  def apply(row: Int, col: Int): Option[Piece] = board.at(accessorLocation(locate(row, col)))
+  def apply(location: Location): Option[Piece] = board(accessorLocation(location))
+  def apply(row: Int, col: Int): Option[Piece] = board(accessorLocation(locate(row, col)))
   def board: Board
 
   def accessorLocation: Location => Location = identity

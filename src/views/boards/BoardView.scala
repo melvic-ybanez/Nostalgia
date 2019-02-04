@@ -12,7 +12,7 @@ import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
 
 import controllers.BoardController
 import engine.board.{Board, Piece, Side}
-import engine.movegen.Location
+import engine.movegen.{E, Location, Move, _4}
 import engine.movegen.Location._
 import events.{MoveEventHandler, PieceHoverEventHandler}
 import main.Resources
@@ -97,8 +97,16 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
   }
 
   def resetBoard(gc: GraphicsContext): Unit = {
+    drawBoard(gc)
+    getChildren.clear()
+    addRow(0, createRanksPane, canvas)
+    add(createFilesPane, 1, 1)
+  }
+
+  def drawBoard(gc: GraphicsContext): Unit = {
     gc.setFill(Color.WHITE)
 
+    // draw the board
     for (row <- 0 until Board.Size) {
       for (col <- 0 until Board.Size) {
         if (col != 0) gc.setFill {
@@ -108,13 +116,60 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
         val x = col * squareSize
         val y = row * squareSize
         gc.fillRect(x, y, squareSize, squareSize)
-        boardController.boardAccessor(row, col).foreach(drawPiece(gc, x, y))
+
+        val isMovingPiece = boardController.boardAccessor.board.lastMove.exists {
+          case Move(source, destination, _) =>
+            val location = Location.locate(row, col)
+            location == source || location == destination && {
+              val movingPiece = boardController.boardAccessor.board(destination)
+              println(movingPiece.get.side, boardController.sideToMove)
+              movingPiece.get.side == boardController.sideToMove
+            }
+          case _ => false
+        }
+
+        if (!isMovingPiece)
+          boardController.boardAccessor(row, col).foreach(drawPiece(gc, x, y))
       }
     }
+  }
 
-    getChildren.clear()
-    addRow(0, createRanksPane, canvas)
-    add(createFilesPane, 1, 1)
+  def animateMove(gc: GraphicsContext = canvas.getGraphicsContext2D): Unit = {
+    // animate the moving piece
+    boardController.boardAccessor.board.lastMove.foreach { lastMove =>
+      val netMove = boardController.boardAccessor.accessorMove(lastMove)
+
+      // make the coordinates compatible with the board view's
+      // because the direction of the ranks are reversed
+      val source = Location.locate(netMove.source.rank, netMove.source.file)
+      val dest = Location.locate(netMove.destination.rank, netMove.destination.file)
+
+      val sourceX = source.file * squareSize
+      val sourceY = source.rank * squareSize
+
+      val destX = dest.file * squareSize
+      val destY = dest.rank * squareSize
+
+      val deltaX = if (sourceX < destX) 3 else -3
+      val deltaY = if (sourceY < destY) 3 else -3
+
+      new Thread(() => {
+        def animate(x: Int, y: Int): Unit =
+          if (x == destX && y == destY) ()
+          else {
+            drawBoard(gc)
+            val movingPiece = boardController.boardAccessor.board(netMove.destination).get
+            drawPiece(gc, x, y)(movingPiece)
+            Thread.sleep(5)
+            animate(
+              if (x == destX) x else x + deltaX,
+              if (y == destY) y else y + deltaY)
+          }
+
+        animate(sourceX, sourceY)
+        drawBoard(gc)
+      }).start()
+    }
   }
 
   def resetEventHandlers(): Unit = {

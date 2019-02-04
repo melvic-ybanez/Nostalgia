@@ -108,6 +108,7 @@ case class DefaultBoardController(
     boardAccessor = accessor
     boardView.resetBoard()
     boardView.highlight(move.destination)
+    boardView.animateMove()
     sideToMove = sideToMove.opposite
     if (checkmate) boardView.showCheckmateDialog(piece.side)
   }
