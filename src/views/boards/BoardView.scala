@@ -1,5 +1,8 @@
 package views.boards
 
+import javafx.animation.{Interpolator, KeyFrame, KeyValue, Timeline}
+import javafx.beans.property.{DoubleProperty, SimpleDoubleProperty}
+import javafx.beans.value.{WritableDoubleValue, WritableValue}
 import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
@@ -9,6 +12,7 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.scene.paint.Color
 import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
+import javafx.util.Duration
 
 import controllers.BoardController
 import engine.board.{Board, Piece, Side}
@@ -122,7 +126,6 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
             val location = Location.locate(row, col)
             location == source || location == destination && {
               val movingPiece = boardController.boardAccessor.board(destination)
-              println(movingPiece.get.side, boardController.sideToMove)
               movingPiece.get.side == boardController.sideToMove
             }
           case _ => false
@@ -144,31 +147,14 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
       val source = Location.locate(netMove.source.rank, netMove.source.file)
       val dest = Location.locate(netMove.destination.rank, netMove.destination.file)
 
-      val sourceX = source.file * squareSize
-      val sourceY = source.rank * squareSize
-
-      val destX = dest.file * squareSize
-      val destY = dest.rank * squareSize
-
-      val deltaX = if (sourceX < destX) 3 else -3
-      val deltaY = if (sourceY < destY) 3 else -3
-
-      new Thread(() => {
-        def animate(x: Int, y: Int): Unit =
-          if (x == destX && y == destY) ()
-          else {
-            drawBoard(gc)
-            val movingPiece = boardController.boardAccessor.board(netMove.destination).get
-            drawPiece(gc, x, y)(movingPiece)
-            Thread.sleep(5)
-            animate(
-              if (x == destX) x else x + deltaX,
-              if (y == destY) y else y + deltaY)
-          }
-
-        animate(sourceX, sourceY)
-        drawBoard(gc)
-      }).start()
+      val animator = new MoveAnimator(this) {
+        override def handle(now: Long, x: DoubleProperty, y: DoubleProperty) = {
+          val piece = boardController.boardAccessor.board(lastMove.destination).get
+          drawBoard(gc)
+          drawPiece(gc, x.intValue, y.intValue)(piece)
+        }
+      }
+      animator.animate(gc, source.file, source.rank, dest.file, dest.rank)
     }
   }
 
