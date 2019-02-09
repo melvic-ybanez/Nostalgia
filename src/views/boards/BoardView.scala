@@ -1,8 +1,6 @@
 package views.boards
 
-import javafx.animation.{Interpolator, KeyFrame, KeyValue, Timeline}
-import javafx.beans.property.{DoubleProperty, SimpleDoubleProperty}
-import javafx.beans.value.{WritableDoubleValue, WritableValue}
+import javafx.beans.property.DoubleProperty
 import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
@@ -12,15 +10,14 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.scene.paint.Color
 import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
-import javafx.util.Duration
 
 import controllers.BoardController
 import engine.board.{Board, Piece, Side}
-import engine.movegen.{E, Location, Move, _4}
 import engine.movegen.Location._
-import engine.movegen.Move.LocationMove
+import engine.movegen.{Location, Move}
 import events.{MoveEventHandler, PieceHoverEventHandler}
 import main.Resources
+import models.PostAnimation
 
 /**
   * Created by melvic on 9/11/18.
@@ -32,6 +29,12 @@ sealed trait BoardView {
   def toggleHover(hover: Boolean): Unit
   def highlight(location: Location): Unit
   def resetBoard(fullReset: Boolean = true): Unit
+  def showCheckmateDialog(winningSide: Side): Unit
+
+  def animateMove(): Unit
+
+  def registerListeners(): Unit
+  def removeListeners(): Unit
 }
 
 case class DefaultBoardView(boardController: BoardController) extends GridPane with BoardView {
@@ -51,10 +54,6 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     setStyle("-fx-background-color: white")
 
     resetBoard()
-
-    // register events
-    canvas.addEventHandler(MouseEvent.MOUSE_MOVED, hoverEventHandler)
-    canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, moveEventHandler)
   }
 
   def createRanksPane: GridPane = {
@@ -137,7 +136,9 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     }
   }
 
-  def animateMove(gc: GraphicsContext = canvas.getGraphicsContext2D): Unit = {
+  override def animateMove(): Unit = {
+    val gc = canvas.getGraphicsContext2D
+
     // animate the moving piece
     boardController.boardAccessor.board.lastMove.foreach { lastMove =>
       val netMove = boardController.boardAccessor.accessorMove(lastMove)
@@ -148,6 +149,10 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
           val piece = boardController.boardAccessor.board(lastMove.destination).get
           drawBoard(gc, false)
           drawPiece(gc, x.intValue, y.intValue)(piece)
+        }
+
+        override def updateGameState(): Unit = {
+          boardController.gameController.gameState = PostAnimation
         }
       }
       animator.animate(gc, source.file, source.rank, dest.file, dest.rank)
@@ -189,6 +194,17 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     checkMateAlert.showAndWait().ifPresent { result =>
       if (result == ButtonType.YES) boardController.menuController.newGame()
     }
+  }
+
+  override def registerListeners(): Unit = {
+    // register events
+    canvas.addEventHandler(MouseEvent.MOUSE_MOVED, hoverEventHandler)
+    canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, moveEventHandler)
+  }
+
+  override def removeListeners(): Unit = {
+    canvas.removeEventHandler(MouseEvent.MOUSE_MOVED, hoverEventHandler)
+    canvas.removeEventHandler(MouseEvent.MOUSE_CLICKED, moveEventHandler)
   }
 }
 

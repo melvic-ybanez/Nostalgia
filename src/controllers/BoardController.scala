@@ -1,12 +1,8 @@
 package controllers
 
-import javafx.embed.swt.FXCanvas
-import javafx.scene.control.Alert
-
 import engine.board._
-import engine.movegen.{G, Location, _5, _6}
 import engine.movegen.Move.LocationMove
-import models.{GameType, HumanVsComputer, HumanVsHuman}
+import models._
 import validators.MoveValidator._
 import views.boards.{BoardView, DefaultBoardView, HistoryView}
 
@@ -15,18 +11,20 @@ import views.boards.{BoardView, DefaultBoardView, HistoryView}
   */
 trait BoardController {
   def sideToMove: Side
-  def gameType: GameType
 
   def boardAccessor: BoardAccessor
   def validateMove: MoveValidation
 
   def menuController: MenuController
+  def gameController: GameController
 
   def boardView: BoardView
   def historyView: HistoryView
 
+  def gameType: GameType
+
   def newGame(lowerSide: Side, gameType: GameType): Unit
-  def move(move: LocationMove): Boolean
+  def humanMove(move: LocationMove): Boolean
   def computerMove(): Unit
   def rotate(): Unit
 }
@@ -40,8 +38,8 @@ case class DefaultBoardController(
   private var _boardAccessor: BoardAccessor = SimpleBoardAccessor(initialBoard)
 
   override def sideToMove = _sideToMove
-  override def gameType = _gameType
   override def boardAccessor = _boardAccessor
+  override def gameType = _gameType
 
   def sideToMove_=(sideToMove: Side): Unit = _sideToMove = sideToMove
   def boardAccessor_=(boardAccessor: BoardAccessor): Unit = _boardAccessor = boardAccessor
@@ -49,6 +47,7 @@ case class DefaultBoardController(
 
   override val boardView = DefaultBoardView(this)
   override val historyView = new HistoryView
+  override val gameController = DefaultGameController(this)
 
   override def rotate(): Unit = {
     boardAccessor = boardAccessor match {
@@ -60,7 +59,6 @@ case class DefaultBoardController(
 
   override def newGame(lowerSide: Side, gameType: GameType): Unit = {
     sideToMove = White
-    this.gameType = gameType
     boardAccessor = boardAccessor.updatedBoard(initialBoard)
     lowerSide match {
       case Black => boardAccessor match {
@@ -74,29 +72,36 @@ case class DefaultBoardController(
     }
     boardView.resetEventHandlers()
     historyView.getItems.clear()
+
+    val gameState = gameType match {
+      case HumanVsHuman => HumanToMove
+      case HumanVsComputer(White) => HumanToMove
+      case _ => ComputerToMove
+    }
+
+    gameController.gameState = gameState
+    gameController.play(gameType)
   }
 
-  override def move(move: LocationMove): Boolean = {
+  override def humanMove(move: LocationMove): Boolean = {
     val netMove = boardAccessor.accessorMove(move)
     validateMove(netMove)(boardAccessor.board).exists { moveType =>
       boardAccessor.moveBoard(move.updatedType(moveType)).exists {
         case (accessor, piece, checkmate) =>
           handleMoveResult(move, netMove.updatedType(moveType), piece, accessor, checkmate)
-          if (!checkmate) computerMove()
+          gameController.gameState = PreAnimation
           true
       }
     }
   }
 
-  override def computerMove(): Unit = gameType match {
-    case HumanVsComputer(humanSide) if humanSide != sideToMove =>
-      val movedBoard = boardAccessor.board.updateByNextMove(sideToMove)
-      val accessor = boardAccessor.updatedBoard(movedBoard)
-      val move = movedBoard.lastMove.get
-      val piece = movedBoard(move.destination).get
-      handleMoveResult(move,
-        accessor.accessorMove(move), piece, accessor, movedBoard.isCheckmate(sideToMove))
-    case _ => ()
+  override def computerMove(): Unit = {
+    val movedBoard = boardAccessor.board.updateByNextMove(sideToMove)
+    val accessor = boardAccessor.updatedBoard(movedBoard)
+    val move = movedBoard.lastMove.get
+    val piece = movedBoard(move.destination).get
+    handleMoveResult(move,
+      accessor.accessorMove(move), piece, accessor, movedBoard.isCheckmate(sideToMove))
   }
 
   def handleMoveResult(
@@ -108,8 +113,6 @@ case class DefaultBoardController(
     boardAccessor = accessor
     boardView.resetBoard(false)
     boardView.highlight(move.destination)
-    boardView.animateMove()
     sideToMove = sideToMove.opposite
-    if (checkmate) boardView.showCheckmateDialog(piece.side)
   }
 }

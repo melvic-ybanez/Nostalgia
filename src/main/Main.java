@@ -1,8 +1,10 @@
 package main;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import sun.awt.PlatformFont;
 import views.MainView;
 
 /**
@@ -15,9 +17,15 @@ public class Main extends Application {
         primaryStage.setTitle("Nostalgia");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+        primaryStage.setOnCloseRequest(value -> exit());
     }
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    public static void exit() {
+        Platform.exit();
+        System.exit(0);
     }
 }

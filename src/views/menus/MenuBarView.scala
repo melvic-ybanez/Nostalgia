@@ -1,9 +1,9 @@
 package views.menus
 
-import javafx.application.Platform
 import javafx.scene.control.{Menu, MenuBar, MenuItem}
 import javafx.scene.input.{KeyCode, KeyCodeCombination, KeyCombination}
 
+import main.Main
 import views.boards.BoardView
 
 /**
@@ -17,7 +17,7 @@ case class MenuBarView(boardView: BoardView)  extends MenuBar {
 
     val exit = new MenuItem("Exit")
     exit.setAccelerator(new KeyCodeCombination(KeyCode.E, KeyCombination.META_DOWN))
-    exit.setOnAction(_ => Platform.exit())
+    exit.setOnAction(_ => Main.exit())
 
     fileMenu.getItems.addAll(exit)
 

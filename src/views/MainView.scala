@@ -1,12 +1,10 @@
 package views
 
-import javafx.scene.control.ListView
 import javafx.scene.layout.BorderPane
 
-import controllers.{DefaultBoardController, DefaultMenuController}
-import engine.board.bitboards.Bitboard
-import validators.MoveValidator
-import views.boards.HistoryView
+import controllers.DefaultMenuController
+import engine.board.White
+import models.HumanVsHuman
 import views.menus.MenuBarView
 import views.misc.CustomTitledPane
 
@@ -26,4 +24,6 @@ class MainView extends BorderPane {
   setTop(MenuBarView(boardView))
   setCenter(boardView)
   setRight(historyPane)
+
+  boardController.newGame(White, HumanVsHuman)
 }
