@@ -43,7 +43,6 @@ public abstract class MoveAnimator {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                System.out.println(x.doubleValue() + " " + destX + " " + y.doubleValue()  + " " + destY);
                 MoveAnimator.this.handle(now, x, y);
                 if (x.doubleValue() == destX && y.doubleValue() == destY) {
                     updateGameState();

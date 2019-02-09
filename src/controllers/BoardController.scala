@@ -58,6 +58,7 @@ case class DefaultBoardController(
   }
 
   override def newGame(lowerSide: Side, gameType: GameType): Unit = {
+    gameController.stop()
     sideToMove = White
     boardAccessor = boardAccessor.updatedBoard(initialBoard)
     lowerSide match {
@@ -79,8 +80,9 @@ case class DefaultBoardController(
       case _ => ComputerToMove
     }
 
+    this.gameType = gameType
     gameController.gameState = gameState
-    gameController.play(gameType)
+    gameController.play()
   }
 
   override def humanMove(move: LocationMove): Boolean = {
@@ -89,7 +91,6 @@ case class DefaultBoardController(
       boardAccessor.moveBoard(move.updatedType(moveType)).exists {
         case (accessor, piece, checkmate) =>
           handleMoveResult(move, netMove.updatedType(moveType), piece, accessor, checkmate)
-          gameController.gameState = PreAnimation
           true
       }
     }
@@ -114,5 +115,6 @@ case class DefaultBoardController(
     boardView.resetBoard(false)
     boardView.highlight(move.destination)
     sideToMove = sideToMove.opposite
+    gameController.gameState = PreAnimation
   }
 }

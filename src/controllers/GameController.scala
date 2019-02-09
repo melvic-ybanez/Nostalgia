@@ -10,7 +10,8 @@ import models.{HumanVsHuman, _}
   */
 trait GameController {
   def boardController: BoardController
-  def play(gameType: GameType): Unit
+  def play(): Unit
+  def stop(): Unit
 
   private var _gameState: GameState = HumanToMove
   def gameState = _gameState
@@ -20,38 +21,51 @@ trait GameController {
 case class DefaultGameController(boardController: BoardController) extends GameController {
   val boardView = boardController.boardView
 
-  override def play(gameType: GameType): Unit = {
+  lazy val timer: AnimationTimer = new AnimationTimer() {
+    override def handle(now: Long) = gameState match {
+      case HumanToMove =>   // keep waiting for inputs
+      case ComputerToMove =>
+        boardController.computerMove()
+      case PreAnimation =>
+        // Do not accept inputs while animating.
+        boardView.removeListeners()
+
+        boardView.animateMove()
+        gameState = Animation
+      case Animation =>   // keep ignoring inputs
+      case PostAnimation => boardController.gameType match {
+        case HumanVsHuman =>
+          // All players are humans. Accept inputs.
+          acceptHumanInputs()
+          println(boardController.sideToMove)
+        case HumanVsComputer(humanSide) if humanSide == boardController.sideToMove =>
+          // The next player is a human. Accept inputs.
+          println(humanSide, boardController.sideToMove)
+          acceptHumanInputs()
+        case _ => gameState = ComputerToMove
+      }
+        println(gameState, boardController.gameType)
+      case GameOver(result) =>
+        result match {
+          case CheckMate(winner) => boardView.showCheckmateDialog(winner)
+        }
+        this.stop()
+    }
+  }
+
+  override def play(): Unit = {
     if (gameState == HumanToMove)
       boardView.registerListeners()
 
-    val timer: AnimationTimer = new AnimationTimer() {
-      override def handle(now: Long) = gameState match {
-        case HumanToMove =>   // keep waiting for inputs
-        case ComputerToMove =>
-          boardController.computerMove()
-        case PreAnimation =>
-          // Do not accept inputs while animating.
-          boardView.removeListeners()
-
-          boardView.animateMove()
-          gameState = Animation
-        case Animation =>   // keep ignoring inputs
-        case PostAnimation =>
-          gameType match {
-            case HumanVsHuman =>
-              // All players are humans. Accept inputs.
-              boardView.registerListeners()
-            case HumanVsComputer(humanSide) if humanSide == boardController.sideToMove =>
-              // The next player is a human. Accept inputs.
-              boardView.registerListeners()
-          }
-        case GameOver(result) =>
-          result match {
-            case CheckMate(winner) => boardView.showCheckmateDialog(winner)
-          }
-          this.stop()
-      }
-    }
     timer.start()
+  }
+
+  override def stop(): Unit = {
+    timer.stop()
+  }
+
+  def acceptHumanInputs(): Unit = {
+    boardView.registerListeners()
+    gameState = HumanToMove
   }
 }
