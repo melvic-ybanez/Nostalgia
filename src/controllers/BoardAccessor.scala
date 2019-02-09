@@ -12,7 +12,7 @@ import engine.movegen.Move.LocationMove
   */
 trait BoardAccessor {
   def apply(location: Location): Option[Piece] = board(accessorLocation(location))
-  def apply(row: Int, col: Int): Option[Piece] = board(accessorLocation(locate(row, col)))
+  def apply(row: Int, col: Int): Option[Piece] = apply(locateForView(row, col))
   def board: Board
 
   def accessorLocation: Location => Location = identity

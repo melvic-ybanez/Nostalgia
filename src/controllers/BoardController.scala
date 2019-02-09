@@ -106,7 +106,7 @@ case class DefaultBoardController(
       checkmate: Boolean): Unit = {
     historyView.addMove(accessorMove, boardAccessor.board, piece)
     boardAccessor = accessor
-    boardView.resetBoard()
+    boardView.resetBoard(false)
     boardView.highlight(move.destination)
     boardView.animateMove()
     sideToMove = sideToMove.opposite

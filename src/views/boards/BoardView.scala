@@ -18,6 +18,7 @@ import controllers.BoardController
 import engine.board.{Board, Piece, Side}
 import engine.movegen.{E, Location, Move, _4}
 import engine.movegen.Location._
+import engine.movegen.Move.LocationMove
 import events.{MoveEventHandler, PieceHoverEventHandler}
 import main.Resources
 
@@ -30,7 +31,7 @@ sealed trait BoardView {
 
   def toggleHover(hover: Boolean): Unit
   def highlight(location: Location): Unit
-  def resetBoard(): Unit
+  def resetBoard(fullReset: Boolean = true): Unit
 }
 
 case class DefaultBoardView(boardController: BoardController) extends GridPane with BoardView {
@@ -100,14 +101,14 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     }
   }
 
-  def resetBoard(gc: GraphicsContext): Unit = {
-    drawBoard(gc)
+  override def resetBoard(fullReset: Boolean = true): Unit = {
+    drawBoard(canvas.getGraphicsContext2D, fullReset)
     getChildren.clear()
     addRow(0, createRanksPane, canvas)
     add(createFilesPane, 1, 1)
   }
 
-  def drawBoard(gc: GraphicsContext): Unit = {
+  def drawBoard(gc: GraphicsContext, fullReset: Boolean): Unit = {
     gc.setFill(Color.WHITE)
 
     // draw the board
@@ -117,17 +118,16 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
           if (gc.getFill == Color.WHITE) Color.DARKGRAY
           else Color.WHITE
         }
+
         val x = col * squareSize
         val y = row * squareSize
         gc.fillRect(x, y, squareSize, squareSize)
 
-        val isMovingPiece = boardController.boardAccessor.board.lastMove.exists {
+        val accessor = boardController.boardAccessor
+        val isMovingPiece = !fullReset && accessor.board.lastMove.exists {
           case Move(source, destination, _) =>
-            val location = Location.locate(row, col)
-            location == source || location == destination && {
-              val movingPiece = boardController.boardAccessor.board(destination)
-              movingPiece.get.side == boardController.sideToMove
-            }
+            val location = accessor.accessorLocation(Location.locateForView(row, col))
+            location == source || location == destination
           case _ => false
         }
 
@@ -141,16 +141,12 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     // animate the moving piece
     boardController.boardAccessor.board.lastMove.foreach { lastMove =>
       val netMove = boardController.boardAccessor.accessorMove(lastMove)
-
-      // make the coordinates compatible with the board view's
-      // because the direction of the ranks are reversed
-      val source = Location.locate(netMove.source.rank, netMove.source.file)
-      val dest = Location.locate(netMove.destination.rank, netMove.destination.file)
+      val (source, dest) = Move.locateMove(netMove)
 
       val animator = new MoveAnimator(this) {
         override def handle(now: Long, x: DoubleProperty, y: DoubleProperty) = {
           val piece = boardController.boardAccessor.board(lastMove.destination).get
-          drawBoard(gc)
+          drawBoard(gc, false)
           drawPiece(gc, x.intValue, y.intValue)(piece)
         }
       }
@@ -163,15 +159,12 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     moveEventHandler.reset()
   }
 
-  override def resetBoard(): Unit = resetBoard(canvas.getGraphicsContext2D)
-
   override def toggleHover(hover: Boolean): Unit = getScene.setCursor {
     if (hover) Cursor.HAND else Cursor.DEFAULT
   }
 
   override def highlight(location: Location): Unit = {
     val gc = canvas.getGraphicsContext2D
-    resetBoard(gc)
 
     val row = Board.Size - 1 - location.rank
     val col: Int = location.file

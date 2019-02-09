@@ -28,6 +28,16 @@ object Move {
   def transform[A, B](f: A => B): Move[A] => Move[B] = {
     case Move(source, destination, moveType) => Move(f(source), f(destination), moveType)
   }
+
+  /**
+    * Makes the coordinates compatible with the board view's
+    * because the direction of the ranks are reversed
+    */
+  def locateMove(move: LocationMove) = {
+    val source = Location.locateForView(move.source.rank, move.source.file)
+    val dest = Location.locateForView(move.destination.rank, move.destination.file)
+    (source, dest)
+  }
 }
 
 

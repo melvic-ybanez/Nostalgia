@@ -29,11 +29,13 @@ public abstract class MoveAnimator {
         DoubleProperty x = new SimpleDoubleProperty();
         DoubleProperty y = new SimpleDoubleProperty();
 
+        double timeLimit = 0.3;
+
         Timeline timeline = new Timeline(
                 new KeyFrame(Duration.seconds(0),
                         new KeyValue(x, sourceX),
                         new KeyValue(y, sourceY)),
-                new KeyFrame(Duration.seconds(0.5),
+                new KeyFrame(Duration.seconds(timeLimit),
                         new KeyValue(x, destX),
                         new KeyValue(y, destY))
         );
@@ -42,6 +44,8 @@ public abstract class MoveAnimator {
             @Override
             public void handle(long now) {
                 MoveAnimator.this.handle(now, x, y);
+                if (x.doubleValue() == destX && y.doubleValue() == destY)
+                    this.stop();
             }
         };
         timer.start();

@@ -20,7 +20,7 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
       val col = (event.getX / boardView.squareSize).toInt
       val row = (event.getY / boardView.squareSize).toInt
 
-      val selectedLocation = Location.locate (row, col)
+      val selectedLocation = Location.locateForView (row, col)
       val selectedPiece = controller.boardAccessor (selectedLocation)
 
       performAction (selectedPiece, selectedLocation)
