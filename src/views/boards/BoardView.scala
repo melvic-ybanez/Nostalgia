@@ -17,7 +17,7 @@ import engine.movegen.Location._
 import engine.movegen.{Location, Move}
 import events.{MoveEventHandler, PieceHoverEventHandler}
 import main.Resources
-import models.PostAnimation
+import models.{CheckMate, GameOver, PostAnimation}
 
 /**
   * Created by melvic on 9/11/18.
@@ -138,25 +138,29 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
 
   override def animateMove(): Unit = {
     val gc = canvas.getGraphicsContext2D
+    val board = boardController.boardAccessor.board
 
     // animate the moving piece
-    boardController.boardAccessor.board.lastMove.foreach { lastMove =>
+    board.lastMove.foreach { lastMove =>
       val netMove = boardController.boardAccessor.accessorMove(lastMove)
       val (source, dest) = Move.locateMove(netMove)
 
-      val animator = new MoveAnimator(this) {
-        override def handle(now: Long, x: DoubleProperty, y: DoubleProperty) = {
-          val piece = boardController.boardAccessor.board(lastMove.destination).get
-          drawBoard(gc, false)
-          drawPiece(gc, x.intValue, y.intValue)(piece)
-        }
+      board(lastMove.destination).foreach { case piece@Piece(_, side) =>
+        val animator = new MoveAnimator(this) {
+          override def handle(now: Long, x: DoubleProperty, y: DoubleProperty) = {
+            drawBoard(gc, false)
+            drawPiece(gc, x.intValue, y.intValue)(piece)
+          }
 
-        override def updateGameState(): Unit = {
-          boardController.gameController.gameState = PostAnimation
-          highlight(netMove.destination)
+          override def updateGameState(): Unit = {
+            highlight(netMove.destination)
+            boardController.gameController.gameState =
+              if (board.isCheckmate(side)) GameOver(CheckMate(side))
+              else PostAnimation
+          }
         }
+        animator.animate(gc, source.file, source.rank, dest.file, dest.rank)
       }
-      animator.animate(gc, source.file, source.rank, dest.file, dest.rank)
     }
   }
 

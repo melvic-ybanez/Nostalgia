@@ -265,7 +265,8 @@ case class Bitboard(
       val pieceIndexes = toSquareIndexes(pieceBitset(piece))
       pieceIndexes.exists { squareIndex =>
         val moveGenerator = BitboardMoveGenerator.moveGenerator(pieceType)
-        moveGenerator.validMoves(this, squareIndex, loosingSide).nonEmpty
+        moveGenerator.validMoves(this, squareIndex, loosingSide)
+          .exists(!updateByBitboardMove(_, piece).isChecked(loosingSide))
       }
     }
   }

@@ -24,8 +24,7 @@ case class DefaultGameController(boardController: BoardController) extends GameC
   lazy val timer: AnimationTimer = new AnimationTimer() {
     override def handle(now: Long) = gameState match {
       case HumanToMove =>   // keep waiting for inputs
-      case ComputerToMove =>
-        boardController.computerMove()
+      case ComputerToMove => boardController.computerMove()
       case PreAnimation =>
         // Do not accept inputs while animating.
         boardView.removeListeners()
@@ -44,7 +43,7 @@ case class DefaultGameController(boardController: BoardController) extends GameC
       }
       case GameOver(result) =>
         result match {
-          case CheckMate(winner) => boardView.showCheckmateDialog(winner)
+          case CheckMate(winner) => //boardView.showCheckmateDialog(winner)
         }
         this.stop()
     }
