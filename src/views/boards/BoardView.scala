@@ -153,6 +153,7 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
 
         override def updateGameState(): Unit = {
           boardController.gameController.gameState = PostAnimation
+          highlight(netMove.destination)
         }
       }
       animator.animate(gc, source.file, source.rank, dest.file, dest.rank)
@@ -174,6 +175,7 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     val row = Board.Size - 1 - location.rank
     val col: Int = location.file
 
+    drawBoard(gc, true)
     gc.setLineWidth(2.5)
     gc.strokeRect(col * squareSize, row * squareSize, squareSize, squareSize)
   }

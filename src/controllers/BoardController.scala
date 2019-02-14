@@ -88,9 +88,9 @@ case class DefaultBoardController(
   override def humanMove(move: LocationMove): Boolean = {
     val netMove = boardAccessor.accessorMove(move)
     validateMove(netMove)(boardAccessor.board).exists { moveType =>
-      boardAccessor.moveBoard(move.updatedType(moveType)).exists {
+      boardAccessor.moveBoard(move.withType(moveType)).exists {
         case (accessor, piece, checkmate) =>
-          handleMoveResult(move, netMove.updatedType(moveType), piece, accessor, checkmate)
+          handleMoveResult(move, netMove.withType(moveType), piece, accessor, checkmate)
           true
       }
     }
@@ -113,7 +113,6 @@ case class DefaultBoardController(
     historyView.addMove(accessorMove, boardAccessor.board, piece)
     boardAccessor = accessor
     boardView.resetBoard(false)
-    boardView.highlight(move.destination)
     sideToMove = sideToMove.opposite
     gameController.gameState = PreAnimation
   }

@@ -1,6 +1,7 @@
 package engine.movegen.bitboards
 
 import engine.board.bitboards.Bitboard.U64
+import engine.board.bitboards.Transformers.Transformation
 import engine.board.bitboards.{Bitboard, Transformers}
 import engine.board.{Board, Piece}
 import engine.movegen.Attack
@@ -13,10 +14,10 @@ object SlidingMoveGenerator {
   object Masks {
     lazy val Files = (0 until Board.Size).map { i =>
       // position the one-bit (representing the file) in the rank
-      val rank = Math.pow(2, i).toLong
+      val file = Math.pow(2, i).toLong
 
       // replicate the rank
-      (1 until Board.Size).foldLeft(rank) { (bitset, rankIndex) =>
+      (1 until Board.Size).foldLeft(file) { (bitset, rankIndex) =>
         bitset | (bitset << Board.Size)
       }
     }
@@ -112,18 +113,17 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
 
   /**
     * The "reversed" version of the algorithm for the positive ray.
+    * The reverse function is needed for the reverse arithmetic.
     */
-  def negativeSlide: Slide = { (sliderPosition, occupied) =>
-    val transform = Transformers.rotate180
-
+  def negativeSlide(reverse: Transformation): Slide = { (sliderPosition, occupied) =>
     val slider = Bitboard.singleBitset(sliderPosition)
-    val reversedSlider = transform(slider)
-    val reversedOccupied = transform(occupied)
+    val reversedSlider = reverse(slider)
+    val reversedOccupied = reverse(occupied)
 
-    occupied ^ transform(reversedOccupied - 2 * reversedSlider)
+    occupied ^ reverse(reversedOccupied - reversedSlider - reversedSlider)
   }
 
-  def ray(slide: Slide)(masker: Int => U64): Slide = { (sliderPosition, occupied) =>
+  def ray(slide: Slide)(masker: Mask): Slide = { (sliderPosition, occupied) =>
     val mask = masker(sliderPosition)
     val targetSquares = occupied & mask
     slide(sliderPosition, targetSquares) & mask
@@ -131,15 +131,12 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
 
   def positiveRay: Mask => Slide = ray(positiveSlide)
 
-  def negativeRay: Mask => Slide = ray(negativeSlide)
+  def negativeRay(reverse: Transformation = java.lang.Long.reverseBytes): Mask => Slide =
+    ray(negativeSlide(reverse))
 
-  def lineAttacks: Mask => Slide = ray({ (sliderPosition, occupied) =>
-    positiveSlide(sliderPosition, occupied) ^ negativeSlide(sliderPosition, occupied)
-  })
+  def fileMask(sliderPosition: Int) = Masks.Files(Bitboard.fileOf(sliderPosition))
 
-  def fileMask(sliderPosition: Int) = Masks.Files(sliderPosition % Board.Size)
-
-  def rankMask(sliderPosition: Int) = Masks.Ranks(sliderPosition / Board.Size)
+  def rankMask(sliderPosition: Int) = Masks.Ranks(Bitboard.rankOf(sliderPosition))
 
   def diagonalMask: Mask = getDiagonalMask {
     (rankIndex, fileIndex) => Masks.Diagonals((rankIndex - fileIndex) & 15)
@@ -149,6 +146,13 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
     (rankIndex, fileIndex) => Masks.AntiDiagonals((rankIndex + fileIndex) ^ 7)
   }
 
+  /**
+    * A function that retrieves the rank and file indexes of a given slider position,
+    * and combine them into one index.
+    * @param f A function that decides how to combine the rank and file indexes.
+    * @param sliderPosition The position of the slider
+    * @return The result of applying the function to the file and rank indexes.
+    */
   def getDiagonalMask(f: (Int, Int) => U64)(sliderPosition: Int) = {
     val rankIndex = Bitboard.rankOf(sliderPosition)
     val fileIndex = Bitboard.fileOf(sliderPosition)
@@ -162,7 +166,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
       val moveBitset = slide(source, board.occupied)
       val blocker = board.occupied & moveBitset
 
-      // removes the blocker from the set of valid destinations if it's neither an enemy nor empty
+      // remove the blocker from the set if it's neither an enemy nor empty
       val validMoveBitSet = board(Bitboard.oneBitIndex(blocker)) match {
         case Some(Piece(_, blockerSide)) if blockerSide == side =>
           moveBitset ^ blocker

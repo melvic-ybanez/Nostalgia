@@ -37,14 +37,11 @@ case class DefaultGameController(boardController: BoardController) extends GameC
         case HumanVsHuman =>
           // All players are humans. Accept inputs.
           acceptHumanInputs()
-          println(boardController.sideToMove)
         case HumanVsComputer(humanSide) if humanSide == boardController.sideToMove =>
           // The next player is a human. Accept inputs.
-          println(humanSide, boardController.sideToMove)
           acceptHumanInputs()
         case _ => gameState = ComputerToMove
       }
-        println(gameState, boardController.gameType)
       case GameOver(result) =>
         result match {
           case CheckMate(winner) => boardView.showCheckmateDialog(winner)

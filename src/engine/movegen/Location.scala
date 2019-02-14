@@ -6,7 +6,10 @@ import engine.board.bitboards.Bitboard
 /**
   * Created by melvic on 8/6/18.
   */
-sealed trait File
+sealed trait File {
+  def apply(rank: Rank): Location = Location(this, rank)
+}
+
 case object A extends File
 case object B extends File
 case object C extends File
@@ -26,7 +29,9 @@ case object _6 extends Rank
 case object _7 extends Rank
 case object _8 extends Rank
 
-case class Location(file: File, rank: Rank)
+case class Location(file: File, rank: Rank) {
+  def to(destination: Location): Move[Location] = Move(this, destination)
+}
 
 object Location {
   lazy val Files: List[File] = A :: B :: C :: D :: E :: F :: G :: H :: Nil

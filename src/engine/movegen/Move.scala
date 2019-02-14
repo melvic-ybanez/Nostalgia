@@ -2,7 +2,6 @@ package engine.movegen
 
 import engine.board.Piece
 import engine.movegen.Location._
-import engine.movegen.Move.LocationMove
 
 /**
   * Created by melvic on 8/5/18.
@@ -18,7 +17,7 @@ case class Check(attacker: Piece) extends MoveType
 case object Castling extends MoveType
 
 case class Move[A](source: A, destination: A, moveType: MoveType = Normal) {
-  def updatedType(newType: MoveType) = Move(source, destination, newType)
+  def withType(newType: MoveType) = Move(source, destination, newType)
 }
 
 object Move {
