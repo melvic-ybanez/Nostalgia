@@ -8,7 +8,7 @@ import engine.board.bitboards.Bitboard
   */
 object Evaluator {
   def evaluate(board: Board, sideToMove: Side): Double = board match {
-    case bitboard@Bitboard(_, _, _) => BitboardEvaluator(bitboard, sideToMove).evaluate
+    case bitboard@Bitboard(_, _, _, _) => BitboardEvaluator(bitboard, sideToMove).evaluate
     case _ => 0
   }
 }

@@ -30,12 +30,13 @@ object Bitboard {
   def apply(): Bitboard = {
     // Initialize the white pieces
     val partialBitboard = Bitboard(Vector.fill(Board.Size)(0), Vector(), None)
-      .updatePiece(whiteOf(Pawn))   { _ | 0x000000000000ff00L }
-      .updatePiece(whiteOf(Knight)) { _ | 0x0000000000000042L }
-      .updatePiece(whiteOf(Bishop)) { _ | 0x0000000000000024L }
-      .updatePiece(whiteOf(Rook))   { _ | 0x0000000000000081L }
-      .updatePiece(whiteOf(Queen))  { _ | 0x0000000000000008L }
-      .updatePiece(whiteOf(King))   { _ | 0x0000000000000010L }
+      .updatePiece(whiteOf(Pawn)) {
+        _ | toBitset(A(_2), B(_2), C(_2), D(_2), E(_2), F(_2), G(_2), H(_2))
+      }.updatePiece(whiteOf(Knight)) { _ | toBitset(B(_1), G(_1)) }
+      .updatePiece(whiteOf(Bishop))  { _ | toBitset(C(_1), F(_1)) }
+      .updatePiece(whiteOf(Rook))    { _ | toBitset(A(_1), H(_1)) }
+      .updatePiece(whiteOf(Queen))   { _ | singleBitset(D(_1)) }
+      .updatePiece(whiteOf(King))    { _ | singleBitset(E(_1)) }
 
     /**
       * Rotate each of the white piece positions to get the
@@ -49,7 +50,7 @@ object Bitboard {
     }
 
     // Swap the positions of the black king and the black queen
-    val toggleKingQueen: U64 => U64 = _ ^ 0x1800000000000000L
+    val toggleKingQueen: U64 => U64 = _ ^ toBitset(D(_8), E(_8))
     fullBitboard.updatePiece(blackOf(Queen))(toggleKingQueen)
       .updatePiece(blackOf(King))(toggleKingQueen)
 
@@ -106,12 +107,16 @@ object Bitboard {
   def count(bitset: U64) = isolate(bitset).size
 
   def toSquareIndexes: U64 => Stream[Int] = isolate(_).map(oneBitIndex)
+
+  def toBitset(positions: Int*): U64 = positions.foldLeft(0L) { (bitset, position) =>
+    bitset | singleBitset(position)
+  }
 }
 
 case class Bitboard(bitsets: Vector[U64],
   castlingBitsets: Vector[U64],
-  lastBitboardMove: Option[BitboardMove])
-  (implicit val enPassantBitset: U64 = 0L) extends Board {
+  lastBitboardMove: Option[BitboardMove],
+  enPassantBitset: U64 = 0L) extends Board {
 
   import Bitboard._
 
@@ -196,7 +201,7 @@ case class Bitboard(bitsets: Vector[U64],
     Bitboard(bitsets, castlingBitsets, lastBitboardMove)
 
   def withEnPassantBitset(enPassantBitset: U64) =
-    Bitboard(bitsets, castlingBitsets, lastBitboardMove)(enPassantBitset)
+    Bitboard(bitsets, castlingBitsets, lastBitboardMove, enPassantBitset)
 
   def at(position: Int): Option[Piece] = at(Bitboard.singleBitset(position))
 
