@@ -43,7 +43,7 @@ case class DefaultGameController(boardController: BoardController) extends GameC
       }
       case GameOver(result) =>
         result match {
-          case CheckMate(winner) => //boardView.showCheckmateDialog(winner)
+          case CheckMate(winner) => boardView.showCheckmateDialog(winner)
         }
         this.stop()
     }
