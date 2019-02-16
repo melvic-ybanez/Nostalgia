@@ -108,10 +108,11 @@ object Bitboard {
   def toSquareIndexes: U64 => Stream[Int] = isolate(_).map(oneBitIndex)
 }
 
-case class Bitboard(
-    bitsets: Vector[U64],
-    castlingBitsets: Vector[U64],
-    lastBitboardMove: Option[BitboardMove]) extends Board {
+case class Bitboard(bitsets: Vector[U64],
+  castlingBitsets: Vector[U64],
+  lastBitboardMove: Option[BitboardMove])
+  (implicit val enPassantBitset: U64 = 0L) extends Board {
+
   import Bitboard._
 
   lazy val (sideBitsets, pieceTypeBitsets) = bitsets.splitAt(PieceTypeOffset)
@@ -161,6 +162,7 @@ case class Bitboard(
         // remove the pawn and replace it with the specified officer
         partialBoard.updatePiece(piece)( _ ^ destBitset)
           .updatePiece(promotionPiece)(_ ^ destBitset)
+      case DoublePawnPush => partialBoard.withEnPassantBitset(destBitset)
       case Castling => partialBoard.castle(move, piece.side)
       case _ => partialBoard
     }
@@ -192,6 +194,9 @@ case class Bitboard(
 
   def withCastlingBitsets(castlingBitsets: Vector[U64]) =
     Bitboard(bitsets, castlingBitsets, lastBitboardMove)
+
+  def withEnPassantBitset(enPassantBitset: U64) =
+    Bitboard(bitsets, castlingBitsets, lastBitboardMove)(enPassantBitset)
 
   def at(position: Int): Option[Piece] = at(Bitboard.singleBitset(position))
 

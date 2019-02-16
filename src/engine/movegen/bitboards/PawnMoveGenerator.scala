@@ -48,26 +48,22 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   def attackWest: PawnMove = attack(northWest, southWest)
 
   // TODO: Incorporate this.
-  def enPassant: PawnMove = { (pawns, opponent, sideToMove) =>
-    // Decide whether to move north or south based on the color
-    val (setwiseOp, action): (SetwiseOp, U64 => U64) = sideToMove match {
-      case White => (_ << _, north)
-      case _ => (_ >> _, south)
-    }
+  def enPassant(enPassantBitset: U64): PawnMove = { (pawnBitset, opponent, sideToMove) =>
+    // Decide whether to go east or west if en-passant is possible
+    val fileOperationOpt =
+      if (isNonEmptySet(enPassantBitset & east(pawnBitset))) Some(east)
+      else if (isNonEmptySet(enPassantBitset & west(pawnBitset))) Some(west)
+      else None
 
-    val newOpponent = setwiseOp(pawns, Board.Size)
+    fileOperationOpt.map { fileOperation =>
+      // Decide whether to move north or south based on the color
+      val rankOperation: U64 => U64 = sideToMove match {
+        case White => north
+        case _ => south
+      }
 
-    // Decide whether to move east or west for the attack
-    val attack = {
-      val pawnPosition = Bitboard.oneBitIndex(pawns)
-      val opponentPosition = Bitboard.oneBitIndex(opponent)
-      action andThen (
-        if (pawnPosition % Board.Size > opponentPosition % Board.Size) west
-        else east
-      )
-    }
-
-    attack(pawns) & newOpponent
+      (rankOperation andThen fileOperation)(pawnBitset)
+    }.getOrElse(0L)
   }
 
   /**
@@ -77,9 +73,9 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   def generatePawnMoves(moves: Stream[WithMove[PawnMove]],
                         getTargets: (Bitboard, Side) => U64): StreamGen[WithMove[U64]] = {
     case (bitboard, source, sideToMove) =>
-      val pawns = Bitboard.singleBitset(source)
+      val pawnBitset = Bitboard.singleBitset(source)
       moves flatMap { case move@(pawnMove, _) =>
-        val moveBitset: PawnMove => U64 = _(pawns, getTargets(bitboard, sideToMove), sideToMove)
+        val moveBitset: PawnMove => U64 = _(pawnBitset, getTargets(bitboard, sideToMove), sideToMove)
 
         // Rank == 7 or Rank == 0 (since White == 0 and Black == 1)
         val promote = (Bitboard.rankOf(source) + sideToMove) % Board.Size == 0
@@ -96,10 +92,15 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
 
   def pushMoves = Stream((singlePush, Normal), (doublePush, DoublePawnPush))
   def attackMoves = Stream((attackEast, Attack), (attackWest, Attack))
+  def enPassantMove(enPassantBitset: U64) = Stream((enPassant(enPassantBitset), EnPassant))
 
-  def generatePushes = generatePawnMoves(pushMoves, (board, side) => board.emptySquares)
+  def generatePushes = generatePawnMoves(pushMoves, (board, _) => board.emptySquares)
   def generateAttacks = generatePawnMoves(attackMoves, (board, side) => board.opponents(side))
+  def generateEnPassant(enPassantBitset: U64) = generatePawnMoves(
+    enPassantMove(enPassantBitset), (board, _) => board.emptySquares)
 
   def destinationBitsets: StreamGen[WithMove[U64]] = (bitboard, source, sideToMove) =>
-    generatePushes(bitboard, source, sideToMove) ++ generateAttacks(bitboard, source, sideToMove)
+    generatePushes(bitboard, source, sideToMove) ++
+      generateAttacks(bitboard, source, sideToMove) ++
+      generateEnPassant(bitboard.enPassantBitset)(bitboard, source, sideToMove)
 }
