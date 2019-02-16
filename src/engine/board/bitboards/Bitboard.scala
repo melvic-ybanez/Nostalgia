@@ -55,9 +55,9 @@ object Bitboard {
 
       // update the castling bitsets
       .withCastlingBitsets(Vector(
-        singleBitset(Location(E, _1)) | singleBitset(Location(E, _8)),
-        singleBitset(Location(H, _1)) | singleBitset(Location(H, _8)),
-        singleBitset(Location(A, _1)) | singleBitset(Location(A, _8))))
+        singleBitset(E(_1)) | singleBitset(E(_8)),
+        singleBitset(H(_1)) | singleBitset(H(_8)),
+        singleBitset(A(_1)) | singleBitset(A(_8))))
   }
 
   def toBitPosition(location: Location): Int = location.file + location.rank * Board.Size
@@ -93,7 +93,7 @@ object Bitboard {
     recurse(leastSignificantOneBit(bitset), -1)
   }
 
-  def serializeToStream(bitset: U64): Stream[U64] = {
+  def isolate(bitset: U64): Stream[U64] = {
     @tailrec
     def recurse(bitset: U64, bitsets: Stream[U64]): Stream[U64] =
       if (isNonEmptySet(bitset))
@@ -103,7 +103,9 @@ object Bitboard {
     recurse(bitset, Stream())
   }
 
-  def toSquareIndexes: U64 => Stream[Int] = serializeToStream(_).map(oneBitIndex)
+  def count(bitset: U64) = isolate(bitset).size
+
+  def toSquareIndexes: U64 => Stream[Int] = isolate(_).map(oneBitIndex)
 }
 
 case class Bitboard(
@@ -302,5 +304,5 @@ case class Bitboard(
   }
 
   override def updateByNextMove(sideToMove: Side) =
-    AlphaBetaMax.move(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, Board.DefaultDepth)._2
+    AlphaBetaMax.move(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, Board.DefaultMasDepth)._2
 }

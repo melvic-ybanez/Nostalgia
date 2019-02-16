@@ -173,7 +173,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
         case _ => moveBitset
       }
 
-      Bitboard.serializeToStream(validMoveBitSet).map((_, Attack))
+      Bitboard.isolate(validMoveBitSet).map((_, Attack))
     }
   }
 }

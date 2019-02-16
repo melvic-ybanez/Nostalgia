@@ -10,11 +10,11 @@ import scala.annotation.tailrec
   * Created by melvic on 1/27/19.
   */
 sealed trait AlphaBeta {
-  def evaluateBoard: (Board, Side) => Int
+  def evaluateBoard: (Board, Side) => Double
 
-  def cutOffBound(score: Int, bound: Int): Boolean
+  def cutOffBound(score: Double, bound: Double): Boolean
 
-  def isBetterScore(score: Int, bestScore: Int): Boolean
+  def isBetterScore(score: Double, bestScore: Double): Boolean
 
   def opponent: AlphaBeta
 
@@ -24,11 +24,12 @@ sealed trait AlphaBeta {
     * @param depth remaining depth in the search tree
     * @return A pair consisting of the evaluation score and the chosen next move.
     */
-  def move(board: Board, side: Side, currentScore: Int, bound: Int, depth: Int): (Int, Board) =
+  def move(board: Board, side: Side, currentScore: Double, bound: Double, depth: Int): (Double, Board) =
     if (depth == 0) (evaluateBoard(board, side), board)
     else {
       @tailrec
-      def recurse(bestScore: Int, nextBoard: Board, updatedBoards: Stream[Board]): (Int, Board) = updatedBoards match {
+      def recurse(bestScore: Double,
+          nextBoard: Board, updatedBoards: Stream[Board]): (Double, Board) = updatedBoards match {
         case Stream() => (bestScore, nextBoard)
         case updatedBoard +: nextMoves =>
           val (score, _) = opponent.move(updatedBoard, side.opposite,
@@ -47,11 +48,11 @@ sealed trait AlphaBeta {
 }
 
 object AlphaBetaMax extends AlphaBeta {
-  override def cutOffBound(score: Int, bound: Int) = score >= bound
+  override def cutOffBound(score: Double, bound: Double) = score >= bound
 
   override def evaluateBoard = Evaluator.evaluate
 
-  override def isBetterScore(score: Int, bestScore: Int) = score > bestScore
+  override def isBetterScore(score: Double, bestScore: Double) = score > bestScore
 
   override def opponent = AlphaBetaMin
 }
@@ -59,9 +60,9 @@ object AlphaBetaMax extends AlphaBeta {
 object AlphaBetaMin extends AlphaBeta {
   override def evaluateBoard = (board, side) => -Evaluator.evaluate(board, side)
 
-  override def cutOffBound(score: Int, bound: Int) = score <= bound
+  override def cutOffBound(score: Double, bound: Double) = score <= bound
 
-  override def isBetterScore(score: Int, bestScore: Int) = score < bestScore
+  override def isBetterScore(score: Double, bestScore: Double) = score < bestScore
 
   override def opponent = AlphaBetaMax
 }
