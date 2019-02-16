@@ -77,8 +77,8 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
       moves flatMap { case move@(pawnMove, _) =>
         val moveBitset: PawnMove => U64 = _(pawnBitset, getTargets(bitboard, sideToMove), sideToMove)
 
-        // Rank == 7 or Rank == 0 (since White == 0 and Black == 1)
-        val promote = (Bitboard.rankOf(source) + sideToMove) % Board.Size == 0
+        val promotionMasks = 0xff000000000000L :: 0xff00L :: Nil
+        val promote = isNonEmptySet(promotionMasks(sideToMove) & pawnBitset)
 
         if (promote)
           // Generate bitboards for each position promotions
