@@ -13,7 +13,7 @@ class HistoryView extends ListView[String] {
   setStyle("-fx-font-size: 14;")
 
   def addMove(move: LocationMove, board: Board, piece: Piece): Unit = {
-    val moveNotation = Notation.of(move, piece, board)
+    val moveNotation = Notation.ofMove(move, piece, board)
 
     if (piece.side == White) {
       val moveNumber = "%2d".format(getItems.size + 1)
