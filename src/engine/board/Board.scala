@@ -24,8 +24,6 @@ trait Board {
 
   def lastMove: Option[LocationMove]
 
-  def locate(piece: Piece): List[Location]
-
   def generateMoves(sideToMove: Side): Stream[(LocationMove, Piece)]
 
   def updateByNextMove(sideToMove: Side): Board

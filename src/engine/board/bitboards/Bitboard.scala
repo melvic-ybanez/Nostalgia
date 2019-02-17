@@ -221,23 +221,6 @@ case class Bitboard(bitsets: Vector[U64],
     Move[Location](move.source, move.destination, move.moveType)
   }
 
-  override def locate(piece: Piece): List[Location] = bitPositions(piece).map(intToLocation)
-
-  /**
-    * Get the positions of a particular type (and color) of a piece.
-    *
-    * TODO: This may not be a very efficient approach. Consider optimizing this
-    * if speed becomes an issue.
-    */
-  def bitPositions(piece: Piece): List[Int] = {
-    @tailrec
-    def recurse(bitboard: U64, acc: List[Int]): List[Int] =
-      if (isEmptySet(bitboard)) acc
-      else recurse(bitboard ^ leastSignificantOneBit(bitboard), oneBitIndex(bitboard) :: acc)
-
-    recurse(pieceBitset(piece), Nil)
-  }
-
   def pieceBitset: Piece => U64 = { case Piece(pieceType, side) =>
     sideBitsets(side) & pieceTypeBitsets(pieceType)
   }
