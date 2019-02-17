@@ -198,7 +198,7 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     checkMateAlert.setContentText(s"$winningSide wins by checkmate. Do you want to start a new game?")
     checkMateAlert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
     checkMateAlert.show()
-    checkMateAlert.setOnHidden { event =>
+    checkMateAlert.setOnHidden { _ =>
       val result = checkMateAlert.getResult
       if (result == ButtonType.YES) boardController.menuController.newGame()
     }
