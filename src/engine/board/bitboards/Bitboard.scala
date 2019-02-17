@@ -314,5 +314,5 @@ case class Bitboard(bitsets: Vector[U64],
   }
 
   override def updateByNextMove(sideToMove: Side) =
-    AlphaBetaMax.move(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, Board.DefaultMasDepth)._2
+    AlphaBetaMax.move(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, Board.DefaultMaxDepth)._2
 }

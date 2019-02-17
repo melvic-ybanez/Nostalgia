@@ -38,9 +38,8 @@ case class BitboardEvaluator(bitboard: Bitboard, sideToMove: Side) {
     (total, pieceType) => total + pieceScore(Piece(pieceType, side))
   }
 
-  def pieceScore(piece: Piece) = {
+  def pieceScore(piece: Piece) =
     count(bitboard.pieceBitset(piece)) * pieceScoreMap(piece)
-  }
 
   def materialScore: SideScore = { side =>
     lazy val pawnCount = count(bitboard.pieceTypeBitsets(Pawn))
@@ -64,18 +63,18 @@ case class BitboardEvaluator(bitboard: Bitboard, sideToMove: Side) {
 
       // Increased the values of central pawns
       val centralPawnMask = 0x0000001818000000L
-      val centralPawnScore = positionScore(pawn, centralPawnMask, 0.4)
+      val centralPawnScore = positionScore(pawn, centralPawnMask, 0.5)
 
       // Decreased the values of rook pawns
       val rookPawnMask = 0x0081818181818100L
-      val rookPawnPosition = positionScore(pawn, rookPawnMask, -0.1)
+      val rookPawnPosition = positionScore(pawn, rookPawnMask, -0.2)
 
-      // Penalize pawns on D or E file that haven't moved yet
-      val masks = 0x1800L :: 0x0018000000000000L :: Nil
+      // Penalize pawns that land on bad squares
+      val badPawnPositionMask = 0x000000e7e7241800L :: 0x001824e7e7000000L :: Nil
       val pawnBitset = bitboard.pieceBitset(pawn)
-      val unmovedPawnsScore = count(masks(side) & pawnBitset) * -0.2 * count(pawnBitset)
+      val badPawnPositionScore = count(badPawnPositionMask(side) & pawnBitset) * -0.2 * count(pawnBitset)
 
-      pawnPresenceScore + centralPawnScore + rookPawnPosition + unmovedPawnsScore
+      pawnPresenceScore + centralPawnScore + rookPawnPosition + badPawnPositionScore
     }
 
     // Decrease the values of knights as pawns disappear
