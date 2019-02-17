@@ -10,7 +10,6 @@ import engine.movegen.Move.LocationMove
   */
 object Board {
   val Size = 8
-  val DefaultMaxDepth = 4
   lazy val defaultBoard = Bitboard()
 }
 

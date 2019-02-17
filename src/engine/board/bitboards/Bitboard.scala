@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 import engine.board._
 import engine.movegen._
 import engine.movegen.bitboards._
-import engine.search.AlphaBetaMax
+import engine.search.{AlphaBeta, AlphaBetaMax}
 
 /**
   * Created by melvic on 8/5/18.
@@ -314,5 +314,5 @@ case class Bitboard(bitsets: Vector[U64],
   }
 
   override def updateByNextMove(sideToMove: Side) =
-    AlphaBetaMax.move(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, Board.DefaultMaxDepth)._2
+    AlphaBetaMax.search(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, AlphaBeta.DefaultMaxDepth)._2
 }

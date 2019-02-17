@@ -24,7 +24,7 @@ sealed trait AlphaBeta {
     * @param depth remaining depth in the search tree
     * @return A pair consisting of the evaluation score and the chosen next move.
     */
-  def move(board: Board, side: Side, currentScore: Double, bound: Double, depth: Int): (Double, Board) =
+  def search(board: Board, side: Side, currentScore: Double, bound: Double, depth: Int): (Double, Board) =
     if (depth == 0) (evaluateBoard(board, side), board)
     else {
       @tailrec
@@ -32,7 +32,8 @@ sealed trait AlphaBeta {
           nextBoard: Board, updatedBoards: Stream[Board]): (Double, Board) = updatedBoards match {
         case Stream() => (bestScore, nextBoard)
         case updatedBoard +: nextMoves =>
-          val (score, _) = opponent.move(updatedBoard, side.opposite,
+          val (score, _) = opponent.search(updatedBoard,
+            side.opposite,
             bound, bestScore,   // params positions switched
             depth - 1)
 
@@ -41,10 +42,20 @@ sealed trait AlphaBeta {
           else recurse(bestScore, nextBoard, nextMoves)
       }
 
-      recurse(currentScore, board, board.generateMoves(side).map { case (move, piece) =>
-        board.updateByMove(move, piece)
+      recurse(currentScore, board, {
+        // Apply all the moves
+        val moves = board.generateMoves(side).map { case (move, piece) =>
+          board.updateByMove(move, piece)
+        }
+
+        // Only include moves that do not leave the king checked
+        moves.filter(!_.isChecked(side))
       })
     }
+}
+
+object AlphaBeta {
+  val DefaultMaxDepth = 4
 }
 
 object AlphaBetaMax extends AlphaBeta {
