@@ -47,7 +47,6 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
   def attackEast: PawnMove = attack(northEast, southEast)
   def attackWest: PawnMove = attack(northWest, southWest)
 
-  // TODO: Incorporate this.
   def enPassant(enPassantBitset: U64): PawnMove = { (pawnBitset, opponent, sideToMove) =>
     // Decide whether to go east or west if en-passant is possible
     val fileOperationOpt =
