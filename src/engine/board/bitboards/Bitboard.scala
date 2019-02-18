@@ -27,6 +27,15 @@ object Bitboard {
   val KingSideCastlingIndex = 1
   val QueenSideCastlingIndex = 2
 
+  val debruijn = 0x03f79d71b4cb0a89L
+
+  lazy val debruijnTable: Map[U64, Int] = {
+    (0 until 64).foldLeft(Map[U64, Int]()) { (index64, i) =>
+      val index = (debruijn << i) >>> 58
+      index64 + (index -> i)
+    }
+  }
+
   def apply(): Bitboard = {
     // Initialize the white pieces
     val partialBitboard = Bitboard(Vector.fill(Board.Size)(0), Vector(), None)
@@ -77,21 +86,11 @@ object Bitboard {
 
   def leastSignificantOneBit(bitboard: U64) = bitboard & -bitboard
 
-  /**
-    * Retrieves the index of a 1 bit in a given bitboard.
-    * It is assumed that the bitboard contains only one
-    * 1 bit, and that the rest are zeroes.
-    *
-    * TODO: See algorithms for Bit scan forward for a more
-    * efficient approach. Also, change the name to bitScanForward.
-    */
-  def oneBitIndex(bitset: U64) = {
-    @tailrec
-    def recurse(ls1b: Long, i: Int): Int =
-      if (isNonEmptySet(ls1b)) recurse(ls1b >>> 1, i + 1)
-      else i
-
-    recurse(leastSignificantOneBit(bitset), -1)
+  def bitScan(bitset: U64) = {
+    val ls1b = leastSignificantOneBit(bitset)
+    val shiftedLeft = ls1b * debruijn
+    val index = shiftedLeft >>> 58
+    debruijnTable(index)
   }
 
   def isolate(bitset: U64): Stream[U64] = {
@@ -106,7 +105,7 @@ object Bitboard {
 
   def count(bitset: U64) = isolate(bitset).size
 
-  def toSquareIndexes: U64 => Stream[Int] = isolate(_).map(oneBitIndex)
+  def toSquareIndexes: U64 => Stream[Int] = isolate(_).map(bitScan)
 
   def toBitset(positions: Int*): U64 = positions.foldLeft(0L) { (bitset, position) =>
     bitset | singleBitset(position)
@@ -235,7 +234,7 @@ case class Bitboard(bitsets: Vector[U64],
   def opponents(side: Side) = bitsets(side.opposite)
 
   override def isChecked(side: Side) = {
-    val kingPosition = oneBitIndex(pieceBitset(side.of(King)))
+    val kingPosition = bitScan(pieceBitset(side.of(King)))
     val moveGenerators = (PawnMoveGenerator, Pawn :: Nil) ::
       (KnightMoveGenerator, Knight :: Nil) ::
       (BishopMoveGenerator, Bishop :: Queen :: Nil) ::

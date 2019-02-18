@@ -39,7 +39,7 @@ trait BitboardMoveGenerator {
   } map { case (bitboard, _) => bitboard }
 
   def destinations: StreamGen[WithMove[Int]] = nonEmptyDestinationBitsets(_, _, _)
-    .map(withMoveType(_)(Bitboard.oneBitIndex))
+    .map(withMoveType(_)(Bitboard.bitScan))
 
   def validMoves: StreamGen[BitboardMove] = { (bitboard, source, side) =>
     destinations(bitboard, source, side).map { case (destination, moveType) =>

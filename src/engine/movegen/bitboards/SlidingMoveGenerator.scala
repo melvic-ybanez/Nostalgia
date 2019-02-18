@@ -167,7 +167,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
       val blocker = board.occupied & moveBitset
 
       // remove the blocker from the set if it's neither an enemy nor empty
-      val validMoveBitSet = board(Bitboard.oneBitIndex(blocker)) match {
+      val validMoveBitSet = board(Bitboard.bitScan(blocker)) match {
         case Some(Piece(_, blockerSide)) if blockerSide == side =>
           moveBitset ^ blocker
         case _ => moveBitset

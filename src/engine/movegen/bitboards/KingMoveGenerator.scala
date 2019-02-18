@@ -30,7 +30,7 @@ object KingMoveGenerator extends NonSlidingMoveGenerator with PostShiftOneStep {
         val kingFirstStep = step(kingBitset)
         if (Bitboard.isNonEmptySet(kingFirstStep)) 0L
         else {
-          val destination = Bitboard.oneBitIndex(kingFirstStep)
+          val destination = Bitboard.bitScan(kingFirstStep)
           val move = Move[Int](source, destination, Normal)
           val updatedMove = board.updateByBitboardMove(move, Piece(King, side))
 
