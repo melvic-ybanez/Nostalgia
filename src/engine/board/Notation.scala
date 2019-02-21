@@ -26,7 +26,9 @@ object Notation {
 
   // TODO: enPassant, queen-side castling, promotion, ambiguous sources
   def ofMove(move: LocationMove, piece: Piece, board: Board): String = move match {
-    case Move(_, _, Castling) => "O-O"
+    case Move(_, destination, Castling) =>
+      if (destination.file == C) "O-O-O"    // Queen-side castling
+      else "O-O"    // King-side castling
     case Move(_, destination, _) =>
       // If the destination is not empty, it is assumed to be a capture move.
       val capture = board(destination).isDefined
