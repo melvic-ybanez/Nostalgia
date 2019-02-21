@@ -235,16 +235,13 @@ case class Bitboard(bitsets: Vector[U64],
 
   override def isChecked(side: Side) = {
     val kingPosition = bitScan(pieceBitset(side.of(King)))
-    val moveGenerators = (PawnMoveGenerator, Pawn :: Nil) ::
-      (KnightMoveGenerator, Knight :: Nil) ::
-      (BishopMoveGenerator, Bishop :: Queen :: Nil) ::
-      (RookMoveGenerator, Rook :: Queen :: Nil) ::
-      (KingMoveGenerator, King :: Nil) :: Nil
+    val moveGenerators = types.map(pieceType => (BitboardMoveGenerator.moveGenerator, pieceType))
 
-    moveGenerators.exists { case (generator, pieceTypes) =>
+    moveGenerators.exists { case (generatorType, attacker) =>
+      val generator = generatorType(attacker)
       generator.attackBitsets(this, kingPosition, side) exists { destination =>
         at(destination).exists { case Piece(destType, destSide) =>
-          pieceTypes.contains(destType) && destSide == side.opposite
+          attacker == destType && destSide == side.opposite
         }
       }
     }
