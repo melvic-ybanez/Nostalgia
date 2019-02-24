@@ -21,32 +21,30 @@ trait GameController {
 case class DefaultGameController(boardController: BoardController) extends GameController {
   val boardView = boardController.boardView
 
-  lazy val timer: AnimationTimer = new AnimationTimer() {
-    override def handle(now: Long) = gameState match {
-      case HumanToMove =>   // keep waiting for inputs
-      case ComputerToMove => boardController.computerMove()
-      case PreAnimation =>
-        // Do not accept inputs while animating.
-        boardView.removeListeners()
+  lazy val timer: AnimationTimer = (now: Long) => gameState match {
+    case HumanToMove => // keep waiting for inputs
+    case ComputerToMove => boardController.computerMove()
+    case PreAnimation =>
+      // Do not accept inputs while animating.
+      boardView.removeListeners()
 
-        boardView.animateMove()
-        gameState = Animation
-      case Animation =>   // keep ignoring inputs
-      case PostAnimation => boardController.gameType match {
-        case HumanVsHuman =>
-          // All players are humans. Accept inputs.
-          acceptHumanInputs()
-        case HumanVsComputer(humanSide) if humanSide == boardController.sideToMove =>
-          // The next player is a human. Accept inputs.
-          acceptHumanInputs()
-        case _ => gameState = ComputerToMove
-      }
-      case GameOver(result) =>
-        result match {
-          case CheckMate(winner) => boardView.showCheckmateDialog(winner)
-        }
-        this.stop()
+      boardView.animateMove()
+      gameState = Animation
+    case Animation => // keep ignoring inputs
+    case PostAnimation => boardController.gameType match {
+      case HumanVsHuman =>
+        // All players are humans. Accept inputs.
+        acceptHumanInputs()
+      case HumanVsComputer(humanSide, _) if humanSide == boardController.sideToMove =>
+        // The next player is a human. Accept inputs.
+        acceptHumanInputs()
+      case _ => gameState = ComputerToMove
     }
+    case GameOver(result) =>
+      result match {
+        case CheckMate(winner) => boardView.showCheckmateDialog(winner)
+      }
+      this.stop()
   }
 
   override def play(): Unit = {

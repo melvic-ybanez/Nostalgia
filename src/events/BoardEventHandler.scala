@@ -28,7 +28,7 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
 
     controller.gameType match {
       case HumanVsHuman => handleEvent()
-      case HumanVsComputer(humanSide) if humanSide == controller.sideToMove => handleEvent()
+      case HumanVsComputer(humanSide, _) if humanSide == controller.sideToMove => handleEvent()
       case _ =>
         reset()
         boardView.toggleHover(false)

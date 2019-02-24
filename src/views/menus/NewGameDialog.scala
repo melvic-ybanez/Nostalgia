@@ -1,10 +1,11 @@
 package views.menus
 
 import javafx.geometry.Insets
-import javafx.scene.control.{ButtonType, Dialog, RadioButton, ToggleGroup}
-import javafx.scene.layout.VBox
+import javafx.scene.control._
+import javafx.scene.layout.{Border, BorderStroke, VBox}
 
 import engine.board.{Black, Side, White}
+import engine.search.AlphaBeta
 import models.{GameType, HumanVsComputer, HumanVsHuman, Preferences}
 import views.misc.CustomTitledPane
 
@@ -20,13 +21,27 @@ class NewGameDialog extends Dialog[ButtonType] {
 
   setTitle("New Game")
 
+  lazy val levelPane = {
+    val levelPane = new Slider(1,
+      AlphaBeta.DefaultMaxDepth,
+      AlphaBeta.DefaultMaxDepth / 2 + 1)
+
+    levelPane.setShowTickMarks(true)
+    levelPane.setShowTickLabels(true)
+    levelPane.setMajorTickUnit(1)
+    levelPane.setMinorTickCount(0)
+    levelPane.setSnapToTicks(true)
+
+    levelPane
+  }
+
   getDialogPane.setContent {
     val contentPane = new VBox
-    contentPane.getChildren.addAll(createGameTypePane, createSideToPlayPane)
+    contentPane.getChildren.addAll(gameTypePane, sideToPlayPane)
     contentPane.setPadding(new Insets(20))
     contentPane.setSpacing(20)
 
-    def createGameTypePane = {
+    def gameTypePane = {
       val mainPane = new VBox()
 
       val newGameGroup = new ToggleGroup()
@@ -35,14 +50,14 @@ class NewGameDialog extends Dialog[ButtonType] {
 
       humanVsHumanRB.setSelected(Preferences.Defaults.gameType == HumanVsHuman)
 
-      mainPane.getChildren.addAll(humanVsHumanRB, humanVsComputerRB)
+      mainPane.getChildren.addAll(humanVsHumanRB, humanVsComputerRB, levelPane)
 
       mainPane.setSpacing(15)
 
       CustomTitledPane("Type of Game", mainPane)
     }
 
-    def createSideToPlayPane = {
+    def sideToPlayPane = {
       val mainPane = new VBox()
 
       val newGameGroup = new ToggleGroup()
@@ -65,5 +80,9 @@ class NewGameDialog extends Dialog[ButtonType] {
 
   def sideToPlay: Side = if (whiteRB.isSelected) White else Black
 
-  def gameType: GameType = if (humanVsHumanRB.isSelected) HumanVsHuman else HumanVsComputer(sideToPlay)
+  def gameType: GameType =
+    if (humanVsHumanRB.isSelected) HumanVsHuman
+    else HumanVsComputer(sideToPlay, level)
+
+  def level = levelPane.getValue.toInt
 }

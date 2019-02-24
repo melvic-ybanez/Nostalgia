@@ -55,7 +55,7 @@ sealed trait AlphaBeta {
 }
 
 object AlphaBeta {
-  val DefaultMaxDepth = 4
+  val DefaultMaxDepth = 5
 }
 
 object AlphaBetaMax extends AlphaBeta {

@@ -7,7 +7,7 @@ import engine.board.Side
   */
 sealed trait GameType
 case object HumanVsHuman extends GameType
-case class HumanVsComputer(humanSide: Side) extends GameType
+case class HumanVsComputer(humanSide: Side, level: Int) extends GameType
 
 sealed trait GameState
 case object HumanToMove extends GameState

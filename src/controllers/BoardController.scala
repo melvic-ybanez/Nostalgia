@@ -76,7 +76,7 @@ case class DefaultBoardController(
 
     val gameState = gameType match {
       case HumanVsHuman => HumanToMove
-      case HumanVsComputer(White) => HumanToMove
+      case HumanVsComputer(White, _) => HumanToMove
       case _ => ComputerToMove
     }
 
@@ -96,13 +96,15 @@ case class DefaultBoardController(
     }
   }
 
-  override def computerMove(): Unit = {
-    val movedBoard = boardAccessor.board.updateByNextMove(sideToMove)
-    val accessor = boardAccessor.updatedBoard(movedBoard)
-    val move = movedBoard.lastMove.get
-    val piece = movedBoard(move.destination).get
-    handleMoveResult(move,
-      accessor.accessorMove(move), piece, accessor, movedBoard.isCheckmate(sideToMove))
+  override def computerMove(): Unit = gameType match {
+    case HumanVsComputer(_, level) =>
+      val movedBoard = boardAccessor.board.updateByNextMove(sideToMove, level)
+      val accessor = boardAccessor.updatedBoard(movedBoard)
+      val move = movedBoard.lastMove.get
+      val piece = movedBoard(move.destination).get
+      handleMoveResult(move,
+        accessor.accessorMove(move), piece, accessor, movedBoard.isCheckmate(sideToMove))
+    case _ => ()
   }
 
   def handleMoveResult(
