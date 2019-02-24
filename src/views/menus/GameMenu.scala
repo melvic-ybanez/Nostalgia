@@ -20,10 +20,14 @@ case class GameMenu(boardController: BoardController) extends Menu {
   newGameMI.setOnAction { _ => showNewGameDialog() }
 
   val rotateGameMI = new MenuItem("Rotate Board")
-  rotateGameMI.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.META_DOWN))
+  rotateGameMI.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN))
   rotateGameMI.setOnAction(_ => boardController.rotate())
 
-  getItems.addAll(newGameMI, new SeparatorMenuItem, rotateGameMI)
+  val resignMI = new MenuItem("Resign")
+  resignMI.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.META_DOWN))
+  resignMI.setOnAction(_ => boardController.boardView.showResignConfirmationDialog())
+
+  getItems.addAll(newGameMI, new SeparatorMenuItem, rotateGameMI, resignMI)
 
   def showNewGameDialog(): Unit = {
     gameDialog.showAndWait().ifPresent { result =>

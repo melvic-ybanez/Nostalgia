@@ -43,7 +43,8 @@ case class DefaultGameController(boardController: BoardController) extends GameC
       }
     case GameOver(result) =>
       result match {
-        case CheckMate(winner) => boardView.showCheckmateDialog(winner)
+        case CheckMate(winner) => boardView.showGameOverDialog(winner, "checkmate")
+        case Resign(loser) => boardView.showGameOverDialog(loser.opposite, "resignation")
       }
       this.stop()
   }
@@ -57,6 +58,7 @@ case class DefaultGameController(boardController: BoardController) extends GameC
 
   override def stop(): Unit = {
     timer.stop()
+    boardView.removeListeners()
   }
 
   def acceptHumanInputs(): Unit = {

@@ -19,4 +19,5 @@ case class GameOver(result: GameResult) extends GameState
 
 sealed trait GameResult
 case class CheckMate(winnerSide: Side) extends GameResult
+case class Resign(loserSide: Side) extends GameResult
 

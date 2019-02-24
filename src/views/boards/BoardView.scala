@@ -19,7 +19,7 @@ import engine.movegen.Location._
 import engine.movegen.{Location, Move}
 import events.{MoveEventHandler, PieceHoverEventHandler}
 import main.Resources
-import models.{CheckMate, GameOver, PostAnimation}
+import models._
 
 /**
   * Created by melvic on 9/11/18.
@@ -31,7 +31,8 @@ sealed trait BoardView {
   def toggleHover(hover: Boolean): Unit
   def highlight(location: Location): Unit
   def resetBoard(fullReset: Boolean = true): Unit
-  def showCheckmateDialog(winningSide: Side): Unit
+  def showGameOverDialog(winningSide: Side, reason: String): Unit
+  def showResignConfirmationDialog(): Unit
 
   def animateMove(): Unit
 
@@ -167,6 +168,7 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
   }
 
   def resetEventHandlers(): Unit = {
+    registerListeners()
     hoverEventHandler.reset()
     moveEventHandler.reset()
   }
@@ -193,16 +195,31 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     gc.drawImage(pieceImage, x + offsetX, y + offsetY)
   }
 
-  def showCheckmateDialog(winningSide: Side): Unit = {
+  override def showGameOverDialog(winningSide: Side, reason: String): Unit = {
     val checkMateAlert = new Alert(Alert.AlertType.CONFIRMATION)
     checkMateAlert.setHeaderText(null)
-    checkMateAlert.setTitle("Checkmate")
-    checkMateAlert.setContentText(s"$winningSide wins by checkmate. Do you want to start a new game?")
+    checkMateAlert.setTitle("Game Over")
+    checkMateAlert.setContentText(s"$winningSide wins by $reason. Do you want to start a new game?")
     checkMateAlert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
     checkMateAlert.show()
     checkMateAlert.setOnHidden { _ =>
       val result = checkMateAlert.getResult
       if (result == ButtonType.YES) boardController.menuController.newGame()
+    }
+  }
+
+  override def showResignConfirmationDialog(): Unit = {
+    val resignConfirmationAlert = new Alert(Alert.AlertType.CONFIRMATION)
+    resignConfirmationAlert.setHeaderText(null)
+    resignConfirmationAlert.setTitle("Confirm Resignation")
+    resignConfirmationAlert.setContentText("Are you sure you want to resign?")
+    resignConfirmationAlert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
+    resignConfirmationAlert.show()
+    resignConfirmationAlert.setOnHidden { _ =>
+      val result = resignConfirmationAlert.getResult
+      if (result == ButtonType.YES)
+        boardController.gameController.gameState =
+          GameOver(Resign(boardController.sideToMove))
     }
   }
 
