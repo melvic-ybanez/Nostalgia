@@ -10,8 +10,4 @@ object Preferences {
     lazy val gameType = HumanVsHuman
     lazy val sideToPlay = White
   }
-
-  def restoreDefaults(): Unit = {
-    // TODO: Implement this method
-  }
 }

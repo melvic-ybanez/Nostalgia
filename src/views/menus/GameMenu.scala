@@ -1,6 +1,9 @@
 package views.menus
 
-import javafx.scene.control.{ButtonType, Menu, MenuItem, SeparatorMenuItem}
+import java.lang.Boolean
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.value.{ChangeListener, ObservableValue}
+import javafx.scene.control._
 import javafx.scene.input.{KeyCode, KeyCodeCombination, KeyCombination}
 
 import controllers.BoardController
@@ -12,15 +15,15 @@ case class GameMenu(boardController: BoardController) extends Menu {
   setText("Game")
 
   val gameDialog = new NewGameDialog
-  val newGameItem = new MenuItem("New Game...")
-  newGameItem.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN))
-  newGameItem.setOnAction { _ => showNewGameDialog() }
+  val newGameMI = new MenuItem("New Game...")
+  newGameMI.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN))
+  newGameMI.setOnAction { _ => showNewGameDialog() }
 
-  val rotateGameItem = new MenuItem("Rotate Board")
-  rotateGameItem.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.META_DOWN))
-  rotateGameItem.setOnAction(_ => boardController.rotate())
+  val rotateGameMI = new MenuItem("Rotate Board")
+  rotateGameMI.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.META_DOWN))
+  rotateGameMI.setOnAction(_ => boardController.rotate())
 
-  getItems.addAll(newGameItem, new SeparatorMenuItem, rotateGameItem)
+  getItems.addAll(newGameMI, new SeparatorMenuItem, rotateGameMI)
 
   def showNewGameDialog(): Unit = {
     gameDialog.showAndWait().ifPresent { result =>

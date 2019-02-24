@@ -1,8 +1,9 @@
 package views.boards
 
-import javafx.scene.control.{Button, ButtonType, Dialog, Label}
-import javafx.scene.image.{Image, ImageView}
-import javafx.scene.layout.{GridPane, HBox}
+import javafx.scene.Cursor
+import javafx.scene.control.{ButtonType, Dialog, Label}
+import javafx.scene.image.ImageView
+import javafx.scene.layout.HBox
 
 import engine.board._
 import main.Resources
@@ -11,23 +12,37 @@ import main.Resources
   * Created by melvic on 9/18/18.
   */
 case class PawnPromotionDialog(side: Side) extends Dialog[ButtonType] {
-  var selectedPieceType: PieceType = Queen
+  private var _selectedPieceType: PieceType = Queen
 
-  setTitle("Pawn Promtion")
+  def selectedPieceType = _selectedPieceType
+  def selectedPieceType_=(selectedPieceType: PieceType): Unit =
+    _selectedPieceType = selectedPieceType
+
+  setTitle("Pawn Promotion")
 
   getDialogPane.setContent {
     val contentPane = new HBox
 
     val officers = Queen :: Rook :: Bishop :: Knight :: Nil
     val pieceButtons = officers.map { piece =>
-      val button = new Button("", new ImageView(Resources.piecePathOf(Piece(piece, side))))
-      button.setOnAction(e => selectedPieceType = piece)
+      val button = new Label("", new ImageView(Resources.piecePathOf(Piece(piece, side))))
+      button.setOnMouseEntered { _ => hover(button, Cursor.HAND, "lightgray") }
+      button.setOnMouseExited { _ => hover(button, Cursor.DEFAULT, "none") }
+      button.setOnMouseClicked { _ =>
+        selectedPieceType = piece
+        setResult(ButtonType.OK)
+        close()
+      }
       button
     }
 
     contentPane.getChildren.addAll(pieceButtons: _*)
+    contentPane.setSpacing(10)
     contentPane
   }
 
-  getDialogPane.getButtonTypes.addAll(ButtonType.OK)
+  def hover(button: Label, cursor: Cursor, bgColor: String): Unit = {
+    button.getScene.setCursor(cursor)
+    button.setStyle("-fx-background-color:" + bgColor)
+  }
 }

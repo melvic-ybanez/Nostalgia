@@ -107,10 +107,8 @@ case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverE
       val promotionDialog = PawnPromotionDialog(side)
       promotionDialog.show()
       promotionDialog.setOnHidden { _ =>
-        if (promotionDialog.getResult == ButtonType.OK) {
-          val newPiece = Piece(promotionDialog.selectedPieceType, side)
-          validateAndMove(PawnPromotion(newPiece))
-        }
+        val newPiece = Piece(promotionDialog.selectedPieceType, side)
+        validateAndMove(PawnPromotion(newPiece))
       }
     }
 

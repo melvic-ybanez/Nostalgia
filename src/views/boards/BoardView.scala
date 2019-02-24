@@ -1,6 +1,8 @@
 package views.boards
 
-import javafx.beans.property.DoubleProperty
+import java.lang.Boolean
+import javafx.beans.property.{BooleanProperty, DoubleProperty, SimpleBooleanProperty, SimpleDoubleProperty}
+import javafx.beans.value.{ChangeListener, ObservableValue}
 import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}

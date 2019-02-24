@@ -31,15 +31,16 @@ case class DefaultGameController(boardController: BoardController) extends GameC
       boardView.animateMove()
       gameState = Animation
     case Animation => // keep ignoring inputs
-    case PostAnimation => boardController.gameType match {
-      case HumanVsHuman =>
-        // All players are humans. Accept inputs.
-        acceptHumanInputs()
-      case HumanVsComputer(humanSide, _) if humanSide == boardController.sideToMove =>
-        // The next player is a human. Accept inputs.
-        acceptHumanInputs()
-      case _ => gameState = ComputerToMove
-    }
+    case PostAnimation =>
+      boardController.gameType match {
+        case HumanVsHuman =>
+          // All players are humans. Accept inputs.
+          acceptHumanInputs()
+        case HumanVsComputer(humanSide, _) if humanSide == boardController.sideToMove =>
+          // The next player is a human. Accept inputs.
+          acceptHumanInputs()
+        case _ => gameState = ComputerToMove
+      }
     case GameOver(result) =>
       result match {
         case CheckMate(winner) => boardView.showCheckmateDialog(winner)

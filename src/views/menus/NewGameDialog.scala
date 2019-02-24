@@ -2,7 +2,7 @@ package views.menus
 
 import javafx.geometry.Insets
 import javafx.scene.control._
-import javafx.scene.layout.{Border, BorderStroke, VBox}
+import javafx.scene.layout.{Border, BorderStroke, HBox, VBox}
 
 import engine.board.{Black, Side, White}
 import engine.search.AlphaBeta
@@ -50,7 +50,12 @@ class NewGameDialog extends Dialog[ButtonType] {
 
       humanVsHumanRB.setSelected(Preferences.Defaults.gameType == HumanVsHuman)
 
-      mainPane.getChildren.addAll(humanVsHumanRB, humanVsComputerRB, levelPane)
+      val levelPaneWrapper = new HBox
+      levelPaneWrapper.getChildren.addAll(new Label("Level:"), levelPane)
+      levelPaneWrapper.setSpacing(10)
+      levelPaneWrapper.disableProperty().bind(humanVsHumanRB.selectedProperty())
+
+      mainPane.getChildren.addAll(humanVsHumanRB, humanVsComputerRB, levelPaneWrapper)
 
       mainPane.setSpacing(15)
 

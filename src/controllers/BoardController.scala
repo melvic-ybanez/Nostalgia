@@ -33,8 +33,8 @@ case class DefaultBoardController(
     menuController: MenuController,
     initialBoard: Board,
     validateMove: MoveValidation) extends BoardController {
-  private var _sideToMove: Side = White
-  private var _gameType: GameType = HumanVsHuman
+  private var _sideToMove: Side = Preferences.Defaults.sideToPlay
+  private var _gameType: GameType = Preferences.Defaults.gameType
   private var _boardAccessor: BoardAccessor = SimpleBoardAccessor(initialBoard)
 
   override def sideToMove = _sideToMove
