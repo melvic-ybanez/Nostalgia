@@ -1,3 +1,9 @@
+## Nostalgia
+
+Nostalgia is a chess program that supports two main modes: **Human Vs Human**, in which the user can play with himself (or with the others); and **Human Vs Computer**, in which the user gets to play with the machine.
+
+Note: The AI implementation still needs a lot of improvements. Do not expect it to play at the same level as that of Stockfish.
+
 ## How To Run
 
 Nostalgia is (primarily) written in Scala. So to run the program, you need to have a Java Runtime Environment running on your machine. Detailed setup instructions will be provided soon.
@@ -14,7 +20,7 @@ The engine contains the AI implementation and is divided into four sub-parts: _b
 
 **Programming Languages:** Scala, Java
 
-**GUI Framework/Library: ** JavaFX
+**GUI Framework/Library:** JavaFX
 
 **Version Control System:** Git
 
