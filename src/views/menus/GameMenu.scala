@@ -27,7 +27,7 @@ case class GameMenu(boardController: BoardController) extends Menu {
   resignMI.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.META_DOWN))
   resignMI.setOnAction(_ => boardController.boardView.showResignConfirmationDialog())
 
-  getItems.addAll(newGameMI, new SeparatorMenuItem, rotateGameMI, resignMI)
+  getItems.addAll(newGameMI, new SeparatorMenuItem, resignMI, rotateGameMI)
 
   def showNewGameDialog(): Unit = {
     gameDialog.showAndWait().ifPresent { result =>
