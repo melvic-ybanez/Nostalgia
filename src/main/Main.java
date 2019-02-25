@@ -1,8 +1,12 @@
 package main;
 
+import engine.board.Knight;
+import engine.board.Knight$;
+import engine.board.Piece;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import sun.awt.PlatformFont;
 import views.MainView;
@@ -16,6 +20,7 @@ public class Main extends Application {
         MainView root = new MainView();
         primaryStage.setTitle("Nostalgia");
         primaryStage.setScene(new Scene(root));
+        primaryStage.getIcons().addAll(new Image(Resources.pathOf("pieces/white_knight.png")));
         primaryStage.show();
         primaryStage.setOnCloseRequest(value -> exit());
         primaryStage.setResizable(false);

@@ -1,6 +1,7 @@
 package views.menus
 
 import java.lang.Boolean
+import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.value.{ChangeListener, ObservableValue}
 import javafx.scene.control._

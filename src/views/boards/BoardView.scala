@@ -31,6 +31,7 @@ sealed trait BoardView {
   def toggleHover(hover: Boolean): Unit
   def highlight(location: Location): Unit
   def resetBoard(fullReset: Boolean = true): Unit
+
   def showGameOverDialog(winningSide: Side, reason: String): Unit
   def showResignConfirmationDialog(): Unit
 
@@ -208,20 +209,22 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     }
   }
 
-  override def showResignConfirmationDialog(): Unit = {
-    val resignConfirmationAlert = new Alert(Alert.AlertType.CONFIRMATION)
-    resignConfirmationAlert.setHeaderText(null)
-    resignConfirmationAlert.setTitle("Confirm Resignation")
-    resignConfirmationAlert.setContentText("Are you sure you want to resign?")
-    resignConfirmationAlert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
-    resignConfirmationAlert.show()
-    resignConfirmationAlert.setOnHidden { _ =>
-      val result = resignConfirmationAlert.getResult
+  lazy val resignConfirmationDialog = {
+    val alert = new Alert(Alert.AlertType.CONFIRMATION)
+    alert.setHeaderText(null)
+    alert.setTitle("Confirm Resignation")
+    alert.setContentText("Are you sure you want to resign?")
+    alert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
+    alert.setOnHidden { _ =>
+      val result = alert.getResult
       if (result == ButtonType.YES)
         boardController.gameController.gameState =
           GameOver(Resign(boardController.sideToMove))
     }
+    alert
   }
+
+  override def showResignConfirmationDialog(): Unit = resignConfirmationDialog.show()
 
   override def registerListeners(): Unit = {
     // register events
