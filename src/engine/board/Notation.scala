@@ -29,23 +29,26 @@ object Notation {
     case Move(_, destination, Castling) =>
       if (destination.file == C) "O-O-O"    // Queen-side castling
       else "O-O"    // King-side castling
-    case Move(_, destination, _) =>
+    case Move(_, destination, moveType) =>
+      val isEnPassant = moveType == EnPassant
+
       // If the destination is not empty, it is assumed to be a capture move.
-      val capture = board(destination).isDefined
+      val capture = board(destination).isDefined || isEnPassant
 
       val pieceTypeNotation =
         if (piece.pieceType == Pawn && capture) ofFile(move.source.file)
         else Notation.ofPieceType(piece.pieceType)
 
-      val moveNotation = Notation.ofLocation(destination)
-
       val captureString = if (capture) "x" else ""
+      val moveNotation = Notation.ofLocation(destination)
+      val enPassantSuffix = if (isEnPassant) "e.p." else ""
 
       val newBoard = board.updateByMove(move, piece)
       val checkString =
         if (newBoard.isCheckmate(piece.side)) "#"
         else if (newBoard.isChecked(piece.side.opposite)) "+"
         else ""
-      s"$pieceTypeNotation$captureString$moveNotation$checkString"
+
+      s"$pieceTypeNotation$captureString$moveNotation$enPassantSuffix$checkString"
   }
 }
