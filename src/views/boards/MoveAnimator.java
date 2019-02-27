@@ -11,6 +11,7 @@ import javafx.util.Duration;
 
 /**
  * Created by melvic on 2/9/19.
+ *
  */
 public abstract class MoveAnimator {
     private BoardView boardView;

@@ -24,7 +24,8 @@ object Notation {
 
   def ofFile(file: File) = file.toString.toLowerCase
 
-  // TODO: enPassant, promotion, ambiguous sources
+  // TODO: ambiguous sources, draw offers, end of game
+  // TODO: Refactor this code. It's getting uglier by the second.
   def ofMove(move: LocationMove, piece: Piece, board: Board): String = move match {
     case Move(_, destination, Castling) =>
       if (destination.file == C) "O-O-O"    // Queen-side castling
