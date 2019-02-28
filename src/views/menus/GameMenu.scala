@@ -27,6 +27,7 @@ case class GameMenu(boardController: BoardController) extends Menu {
   val resignMI = new MenuItem("Resign")
   resignMI.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.META_DOWN))
   resignMI.setOnAction(_ => boardController.boardView.showResignConfirmationDialog())
+  resignMI.disableProperty().bind(boardController.gameOnGoingProperty.not())
 
   getItems.addAll(newGameMI, new SeparatorMenuItem, resignMI, rotateGameMI)
 

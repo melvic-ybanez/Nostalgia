@@ -223,8 +223,9 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
 
   override def showResignConfirmationDialog(): Unit =
     resignConfirmationDialog.showAndWait().ifPresent { result =>
-      if (result == ButtonType.YES)
+      if (result == ButtonType.YES) {
         boardController.gameOver(boardController.sideToMove.opposite, "resignation")
+      }
     }
 
   override def registerListeners(): Unit = {

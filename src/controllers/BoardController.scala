@@ -1,5 +1,8 @@
 package controllers
 
+import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
+import javafx.beans.value.ObservableBooleanValue
 import javafx.concurrent.Task
 
 import engine.board._
@@ -38,6 +41,8 @@ trait BoardController {
   }
 
   final def computerToMove = !humanToMove
+
+  val gameOnGoingProperty: SimpleBooleanProperty = new SimpleBooleanProperty()
 }
 
 case class DefaultBoardController(
@@ -68,7 +73,6 @@ case class DefaultBoardController(
   }
 
   override def newGame(lowerSide: Side, gameType: GameType): Unit = {
-    //gameController.stop()
     sideToMove = White
     boardAccessor = boardAccessor.updatedBoard(initialBoard)
     lowerSide match {
@@ -81,8 +85,12 @@ case class DefaultBoardController(
         case _ => boardView.resetBoard()
       }
     }
-    boardView.resetEventHandlers()
     historyView.getItems.clear()
+
+    Platform.runLater { () =>
+      boardView.resetEventHandlers()
+      gameOnGoingProperty.set(true)
+    }
 
     this.gameType = gameType
     if (computerToMove) computerMove()
@@ -123,6 +131,7 @@ case class DefaultBoardController(
   override def gameOver(winningSide: Side, reason: String) = {
     boardView.showGameOverDialog(winningSide, reason)
     boardView.removeListeners()
+    gameOnGoingProperty.set(false)
   }
 
   def handleMoveResult(
