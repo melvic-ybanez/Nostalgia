@@ -1,5 +1,7 @@
 package controllers
 
+import javafx.concurrent.Task
+
 import engine.board._
 import engine.movegen.Move.LocationMove
 import models._
@@ -16,7 +18,6 @@ trait BoardController {
   def validateMove: MoveValidation
 
   def menuController: MenuController
-  def gameController: GameController
 
   def boardView: BoardView
   def historyView: HistoryView
@@ -27,6 +28,16 @@ trait BoardController {
   def humanMove(move: LocationMove): Boolean
   def computerMove(): Unit
   def rotate(): Unit
+
+  def gameOver(winningSide: Side, reason: String): Unit
+
+  def humanToMove = gameType match {
+    case HumanVsHuman => true
+    case HumanVsComputer(humanSide, _) if sideToMove == humanSide => true
+    case _ => false
+  }
+
+  final def computerToMove = !humanToMove
 }
 
 case class DefaultBoardController(
@@ -47,7 +58,6 @@ case class DefaultBoardController(
 
   override val boardView = DefaultBoardView(this)
   override val historyView = new HistoryView
-  override val gameController = DefaultGameController(this)
 
   override def rotate(): Unit = {
     boardAccessor = boardAccessor match {
@@ -58,7 +68,7 @@ case class DefaultBoardController(
   }
 
   override def newGame(lowerSide: Side, gameType: GameType): Unit = {
-    gameController.stop()
+    //gameController.stop()
     sideToMove = White
     boardAccessor = boardAccessor.updatedBoard(initialBoard)
     lowerSide match {
@@ -74,15 +84,8 @@ case class DefaultBoardController(
     boardView.resetEventHandlers()
     historyView.getItems.clear()
 
-    val gameState = gameType match {
-      case HumanVsHuman => HumanToMove
-      case HumanVsComputer(White, _) => HumanToMove
-      case _ => ComputerToMove
-    }
-
     this.gameType = gameType
-    gameController.gameState = gameState
-    gameController.play()
+    if (computerToMove) computerMove()
   }
 
   override def humanMove(move: LocationMove): Boolean = {
@@ -98,13 +101,28 @@ case class DefaultBoardController(
 
   override def computerMove(): Unit = gameType match {
     case HumanVsComputer(_, level) =>
-      val movedBoard = boardAccessor.board.updateByNextMove(sideToMove, level)
-      val accessor = boardAccessor.updatedBoard(movedBoard)
-      val move = movedBoard.lastMove.get
-      val piece = movedBoard(move.destination).get
-      handleMoveResult(move,
-        accessor.accessorMove(move), piece, accessor, movedBoard.isCheckmate(sideToMove))
+      val task = new Task[Board]() {
+        override def call(): Board = boardAccessor.board.updateByNextMove(sideToMove, level)
+      }
+
+      task.setOnSucceeded { _ =>
+        val movedBoard = task.getValue
+        val accessor = boardAccessor.updatedBoard(movedBoard)
+        val move = movedBoard.lastMove.get
+        val piece = movedBoard(move.destination).get
+        handleMoveResult(move,
+          accessor.accessorMove(move), piece, accessor, movedBoard.isCheckmate(sideToMove))
+      }
+
+      val thread = new Thread(task)
+      thread.setDaemon(true)
+      thread.start()
     case _ => ()
+  }
+
+  override def gameOver(winningSide: Side, reason: String) = {
+    boardView.showGameOverDialog(winningSide, reason)
+    boardView.removeListeners()
   }
 
   def handleMoveResult(
@@ -115,7 +133,9 @@ case class DefaultBoardController(
     historyView.addMove(accessorMove, boardAccessor.board, piece)
     boardAccessor = accessor
     boardView.resetBoard(false)
+    boardView.animateMove {
+      if (checkmate) gameOver(sideToMove, "checkmate")
+    }
     sideToMove = sideToMove.opposite
-    gameController.gameState = PreAnimation
   }
 }

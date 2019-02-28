@@ -1,8 +1,10 @@
 package views.boards
 
 import java.lang.Boolean
+import javafx.application.Platform
 import javafx.beans.property.{BooleanProperty, DoubleProperty, SimpleBooleanProperty, SimpleDoubleProperty}
 import javafx.beans.value.{ChangeListener, ObservableValue}
+import javafx.event.{ActionEvent, EventHandler}
 import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
@@ -35,7 +37,7 @@ sealed trait BoardView {
   def showGameOverDialog(winningSide: Side, reason: String): Unit
   def showResignConfirmationDialog(): Unit
 
-  def animateMove(): Unit
+  def animateMove(finished: => Unit): Unit
 
   def registerListeners(): Unit
   def removeListeners(): Unit
@@ -46,7 +48,6 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
   override val squareSize = 51
 
   val canvas = new Canvas(Board.Size * squareSize, Board.Size * squareSize)
-  val checkMateDialog = new CheckMateDialog
 
   val hoverEventHandler = PieceHoverEventHandler(this)
   val moveEventHandler = MoveEventHandler(this, hoverEventHandler)
@@ -140,7 +141,7 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     }
   }
 
-  override def animateMove(): Unit = {
+  override def animateMove(finished: => Unit = ()): Unit = {
     val gc = canvas.getGraphicsContext2D
     val board = boardController.boardAccessor.board
 
@@ -156,11 +157,15 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
             drawPiece(gc, x.intValue, y.intValue)(piece)
           }
 
-          override def updateGameState(): Unit = {
+          override def beforeFinished() = {
+            drawBoard(gc, true)
             highlight(netMove.destination)
-            boardController.gameController.gameState =
-              if (board.isCheckmate(side)) GameOver(CheckMate(side))
-              else PostAnimation
+          }
+
+          override def onFinished(event: ActionEvent) = {
+            registerListeners()
+            Platform.runLater(() => finished)
+            if (boardController.computerToMove) boardController.computerMove()
           }
         }
         animator.animate(gc, source.file, source.rank, dest.file, dest.rank)
@@ -202,9 +207,7 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     checkMateAlert.setTitle("Game Over")
     checkMateAlert.setContentText(s"$winningSide wins by $reason. Do you want to start a new game?")
     checkMateAlert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
-    checkMateAlert.show()
-    checkMateAlert.setOnHidden { _ =>
-      val result = checkMateAlert.getResult
+    checkMateAlert.showAndWait.ifPresent { result =>
       if (result == ButtonType.YES) boardController.menuController.newGame()
     }
   }
@@ -215,16 +218,14 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
     alert.setTitle("Confirm Resignation")
     alert.setContentText("Are you sure you want to resign?")
     alert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
-    alert.setOnHidden { _ =>
-      val result = alert.getResult
-      if (result == ButtonType.YES)
-        boardController.gameController.gameState =
-          GameOver(Resign(boardController.sideToMove))
-    }
     alert
   }
 
-  override def showResignConfirmationDialog(): Unit = resignConfirmationDialog.show()
+  override def showResignConfirmationDialog(): Unit =
+    resignConfirmationDialog.showAndWait().ifPresent { result =>
+      if (result == ButtonType.YES)
+        boardController.gameOver(boardController.sideToMove.opposite, "resignation")
+    }
 
   override def registerListeners(): Unit = {
     // register events

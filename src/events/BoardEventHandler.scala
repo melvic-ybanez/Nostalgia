@@ -26,12 +26,10 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
       performAction (selectedPiece, selectedLocation)
     }
 
-    controller.gameType match {
-      case HumanVsHuman => handleEvent()
-      case HumanVsComputer(humanSide, _) if humanSide == controller.sideToMove => handleEvent()
-      case _ =>
-        reset()
-        boardView.toggleHover(false)
+    if (boardView.boardController.humanToMove) handleEvent()
+    else {
+      reset()
+      boardView.toggleHover(false)
     }
   }
 
@@ -105,8 +103,7 @@ case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverE
 
     def promotePawn(side: Side): Unit = {
       val promotionDialog = PawnPromotionDialog(side)
-      promotionDialog.show()
-      promotionDialog.setOnHidden { _ =>
+      promotionDialog.showAndWait.ifPresent { _ =>
         val newPiece = Piece(promotionDialog.selectedPieceType, side)
         validateAndMove(PawnPromotion(newPiece))
       }

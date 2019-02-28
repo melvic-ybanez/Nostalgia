@@ -6,12 +6,13 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.util.Duration;
 
 /**
  * Created by melvic on 2/9/19.
- *
  */
 public abstract class MoveAnimator {
     private BoardView boardView;
@@ -45,17 +46,26 @@ public abstract class MoveAnimator {
             @Override
             public void handle(long now) {
                 MoveAnimator.this.handle(now, x, y);
+
                 if (x.doubleValue() == destX && y.doubleValue() == destY) {
-                    updateGameState();
+                    beforeFinished();
                     this.stop();
                 }
             }
         };
+
+        // Ignore user input while animating
+        boardView.removeListeners();
+
+        timeline.setOnFinished(this::onFinished);
+
         timer.start();
         timeline.play();
     }
 
     public abstract void handle(long now, DoubleProperty x, DoubleProperty y);
 
-    public abstract void updateGameState();
+    public abstract void onFinished(ActionEvent event);
+
+    public abstract void beforeFinished();
 }
