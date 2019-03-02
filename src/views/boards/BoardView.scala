@@ -165,7 +165,6 @@ case class DefaultBoardView(boardController: BoardController) extends GridPane w
           override def onFinished(event: ActionEvent) = {
             registerListeners()
             Platform.runLater(() => finished)
-            if (boardController.computerToMove) boardController.computerMove()
           }
         }
         animator.animate(gc, source.file, source.rank, dest.file, dest.rank)

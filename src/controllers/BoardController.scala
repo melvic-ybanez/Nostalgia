@@ -144,6 +144,7 @@ case class DefaultBoardController(
     boardView.resetBoard(false)
     boardView.animateMove {
       if (checkmate) gameOver(sideToMove, "checkmate")
+      if (computerToMove) computerMove()
     }
     sideToMove = sideToMove.opposite
   }
