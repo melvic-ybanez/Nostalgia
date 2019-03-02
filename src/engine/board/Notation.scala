@@ -7,13 +7,15 @@ import engine.movegen.Move.LocationMove
   * Created by melvic on 1/23/19.
   */
 object Notation {
-  def ofPieceType(pieceType: PieceType) = pieceType match {
-    case Pawn => ""
-    case Knight => "N"
-    case Bishop => "B"
-    case Rook => "R"
-    case Queen => "Q"
-    case King => "K"
+  def ofPieceType(pieceType: PieceType): Option[String] = pieceType match {
+    case Pawn => None
+    case _ => Some { pieceType match {
+      case Knight => "N"
+      case Bishop => "B"
+      case Rook => "R"
+      case Queen => "Q"
+      case King => "K"
+    }}
   }
 
   def ofLocation(location: Location): String = {
@@ -24,35 +26,81 @@ object Notation {
 
   def ofFile(file: File) = file.toString.toLowerCase
 
-  // TODO: ambiguous sources, draw offers, end of game
-  // TODO: Refactor this code. It's getting uglier by the second.
+  def ofCapture(board: Board, move: LocationMove) = {
+    lazy val captureNotation = Some("x")
+    move match {
+      case Move(_, _, EnPassant) => captureNotation
+      case Move(_, destination, _) =>
+        if (board(destination).isDefined) captureNotation
+        else None
+      case _ => None
+    }
+  }
+
+  def ofSuffix: MoveType => Option[String] = {
+    case EnPassant => Some("e.p.")
+    case PawnPromotion(Piece(pieceType, _)) => ofPieceType(pieceType)
+    case _ => None
+  }
+
+  def checkedSuffix(board: Board, side: Side) =
+    if (board.isChecked(side)) Some("+") else None
+
+  def checkMateSuffix(board: Board, side: Side) =
+    if (board.isCheckmate(side)) Some("#") else None
+
+  def ofCastling: LocationMove => Option[String] = {
+    case Move(_, Location(C, _), Castling) => Some("O-O-O")
+    case Move(_, _, Castling) => Some("O-O")
+    case _ => None
+  }
+
+  /**
+    * Generates the Algebraic Notation of a given move.
+    *
+    * TODO: ambiguous sources, draw offers, end of game
+    * @param move The move, containing the source, destination, and move type.
+    * @param piece The moving piece.
+    * @param board The current board position
+    * @return The string representation of the move's algebraic notation.
+    */
   def ofMove(move: LocationMove, piece: Piece, board: Board): String = move match {
-    case Move(_, destination, Castling) =>
-      if (destination.file == C) "O-O-O"    // Queen-side castling
-      else "O-O"    // King-side castling
-    case Move(_, destination, moveType) =>
-      // If the destination is not empty, it is assumed to be a capture move.
-      val capture = board(destination).isDefined || (moveType == EnPassant)
+    case Move(source, destination, moveType) =>
+      lazy val captureNotation = ofCapture(board, move)
 
-      val pieceTypeNotation =
-        if (piece.pieceType == Pawn && capture) ofFile(move.source.file)
-        else Notation.ofPieceType(piece.pieceType)
+      def combineWith(nextNotationOpt: Option[String])(notation: String) =
+        nextNotationOpt.map(notation + _).orElse(Some(notation))
 
-      val captureString = if (capture) "x" else ""
-      val moveNotation = Notation.ofLocation(destination)
+      ofCastling(move)
+        .orElse {
+          // If it's not a castling move, start with the piece type notation.
+          ofPieceType(piece.pieceType)
 
-      val pawnMoveSuffix = moveType match {
-        case EnPassant => "e.p."
-        case PawnPromotion(Piece(pieceType, _)) => ofPieceType(pieceType)
-        case _ => ""
-      }
+          // Then combine the result with the capture move,
+          .flatMap(combineWith(captureNotation))
 
-      val newBoard = board.updateByMove(move, piece)
-      val checkString =
-        if (newBoard.isCheckmate(piece.side)) "#"
-        else if (newBoard.isChecked(piece.side.opposite)) "+"
-        else ""
+          // unless there isn't a type notation, in which case the moving
+          // piece must be a pawn, and therefore we should use the source
+          // file for the piece type notation.
+          .orElse(captureNotation.map(ofFile(source.file) + _).orElse(Some("")))
 
-      s"$pieceTypeNotation$captureString$moveNotation$pawnMoveSuffix$checkString"
+          // Append the destination notation.
+          .flatMap(combineWith(Some(ofLocation(destination))))
+
+          // Append the suffix, if there is one.
+          .flatMap(combineWith(ofSuffix(moveType)))
+
+          // If it's checkmate, append the checkmate notation.
+          // If the opposite side is in checked, append the checked notation.
+          // Otherwise, return the current result.
+          .flatMap { notation =>
+            val side = piece.side
+            val updatedBoard = board.updateByMove(move, piece)
+
+            checkMateSuffix(updatedBoard, piece.side)
+              .map(notation + _)
+              .orElse(combineWith(checkedSuffix(updatedBoard, side.opposite))(notation))
+          }
+      }.get
   }
 }
