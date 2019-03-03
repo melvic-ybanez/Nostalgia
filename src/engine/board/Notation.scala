@@ -2,6 +2,7 @@ package engine.board
 
 import engine.movegen._
 import engine.movegen.Move.LocationMove
+import validators.MoveValidator
 
 /**
   * Created by melvic on 1/23/19.
@@ -18,13 +19,11 @@ object Notation {
     }}
   }
 
-  def ofLocation(location: Location): String = {
-    val fileNotation = ofFile(location.file)
-    val rankNotation = location.rank.toString.tail
-    fileNotation + rankNotation
-  }
+  def ofLocation(location: Location): String =
+    ofFile(location.file) + ofRank(location.rank)
 
   def ofFile(file: File) = file.toString.toLowerCase
+  def ofRank(rank: Rank) = rank.toString.tail
 
   def ofCapture(board: Board, move: LocationMove) = {
     lazy val captureNotation = Some("x")
@@ -43,16 +42,34 @@ object Notation {
     case _ => None
   }
 
-  def checkedSuffix(board: Board, side: Side) =
+  def ofCheckedSuffix(board: Board, side: Side) =
     if (board.isChecked(side)) Some("+") else None
 
-  def checkMateSuffix(board: Board, side: Side) =
+  def ofCheckMateSuffix(board: Board, side: Side) =
     if (board.isCheckmate(side)) Some("#") else None
 
   def ofCastling: LocationMove => Option[String] = {
     case Move(_, Location(C, _), Castling) => Some("O-O-O")
     case Move(_, _, Castling) => Some("O-O")
     case _ => None
+  }
+
+  def ofDisambiguation(move: LocationMove, piece: Piece, board: Board) = move match {
+    case Move(source@Location(sourceFile, sourceRank), destination, moveType) =>
+      // Get the locations of the pieces that can move to the
+      // destination square.
+      val locations = board.pieceLocations(piece).filter { location =>
+        val _move = Move[Location](location, destination, moveType)
+        MoveValidator.validateMove(_move)(board).isDefined
+      }
+
+      // If only one piece can do the move, there is no need to disambiguate.
+      if (locations.size == 1) None
+      else Some {
+        if (locations.count(_.file == sourceFile) == 1) ofFile(sourceFile)
+        else if (locations.count(_.rank == sourceRank) == 1) ofRank(sourceRank)
+        else ofLocation(source)
+      }
   }
 
   /**
@@ -76,7 +93,10 @@ object Notation {
           // If it's not a castling move, start with the piece type notation.
           ofPieceType(piece.pieceType)
 
-          // Then combine the result with the capture move,
+          // Append disambiguation notation.
+          .flatMap(combineWith(ofDisambiguation(move, piece, board)))
+
+          // Then combine the result with the capture notation,
           .flatMap(combineWith(captureNotation))
 
           // unless there isn't a type notation, in which case the moving
@@ -97,9 +117,9 @@ object Notation {
             val side = piece.side
             val updatedBoard = board.updateByMove(move, piece)
 
-            checkMateSuffix(updatedBoard, piece.side)
+            ofCheckMateSuffix(updatedBoard, piece.side)
               .map(notation + _)
-              .orElse(combineWith(checkedSuffix(updatedBoard, side.opposite))(notation))
+              .orElse(combineWith(ofCheckedSuffix(updatedBoard, side.opposite))(notation))
           }
       }.get
   }

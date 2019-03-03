@@ -42,6 +42,8 @@ trait Board {
     * @return Whether the king can still castle.
     */
   def canCastle(kingMove: LocationMove): Boolean
+
+  def pieceLocations(piece: Piece): Stream[Location]
 }
 
 

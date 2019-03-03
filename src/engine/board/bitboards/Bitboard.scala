@@ -86,6 +86,10 @@ object Bitboard {
 
   def leastSignificantOneBit(bitboard: U64) = bitboard & -bitboard
 
+  /**
+    * Returns the position of the least significant 1 bit. It is assumed that
+    * the board contains only one 1 bit.
+    */
   def bitScan(bitset: U64) = {
     val ls1b = leastSignificantOneBit(bitset)
     val shiftedLeft = ls1b * debruijn
@@ -294,4 +298,7 @@ case class Bitboard(bitsets: Vector[U64],
 
   override def updateByNextMove(sideToMove: Side, depth: Int) =
     AlphaBetaMax.search(this, sideToMove, -Integer.MAX_VALUE, Integer.MAX_VALUE, depth)._2
+
+  override def pieceLocations(piece: Piece) =
+    toSquareIndexes(pieceBitset(piece)).map(intToLocation)
 }
