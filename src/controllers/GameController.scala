@@ -14,7 +14,7 @@ import views.boards.{BoardView, DefaultBoardView, HistoryView}
 /**
   * Created by melvic on 9/11/18.
   */
-trait BoardController {
+trait GameController {
   def sideToMove: Side
 
   def boardAccessor: BoardAccessor
@@ -45,10 +45,10 @@ trait BoardController {
   val gameOnGoingProperty: SimpleBooleanProperty = new SimpleBooleanProperty()
 }
 
-case class DefaultBoardController(
+case class DefaultGameController(
     menuController: MenuController,
     initialBoard: Board,
-    validateMove: MoveValidation) extends BoardController {
+    validateMove: MoveValidation) extends GameController {
   private var _sideToMove: Side = Preferences.Defaults.sideToPlay
   private var _gameType: GameType = Preferences.Defaults.gameType
   private var _boardAccessor: BoardAccessor = SimpleBoardAccessor(initialBoard)

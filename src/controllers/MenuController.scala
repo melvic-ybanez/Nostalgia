@@ -9,13 +9,13 @@ import views.menus.GameMenu
   */
 trait MenuController {
   def gameMenu: GameMenu
-  def boardController: BoardController
+  def boardController: GameController
 
   def newGame(): Unit
 }
 
 class DefaultMenuController extends MenuController {
-  val boardController = DefaultBoardController(this, Bitboard(), MoveValidator.validateMove)
+  val boardController = DefaultGameController(this, Bitboard(), MoveValidator.validateMove)
   val gameMenu = GameMenu(boardController)
 
   def newGame(): Unit = {

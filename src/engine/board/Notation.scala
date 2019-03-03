@@ -36,7 +36,7 @@ object Notation {
     }
   }
 
-  def ofSuffix: MoveType => Option[String] = {
+  def ofPawnSuffix: MoveType => Option[String] = {
     case EnPassant => Some("e.p.")
     case PawnPromotion(Piece(pieceType, _)) => ofPieceType(pieceType)
     case _ => None
@@ -108,7 +108,7 @@ object Notation {
           .flatMap(combineWith(Some(ofLocation(destination))))
 
           // Append the suffix, if there is one.
-          .flatMap(combineWith(ofSuffix(moveType)))
+          .flatMap(combineWith(ofPawnSuffix(moveType)))
 
           // If it's checkmate, append the checkmate notation.
           // If the opposite side is in checked, append the checked notation.

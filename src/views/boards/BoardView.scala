@@ -15,7 +15,7 @@ import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.scene.paint.Color
 import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
 
-import controllers.BoardController
+import controllers.GameController
 import engine.board.{Board, Piece, Side}
 import engine.movegen.Location._
 import engine.movegen.{Location, Move}
@@ -28,7 +28,7 @@ import models._
   */
 sealed trait BoardView {
   def squareSize: Int
-  def boardController: BoardController
+  def boardController: GameController
 
   def toggleHover(hover: Boolean): Unit
   def highlight(location: Location): Unit
@@ -43,7 +43,7 @@ sealed trait BoardView {
   def removeListeners(): Unit
 }
 
-case class DefaultBoardView(boardController: BoardController) extends GridPane with BoardView {
+case class DefaultBoardView(boardController: GameController) extends GridPane with BoardView {
   // TODO: Improve this number (e.g. make it dynamically generated)
   override val squareSize = 51
 

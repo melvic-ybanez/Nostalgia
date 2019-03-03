@@ -7,12 +7,12 @@ import javafx.beans.value.{ChangeListener, ObservableValue}
 import javafx.scene.control._
 import javafx.scene.input.{KeyCode, KeyCodeCombination, KeyCombination}
 
-import controllers.BoardController
+import controllers.GameController
 
 /**
   * Created by melvic on 9/15/18.
   */
-case class GameMenu(boardController: BoardController) extends Menu {
+case class GameMenu(boardController: GameController) extends Menu {
   setText("Game")
 
   val gameDialog = new NewGameDialog
