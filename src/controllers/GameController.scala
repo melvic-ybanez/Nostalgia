@@ -2,7 +2,7 @@ package controllers
 
 import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.value.ObservableBooleanValue
+import javafx.collections.{FXCollections, ObservableList}
 import javafx.concurrent.Task
 
 import engine.board._
@@ -31,6 +31,8 @@ trait GameController {
   def humanMove(move: LocationMove): Boolean
   def computerMove(): Unit
   def rotate(): Unit
+  def undo(): Unit
+  def redo(): Unit
 
   def gameOver(winningSide: Side, reason: String): Unit
 
@@ -43,6 +45,9 @@ trait GameController {
   final def computerToMove = !humanToMove
 
   val gameOnGoingProperty: SimpleBooleanProperty = new SimpleBooleanProperty()
+
+  val historyBoards: ObservableList[(Board, Side)] = FXCollections.observableArrayList()
+  val undoneBoards: ObservableList[(Board, Side)] = FXCollections.observableArrayList()
 }
 
 case class DefaultGameController(
@@ -90,6 +95,8 @@ case class DefaultGameController(
     Platform.runLater { () =>
       boardView.resetEventHandlers()
       gameOnGoingProperty.set(true)
+      historyBoards.clear()
+      undoneBoards.clear()
     }
 
     this.gameType = gameType
@@ -99,6 +106,7 @@ case class DefaultGameController(
   override def humanMove(move: LocationMove): Boolean = {
     val netMove = boardAccessor.accessorMove(move)
     validateMove(netMove)(boardAccessor.board).exists { moveType =>
+      historyBoards.add((boardAccessor.board, sideToMove))
       boardAccessor.moveBoard(move.withType(moveType)).exists {
         case (accessor, piece, checkmate) =>
           handleMoveResult(move, netMove.withType(moveType), piece, accessor, checkmate)
@@ -144,8 +152,21 @@ case class DefaultGameController(
     boardView.resetBoard(false)
     boardView.animateMove {
       if (checkmate) gameOver(sideToMove, "checkmate")
+      undoneBoards.clear()
       if (computerToMove) computerMove()
     }
     sideToMove = sideToMove.opposite
+  }
+
+  override def undo() = _undo(historyBoards, undoneBoards)
+  override def redo() = _undo(undoneBoards, historyBoards)
+
+  private def _undo(historyBoards: ObservableList[(Board, Side)],
+      undoneBoards: ObservableList[(Board, Side)]) = {
+    undoneBoards.add((boardAccessor.board, sideToMove))
+    val (lastBoard, lastSideToMove) = historyBoards.remove(historyBoards.size - 1)
+    boardAccessor = boardAccessor.updatedBoard(lastBoard)
+    boardView.resetBoard()
+    sideToMove = lastSideToMove
   }
 }

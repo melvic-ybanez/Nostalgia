@@ -1,9 +1,8 @@
 package views.menus
 
-import java.lang.Boolean
 import javafx.beans.binding.Bindings
-import javafx.beans.property.SimpleBooleanProperty
-import javafx.beans.value.{ChangeListener, ObservableValue}
+import javafx.beans.value.{ObservableBooleanValue, ObservableValue}
+import javafx.event.{ActionEvent, EventHandler}
 import javafx.scene.control._
 import javafx.scene.input.{KeyCode, KeyCodeCombination, KeyCombination}
 
@@ -12,29 +11,62 @@ import controllers.GameController
 /**
   * Created by melvic on 9/15/18.
   */
-case class GameMenu(boardController: GameController) extends Menu {
+case class GameMenu(gameController: GameController) extends Menu {
   setText("Game")
 
   val gameDialog = new NewGameDialog
-  val newGameMI = new MenuItem("New Game...")
-  newGameMI.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.META_DOWN))
-  newGameMI.setOnAction { _ => showNewGameDialog() }
 
-  val rotateGameMI = new MenuItem("Rotate Board")
-  rotateGameMI.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.ALT_DOWN))
-  rotateGameMI.setOnAction(_ => boardController.rotate())
+  val newGameMI = (createMenuItem("New Game...")
+      andThen addAccelerator(KeyCode.N, KeyCombination.META_DOWN)) { _ =>
+    showNewGameDialog()
+  }
 
-  val resignMI = new MenuItem("Resign")
-  resignMI.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCombination.META_DOWN))
-  resignMI.setOnAction(_ => boardController.boardView.showResignConfirmationDialog())
-  resignMI.disableProperty().bind(boardController.gameOnGoingProperty.not())
+  val rotateGameMI = (createMenuItem("Rotate Board")
+      andThen addAccelerator(KeyCode.R, KeyCombination.ALT_DOWN)) { _ =>
+    gameController.rotate()
+  }
 
-  getItems.addAll(newGameMI, new SeparatorMenuItem, resignMI, rotateGameMI)
+  val resignMI = (createMenuItem("Resign")
+      andThen addAccelerator(KeyCode.R, KeyCombination.META_DOWN)
+      andThen disableWhen(gameController.gameOnGoingProperty.not())) { _ =>
+    gameController.boardView.showResignConfirmationDialog()
+  }
 
-  def showNewGameDialog(): Unit = {
+  val undoMI = (createMenuItem("Undo")
+      andThen addAccelerator(KeyCode.Z, KeyCombination.META_DOWN)
+      andThen disableWhen(Bindings.isEmpty(gameController.historyBoards))) { _ =>
+    gameController.undo()
+  }
+
+  val redoMI = (createMenuItem("Redo")
+      andThen addAccelerator(KeyCode.Y, KeyCombination.META_DOWN)
+      andThen disableWhen(Bindings.isEmpty(gameController.undoneBoards))) { _ =>
+    gameController.redo()
+  }
+
+  getItems.addAll(newGameMI, new SeparatorMenuItem,
+    resignMI, new SeparatorMenuItem,
+    undoMI, redoMI, rotateGameMI)
+
+  def showNewGameDialog(): Unit =
     gameDialog.showAndWait().ifPresent { result =>
       if (result == ButtonType.OK)
-        boardController.newGame(gameDialog.sideToPlay, gameDialog.gameType)
+        gameController.newGame(gameDialog.sideToPlay, gameDialog.gameType)
     }
+
+  def createMenuItem(name: String): EventHandler[ActionEvent] => MenuItem = { action =>
+    val menuItem = new MenuItem(name)
+    menuItem.setOnAction(action)
+    menuItem
+  }
+
+  def addAccelerator(code: KeyCode, combination: KeyCombination.Modifier)(menuItem: MenuItem) = {
+    menuItem.setAccelerator(new KeyCodeCombination(code, combination))
+    menuItem
+  }
+
+  def disableWhen(observable: ObservableBooleanValue)(menuItem: MenuItem) = {
+    menuItem.disableProperty().bind(observable)
+    menuItem
   }
 }
