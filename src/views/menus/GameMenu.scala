@@ -48,11 +48,14 @@ case class GameMenu(gameController: GameController) extends Menu {
     resignMI, new SeparatorMenuItem,
     undoMI, redoMI, rotateGameMI)
 
-  def showNewGameDialog(): Unit =
-    gameDialog.showAndWait().ifPresent { result =>
+  def showNewGameDialog(): Unit = {
+    gameDialog.show()
+    gameDialog.setOnHidden { result =>
+      val result = gameDialog.getResult
       if (result == ButtonType.OK)
         gameController.newGame(gameDialog.sideToPlay, gameDialog.gameType)
     }
+  }
 
   def createMenuItem(name: String): EventHandler[ActionEvent] => MenuItem = { action =>
     val menuItem = new MenuItem(name)

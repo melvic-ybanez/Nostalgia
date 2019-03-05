@@ -91,13 +91,11 @@ case class DefaultGameController(
       }
     }
     historyView.getItems.clear()
+    historyBoards.clear()
+    undoneBoards.clear()
 
-    Platform.runLater { () =>
-      boardView.resetEventHandlers()
-      gameOnGoingProperty.set(true)
-      historyBoards.clear()
-      undoneBoards.clear()
-    }
+    boardView.resetEventHandlers()
+    gameOnGoingProperty.set(true)
 
     this.gameType = gameType
     if (computerToMove) computerMove()
@@ -109,14 +107,14 @@ case class DefaultGameController(
       historyBoards.add((boardAccessor.board, sideToMove))
       boardAccessor.moveBoard(move.withType(moveType)).exists {
         case (accessor, piece, checkmate) =>
-          handleMoveResult(move, netMove.withType(moveType), piece, accessor, checkmate)
+          handleMoveResult(netMove.withType(moveType), piece, accessor, checkmate)
           true
       }
     }
   }
 
-  override def computerMove(): Unit = gameType match {
-    case HumanVsComputer(_, level) =>
+  override def computerMove(): Unit = {
+    def move(level: Int): Unit = {
       val task = new Task[Board]() {
         override def call(): Board = boardAccessor.board.updateByNextMove(sideToMove, level)
       }
@@ -126,14 +124,21 @@ case class DefaultGameController(
         val accessor = boardAccessor.updatedBoard(movedBoard)
         val move = movedBoard.lastMove.get
         val piece = movedBoard(move.destination).get
-        handleMoveResult(move,
-          accessor.accessorMove(move), piece, accessor, movedBoard.isCheckmate(sideToMove))
+        handleMoveResult(accessor.accessorMove(move),
+          piece, accessor, movedBoard.isCheckmate(sideToMove))
       }
 
       val thread = new Thread(task)
       thread.setDaemon(true)
       thread.start()
-    case _ => ()
+    }
+
+    gameType match {
+      case HumanVsComputer(_, level) => move(level)
+      case ComputerVsComputer(whiteLevel, blackLevel) =>
+        if (sideToMove == White) move(whiteLevel) else move(blackLevel)
+      case _ => ()
+    }
   }
 
   override def gameOver(winningSide: Side, reason: String) = {
@@ -143,7 +148,7 @@ case class DefaultGameController(
   }
 
   def handleMoveResult(
-      move: LocationMove, accessorMove: LocationMove,
+      accessorMove: LocationMove,
       piece: Piece,
       accessor: BoardAccessor,
       checkmate: Boolean): Unit = {

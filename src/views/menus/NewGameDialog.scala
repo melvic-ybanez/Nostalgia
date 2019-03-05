@@ -1,12 +1,14 @@
 package views.menus
 
+import javafx.beans.property.BooleanProperty
+import javafx.beans.value.ObservableBooleanValue
 import javafx.geometry.Insets
 import javafx.scene.control._
-import javafx.scene.layout.{Border, BorderStroke, HBox, VBox}
+import javafx.scene.layout._
 
 import engine.board.{Black, Side, White}
 import engine.search.AlphaBeta
-import models.{GameType, HumanVsComputer, HumanVsHuman, Preferences}
+import models._
 import views.misc.CustomTitledPane
 
 /**
@@ -18,22 +20,13 @@ class NewGameDialog extends Dialog[ButtonType] {
 
   val humanVsHumanRB = new RadioButton("Human vs Human")
   val humanVsComputerRB = new RadioButton("Human vs Computer")
+  val computerVsComputerRB = new RadioButton("Computer vs Computer")
+
+  private val hvcLevelPane = levelPane(humanVsComputerRB)
+  private val cvcWhiteLevelPane = levelPane(computerVsComputerRB)
+  private val cvcBlackLevelPane = levelPane(computerVsComputerRB)
 
   setTitle("New Game")
-
-  lazy val levelPane = {
-    val levelPane = new Slider(1,
-      AlphaBeta.DefaultMaxDepth,
-      AlphaBeta.DefaultMaxDepth / 2 + 1)
-
-    levelPane.setShowTickMarks(true)
-    levelPane.setShowTickLabels(true)
-    levelPane.setMajorTickUnit(1)
-    levelPane.setMinorTickCount(0)
-    levelPane.setSnapToTicks(true)
-
-    levelPane
-  }
 
   getDialogPane.setContent {
     val contentPane = new VBox
@@ -42,28 +35,35 @@ class NewGameDialog extends Dialog[ButtonType] {
     contentPane.setSpacing(20)
 
     def gameTypePane = {
-      val mainPane = new VBox()
+      val mainPane = new GridPane()
 
-      val newGameGroup = new ToggleGroup()
-      humanVsHumanRB.setToggleGroup(newGameGroup)
-      humanVsComputerRB.setToggleGroup(newGameGroup)
+      val gameTypeTG = new ToggleGroup()
+      humanVsHumanRB.setToggleGroup(gameTypeTG)
+      humanVsComputerRB.setToggleGroup(gameTypeTG)
+      computerVsComputerRB.setToggleGroup(gameTypeTG)
 
       humanVsHumanRB.setSelected(Preferences.Defaults.gameType == HumanVsHuman)
 
-      val levelPaneWrapper = new HBox
-      levelPaneWrapper.getChildren.addAll(new Label("Level:"), levelPane)
-      levelPaneWrapper.setSpacing(10)
-      levelPaneWrapper.disableProperty().bind(humanVsHumanRB.selectedProperty())
+      mainPane.addRow(0, humanVsHumanRB)
 
-      mainPane.getChildren.addAll(humanVsHumanRB, humanVsComputerRB, levelPaneWrapper)
+      mainPane.addRow(1, humanVsComputerRB)
+      mainPane.addRow(2, levelPaneWrapper(hvcLevelPane, "Level"))
 
-      mainPane.setSpacing(15)
+      mainPane.addRow(3, computerVsComputerRB)
+      val cvcLevelPaneWrapper = new FlowPane()
+      cvcLevelPaneWrapper.getChildren.addAll(
+        levelPaneWrapper(cvcWhiteLevelPane, "White's Level"),
+        levelPaneWrapper(cvcBlackLevelPane, "Black's Level"))
+      mainPane.addRow(4, cvcLevelPaneWrapper)
+
+      mainPane.setHgap(15)
+      mainPane.setVgap(15)
 
       CustomTitledPane("Type of Game", mainPane)
     }
 
     def sideToPlayPane = {
-      val mainPane = new VBox()
+      val contentPane = new VBox()
 
       val newGameGroup = new ToggleGroup()
       whiteRB.setToggleGroup(newGameGroup)
@@ -71,11 +71,12 @@ class NewGameDialog extends Dialog[ButtonType] {
 
       whiteRB.setSelected(Preferences.Defaults.sideToPlay == White)
 
-      mainPane.getChildren.addAll(whiteRB, blackRB)
+      contentPane.getChildren.addAll(whiteRB, blackRB)
+      contentPane.setSpacing(15)
 
-      mainPane.setSpacing(15)
-
-      CustomTitledPane("Side to Play", mainPane)
+      val sideToPlayPane = CustomTitledPane("Side to Play", contentPane)
+      sideToPlayPane.disableProperty.bind(computerVsComputerRB.selectedProperty())
+      sideToPlayPane
     }
 
     contentPane
@@ -87,7 +88,28 @@ class NewGameDialog extends Dialog[ButtonType] {
 
   def gameType: GameType =
     if (humanVsHumanRB.isSelected) HumanVsHuman
-    else HumanVsComputer(sideToPlay, level)
+    else if (humanVsComputerRB.isSelected) HumanVsComputer(sideToPlay, hvcLevelPane.getValue)
+    else ComputerVsComputer(cvcWhiteLevelPane.getValue, cvcBlackLevelPane.getValue)
 
-  def level = levelPane.getValue.toInt
+  def levelPane(selection: RadioButton) = {
+    val levelPane = new Spinner[Int](1,
+      AlphaBeta.DefaultMaxDepth,
+      AlphaBeta.DefaultMaxDepth / 2 + 1)
+    levelPane.setPrefWidth(60)
+    levelPane.disableProperty().bind(selection.selectedProperty().not())
+    levelPane
+  }
+
+  def levelPaneWrapper(levelPane: Spinner[Int], caption: String) = {
+    val wrapper = new FlowPane()
+    wrapper.setHgap(10)
+    wrapper.setPadding(new Insets(0, 0, 0, 22))
+
+    val label = new Label(caption)
+    wrapper.setPrefWidth(180)
+
+    wrapper.getChildren.addAll(new Label(caption + ":"), levelPane)
+    wrapper.disableProperty().bind(levelPane.disableProperty)
+    wrapper
+  }
 }

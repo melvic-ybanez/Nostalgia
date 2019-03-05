@@ -75,7 +75,7 @@ object Notation {
   /**
     * Generates the Algebraic Notation of a given move.
     *
-    * TODO: ambiguous sources, draw offers, end of game
+    * TODO: draw offers, end of game
     * @param move The move, containing the source, destination, and move type.
     * @param piece The moving piece.
     * @param board The current board position
