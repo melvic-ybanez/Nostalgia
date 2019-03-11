@@ -1,8 +1,7 @@
 package engine.search
 
-import engine.board.{Board, Piece, Side}
+import engine.board._
 import engine.eval.Evaluator
-import engine.movegen.Move.LocationMove
 
 import scala.annotation.tailrec
 
@@ -24,25 +23,12 @@ sealed trait AlphaBeta {
     * @param depth remaining depth in the search tree
     * @return A pair consisting of the evaluation score and the chosen next move.
     */
-  def search(board: Board, side: Side, currentScore: Double, bound: Double, depth: Int): (Double, Board) =
-    if (depth == 0) (evaluateBoard(board, side), board)
+  def search(board: Board, side: Side, currentScore: Double, bound: Double, depth: Int): (Double, Board) = {
+    lazy val result = (evaluateBoard(board, side), board)
+
+    if (depth == 0) result
     else {
-      @tailrec
-      def recurse(bestScore: Double,
-          nextBoard: Board, updatedBoards: Stream[Board]): (Double, Board) = updatedBoards match {
-        case Stream() => (bestScore, nextBoard)
-        case updatedBoard +: nextMoves =>
-          val (score, _) = opponent.search(updatedBoard,
-            side.opposite,
-            bound, bestScore,   // params positions switched
-            depth - 1)
-
-          if (cutOffBound(score, bound)) (bound, updatedBoard)
-          else if (isBetterScore(score, bestScore)) recurse(score, updatedBoard, nextMoves)
-          else recurse(bestScore, nextBoard, nextMoves)
-      }
-
-      recurse(currentScore, board, {
+      val validMoves = {
         // Apply all the moves
         val moves = board.generateMoves(side).map { case (move, piece) =>
           board.updateByMove(move, piece)
@@ -50,8 +36,32 @@ sealed trait AlphaBeta {
 
         // Only include moves that do not leave the king checked
         moves.filter(!_.isChecked(side))
-      })
+      }
+
+      validMoves match {
+        // This is a terminal node, return immediately
+        case Stream() => result
+
+        case _ =>
+          @tailrec
+          def recurse(bestScore: Double,
+            nextBoard: Board, updatedBoards: Stream[Board]): (Double, Board) = updatedBoards match {
+            case Stream() => (bestScore, nextBoard)
+            case updatedBoard +: nextMoves =>
+              val (score, _) = opponent.search(updatedBoard,
+                side.opposite,
+                bound, bestScore, // params positions switched
+                depth - 1)
+
+              if (cutOffBound(score, bound)) (bound, updatedBoard)
+              else if (isBetterScore(score, bestScore)) recurse(score, updatedBoard, nextMoves)
+              else recurse(bestScore, nextBoard, nextMoves)
+          }
+
+          recurse(currentScore, board, validMoves)
+      }
     }
+  }
 }
 
 object AlphaBeta {

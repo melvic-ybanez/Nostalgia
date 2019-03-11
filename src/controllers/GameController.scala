@@ -123,7 +123,7 @@ case class DefaultGameController(
         val movedBoard = task.getValue
         val accessor = boardAccessor.updatedBoard(movedBoard)
         val move = movedBoard.lastMove.get
-        val piece = movedBoard(move.destination).get
+        val piece = boardAccessor.board(move.source).get
         handleMoveResult(accessor.accessorMove(move),
           piece, accessor, movedBoard.isCheckmate(sideToMove))
       }
@@ -155,12 +155,13 @@ case class DefaultGameController(
     historyView.addMove(accessorMove, boardAccessor.board, piece)
     boardAccessor = accessor
     boardView.resetBoard(false)
+
     boardView.animateMove {
       if (checkmate) gameOver(sideToMove, "checkmate")
       undoneBoards.clear()
+      sideToMove = sideToMove.opposite
       if (computerToMove) computerMove()
     }
-    sideToMove = sideToMove.opposite
   }
 
   override def undo() = _undo(historyBoards, undoneBoards)
