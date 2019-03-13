@@ -1,6 +1,6 @@
 ## Nostalgia
 
-Nostalgia is a chess program that supports three main modes: **Human Vs Human**, in which the user can play with himself (or with the others); **Human Vs Computer**, in which the user gets to play with the machine; and **Computer Vs Computer**, in which two instances of the engine (that may have different levels) would play with each other.
+Nostalgia is a chess program that supports three ybanez.nostalgia.main modes: **Human Vs Human**, in which the user can play with himself (or with the others); **Human Vs Computer**, in which the user gets to play with the machine; and **Computer Vs Computer**, in which two instances of the ybanez.nostalgia.engine (that may have different levels) would play with each other.
 
 ![Human Vs Human sample game](/../screenshots/screenshots/sample_game.png?raw=true "Sample Human Vs Human Game")
 
@@ -12,9 +12,9 @@ Nostalgia is (primarily) written in Scala. So to run the program, you need to ha
 
 ## Engine + GUI
 
-Nostalgia has two main parts, the **Engine** and the **Graphical User Interface (GUI)**.
+Nostalgia has two ybanez.nostalgia.main parts, the **Engine** and the **Graphical User Interface (GUI)**.
 
-The engine contains the AI implementation and is divided into four sub-parts: _board representation_, _move generators_, _evaluators_, and _move searchers_. The GUI is the interface with which the user would interact while using the program.
+The ybanez.nostalgia.engine contains the AI implementation and is divided into four sub-parts: _board representation_, _move generators_, _evaluators_, and _move searchers_. The GUI is the interface with which the user would interact while using the program.
 
 
 
