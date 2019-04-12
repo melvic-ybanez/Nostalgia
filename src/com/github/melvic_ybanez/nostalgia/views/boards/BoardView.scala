@@ -205,7 +205,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     val checkMateAlert = new Alert(Alert.AlertType.CONFIRMATION)
     checkMateAlert.setHeaderText(null)
     checkMateAlert.setTitle("Game Over")
-    checkMateAlert.setContentText(s"$winningSide wins by $reason. Do you want to start a new game?")
+    checkMateAlert.setContentText(s"$winningSide wins by $reason. Would you like to start a new game?")
     checkMateAlert.getButtonTypes.setAll(ButtonType.NO, ButtonType.YES)
     checkMateAlert.showAndWait.ifPresent { result =>
       if (result == ButtonType.YES) boardController.menuController.newGame()

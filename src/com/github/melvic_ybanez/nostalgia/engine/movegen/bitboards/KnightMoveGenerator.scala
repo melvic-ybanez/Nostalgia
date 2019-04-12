@@ -1,28 +1,29 @@
 package com.github.melvic_ybanez.nostalgia.engine.movegen.bitboards
 
 import com.github.melvic_ybanez.nostalgia.engine.board.bitboards.Bitboard.U64
+import com.github.melvic_ybanez.nostalgia.engine.movegen.bitboards.OneStep.Step
 
 /**
   * Created by melvic on 8/7/18.
   */
 object KnightMoveGenerator extends NonSlidingMoveGenerator with PostShiftOneStep {
-  def northNorthEast: U64 => U64 = north andThen northEast
+  def northNorthEast: Step = north andThen northEast
 
-  def northNorthWest: U64 => U64 = north andThen northWest
+  def northNorthWest: Step = north andThen northWest
 
-  def northEastEast: U64 => U64 = northEast andThen east
+  def northEastEast: Step = northEast andThen east
 
-  def northWestWest: U64 => U64 = northWest andThen west
+  def northWestWest: Step = northWest andThen west
 
-  def southEastEast: U64 => U64 = southEast andThen east
+  def southEastEast: Step = southEast andThen east
 
-  def southWestWest: U64 => U64 = southWest andThen west
+  def southWestWest: Step = southWest andThen west
 
-  def southSouthEast: U64 => U64 = south andThen southEast
+  def southSouthEast: Step = south andThen southEast
 
-  def southSouthWest: U64 => U64 = south andThen southWest
+  def southSouthWest: Step = south andThen southWest
 
-  override lazy val moves: Stream[U64 => U64] = Stream(
+  override lazy val moves: Stream[Step] = Stream(
     northEastEast, northNorthEast, northNorthWest, northWestWest,
     southWestWest, southSouthWest, southSouthEast, southEastEast
   )
