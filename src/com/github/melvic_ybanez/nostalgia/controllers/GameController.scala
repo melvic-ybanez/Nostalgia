@@ -111,7 +111,7 @@ case class DefaultGameController(
         case _ => boardView.resetBoard()
       }
     }
-    historyView.getItems.clear()
+    historyView.listView.getItems.clear()
     historyBoards.clear()
     undoneBoards.clear()
 
