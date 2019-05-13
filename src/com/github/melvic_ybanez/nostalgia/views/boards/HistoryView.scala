@@ -4,9 +4,8 @@ import javafx.beans.value.{ChangeListener, ObservableValue}
 import javafx.collections.ObservableList
 import javafx.geometry.{Insets, Orientation}
 import javafx.scene.control.{Label, ListCell, ListView, Separator}
-import javafx.scene.layout.{Border, BorderStroke, VBox}
+import javafx.scene.layout.{AnchorPane, Border, BorderStroke, VBox}
 import javafx.util.Callback
-
 import com.github.melvic_ybanez.nostalgia.engine.board._
 import com.github.melvic_ybanez.nostalgia.engine.movegen.Move.LocationMove
 

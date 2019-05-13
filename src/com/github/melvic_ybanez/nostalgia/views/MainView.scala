@@ -22,6 +22,7 @@ class MainView extends BorderPane {
   val centerPane = {
     val contentPane = new HBox
     contentPane.getChildren.addAll(boardView, new Separator(Orientation.VERTICAL), historyView)
+    contentPane.setStyle(boardView.getStyle)
     contentPane
   }
 
