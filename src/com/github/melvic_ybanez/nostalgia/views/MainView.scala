@@ -1,9 +1,8 @@
 package com.github.melvic_ybanez.nostalgia.views
 
-import javafx.geometry.Orientation
+import javafx.geometry.{Insets, Orientation}
 import javafx.scene.control.Separator
-import javafx.scene.layout.{BorderPane, FlowPane}
-
+import javafx.scene.layout.{AnchorPane, BorderPane, FlowPane, HBox}
 import com.github.melvic_ybanez.nostalgia.controllers.DefaultMenuController
 import com.github.melvic_ybanez.nostalgia.engine.board.White
 import com.github.melvic_ybanez.nostalgia.models.HumanVsHuman
@@ -19,23 +18,15 @@ class MainView extends BorderPane {
   val boardView = boardController.boardView
   val historyView = boardController.historyView
 
-  //val historyPane = CustomTitledPane("History", historyView)
-  //historyPane.setPadding(boardView.getPadding)
-  //setStyle(boardView.getStyle)
-
-  val historyPaneWrapper = {
-    val centerPane = new FlowPane
-
-    historyView.setStyle(boardView.getStyle)
-    centerPane.setStyle(boardView.getStyle)
-
-    centerPane.getChildren.addAll(new Separator(Orientation.VERTICAL), historyView)
-    centerPane
+  historyView.setStyle(boardView.getStyle)
+  val centerPane = {
+    val contentPane = new HBox
+    contentPane.getChildren.addAll(boardView, new Separator(Orientation.VERTICAL), historyView)
+    contentPane
   }
 
   setTop(MenuBarView(boardView))
-  setCenter(boardView)
-  setRight(historyPaneWrapper)
+  setCenter(centerPane)
 
   boardController.newGame(White, HumanVsHuman)
 }

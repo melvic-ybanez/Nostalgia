@@ -17,6 +17,7 @@ public class Main extends Application {
         primaryStage.setTitle("Nostalgia");
         primaryStage.setScene(new Scene(root));
         primaryStage.getIcons().addAll(new Image(Resources.pathOf("pieces/white_knight.png")));
+        primaryStage.sizeToScene();
         primaryStage.show();
         primaryStage.setOnCloseRequest(value -> exit());
         primaryStage.setResizable(false);
