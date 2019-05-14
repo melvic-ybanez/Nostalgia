@@ -19,15 +19,15 @@ class MainView extends BorderPane {
   val historyView = boardController.historyView
 
   historyView.setStyle(boardView.getStyle)
-  val centerPane = {
+
+  setTop(MenuBarView(boardView))
+  setCenter {
     val contentPane = new HBox
     contentPane.getChildren.addAll(boardView, new Separator(Orientation.VERTICAL), historyView)
     contentPane.setStyle(boardView.getStyle)
+    HBox.setMargin(historyView, new Insets(0))
     contentPane
   }
-
-  setTop(MenuBarView(boardView))
-  setCenter(centerPane)
 
   boardController.newGame(White, HumanVsHuman)
 }
