@@ -19,7 +19,7 @@ class MainView extends BorderPane {
   val historyView = boardController.historyView
 
   historyView.setStyle(boardView.getStyle)
-  getStylesheets().add(Resources.styleSheets("garn"))
+  getStylesheets().add(Resources.styleSheets("nostalgia"))
 
   setTop(MenuBarView(boardView))
   setCenter {

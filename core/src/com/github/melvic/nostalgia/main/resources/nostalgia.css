@@ -22,3 +22,8 @@
 .check-box > .box > .mark {
     -fx-background-insets: -5 -5 1 0;
 }
+
+.history {
+    -fx-border-color: #FFFFFF;
+    -fx-background-color: #FFFFFF;
+}
