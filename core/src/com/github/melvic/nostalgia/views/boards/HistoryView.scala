@@ -14,7 +14,8 @@ class HistoryView extends VBox {
 
   class HistoryListView extends ListView[String] {
     setFocusTraversable(false)
-    setStyle(s"-fx-font-size: 14; -fx-border-color: $themeColor")
+    setStyle(s"-fx-font-size: 14; -fx-border-color: $themeColor; -fx-background-color: $themeColor")
+    setPadding(new Insets(0, 0, 0, 0))
 
     setCellFactory(_ => new ListCell[String] {
       override def updateItem(item: String, empty: Boolean): Unit = {
