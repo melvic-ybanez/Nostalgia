@@ -55,7 +55,6 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   def init() {
     setPadding(new Insets(25, 30, 0, 20))
-    setStyle("-fx-background-color: white")
 
     resetBoard()
   }

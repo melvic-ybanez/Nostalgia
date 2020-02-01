@@ -9,14 +9,20 @@ import javafx.stage.Stage;
 
 /**
  * Created by melvic on 9/12/18.
+ *
+ * TODO: Convert this into Scala code
  */
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         MainView root = new MainView();
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(Resources.styleSheets("bootstrap3"));
+
         primaryStage.setTitle("Nostalgia");
-        primaryStage.setScene(new Scene(root));
-        primaryStage.getIcons().addAll(new Image(Resources.pathOf("pieces/white_knight.png")));
+        primaryStage.setScene(scene);
+        primaryStage.getIcons().addAll(new Image(Resources.image("pieces/white_knight.png")));
         primaryStage.sizeToScene();
         primaryStage.show();
         primaryStage.setOnCloseRequest(value -> exit());

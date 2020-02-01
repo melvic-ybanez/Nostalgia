@@ -14,7 +14,7 @@ class HistoryView extends VBox {
 
   class HistoryListView extends ListView[String] {
     setFocusTraversable(false)
-    setStyle(s"-fx-font-size: 14; -fx-border-color: $themeColor; -fx-background-color: $themeColor")
+    setStyle(s"-fx-border-color: $themeColor;")
     setPadding(new Insets(0, 0, 0, 0))
 
     setCellFactory(_ => new ListCell[String] {

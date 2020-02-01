@@ -2,6 +2,7 @@ package com.github.melvic.nostalgia.views
 
 import com.github.melvic.nostalgia.controllers.DefaultMenuController
 import com.github.melvic.nostalgia.engine.board.White
+import com.github.melvic.nostalgia.main.Resources
 import com.github.melvic.nostalgia.models.HumanVsHuman
 import com.github.melvic.nostalgia.views.menus.MenuBarView
 import javafx.geometry.{Insets, Orientation}
@@ -18,6 +19,7 @@ class MainView extends BorderPane {
   val historyView = boardController.historyView
 
   historyView.setStyle(boardView.getStyle)
+  getStylesheets().add(Resources.styleSheets("garn"))
 
   setTop(MenuBarView(boardView))
   setCenter {
