@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="ivy-report.xsl"?>
+<ivy-report version="1.0">
+	<info
+		organisation="com.melvic"
+		module="nostalgia_2.12"
+		revision="0.1.0-SNAPSHOT"
+		conf="test"
+		confs="compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, pom, scala-tool"
+		date="20200201205013"/>
+	<dependencies>
+		<module organisation="org.scala-lang" name="scala-reflect">
+			<revision name="2.12.9" status="release" pubdate="20190805222743" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://www.scala-lang.org/" extra-info.apiURL="https://www.scala-lang.org/api/2.12.9/" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="1">
+				<license name="Apache-2.0" url="https://www.apache.org/licenses/LICENSE-2.0"/>
+				<metadata-artifact status="no" details="" size="2866" time="0" location="C:\Users\melvic\.ivy2\cache\org.scala-lang\scala-reflect\ivy-2.12.9.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.9/scala-reflect-2.12.9.pom"/>
+				<caller organisation="com.melvic" name="nostalgia_2.12" conf="test, compile, runtime" rev="2.12.9" rev-constraint-default="2.12.9" rev-constraint-dynamic="2.12.9" callerrev="0.1.0-SNAPSHOT"/>
+				<artifacts>
+					<artifact name="scala-reflect" type="jar" ext="jar" status="no" details="" size="3675584" time="0" location="C:\Users\melvic\.ivy2\cache\org.scala-lang\scala-reflect\jars\scala-reflect-2.12.9.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.9/scala-reflect-2.12.9.jar"/>
+					</artifact>
+				</artifacts>
+			</revision>
+		</module>
+		<module organisation="org.scala-lang" name="scala-library">
+			<revision name="2.12.9" status="release" pubdate="20190805222858" resolver="sbt-chain" artresolver="sbt-chain" homepage="https://www.scala-lang.org/" extra-info.apiURL="https://www.scala-lang.org/api/2.12.9/" downloaded="false" searched="false" default="false" conf="default, compile, runtime(*), master(compile), runtime, default(compile), compile(*), master" position="0">
+				<license name="Apache-2.0" url="https://www.apache.org/licenses/LICENSE-2.0"/>
+				<metadata-artifact status="no" details="" size="2691" time="0" location="C:\Users\melvic\.ivy2\cache\org.scala-lang\scala-library\ivy-2.12.9.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.9/scala-library-2.12.9.pom"/>
+				<caller organisation="org.scala-lang" name="scala-reflect" conf="default, compile, runtime, master" rev="2.12.9" rev-constraint-default="2.12.9" rev-constraint-dynamic="2.12.9" callerrev="2.12.9"/>
+				<caller organisation="com.melvic" name="nostalgia_2.12" conf="test, compile, runtime" rev="2.12.9" rev-constraint-default="2.12.9" rev-constraint-dynamic="2.12.9" callerrev="0.1.0-SNAPSHOT"/>
+				<artifacts>
+					<artifact name="scala-library" type="jar" ext="jar" status="no" details="" size="5275144" time="0" location="C:\Users\melvic\.ivy2\cache\org.scala-lang\scala-library\jars\scala-library-2.12.9.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.9/scala-library-2.12.9.jar"/>
+					</artifact>
+				</artifacts>
+			</revision>
+		</module>
+	</dependencies>
+</ivy-report>
