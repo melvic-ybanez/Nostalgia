@@ -56,7 +56,10 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
   def init() {
     setPadding(new Insets(25, 30, 0, 20))
 
+    add(createRanksPane, 0, 0)
     resetBoard()
+    add(canvas, 1, 0)
+    add(createFilesPane, 1, 1)
   }
 
   def createRanksPane: GridPane = {
@@ -105,9 +108,6 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   override def resetBoard(fullReset: Boolean = true): Unit = {
     drawBoard(canvas.getGraphicsContext2D, fullReset)
-    getChildren.clear()
-    addRow(0, createRanksPane, canvas)
-    add(createFilesPane, 1, 1)
   }
 
   def drawBoard(gc: GraphicsContext, fullReset: Boolean): Unit = {
@@ -150,17 +150,17 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
       board(lastMove.destination).foreach { case piece@Piece(_, side) =>
         val animator = new MoveAnimator(this) {
-          override def handle(now: Long, x: DoubleProperty, y: DoubleProperty) = {
+          override def handle(now: Long, x: DoubleProperty, y: DoubleProperty): Unit = {
             drawBoard(gc, false)
             drawPiece(gc, x.intValue, y.intValue)(piece)
           }
 
-          override def beforeFinished() = {
+          override def beforeFinished(): Unit = {
             drawBoard(gc, true)
             highlight(netMove.destination)
           }
 
-          override def onFinished(event: ActionEvent) = {
+          override def onFinished(event: ActionEvent): Unit = {
             registerListeners()
             Platform.runLater(() => finished)
           }
@@ -226,7 +226,6 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     }
 
   override def registerListeners(): Unit = {
-    // register com.github.melvic_ybanez.nostalgia.events
     canvas.addEventHandler(MouseEvent.MOUSE_MOVED, hoverEventHandler)
     canvas.addEventHandler(MouseEvent.MOUSE_CLICKED, moveEventHandler)
   }
