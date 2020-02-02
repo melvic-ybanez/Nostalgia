@@ -30,8 +30,8 @@ trait GameController {
   def humanMove(move: LocationMove): Boolean
   def computerMove(): Unit
   def rotate(): Unit
-  def undo(): Unit
-  def redo(): Unit
+  def undo: Boolean
+  def redo: Boolean
 
   def gameOver(winningSide: Side, reason: String): Unit
 
@@ -170,8 +170,25 @@ case class DefaultGameController(
     }
   }
 
-  override def undo() = _undo(historyBoards, undoneBoards)
-  override def redo() = _undo(undoneBoards, historyBoards)
+  override def undo = {
+    val lastSideToMove = _undo(historyBoards, undoneBoards)
+    if (historyView.items.isEmpty) false
+    else if (lastSideToMove == White) {
+      historyView.items.remove(historyView.size - 1)
+      true
+    } else historyView.lastItem exists {
+      case (lastMoveNumber, lastMoveNotation) =>
+        val newMoveNotation = lastMoveNotation.split(" ")(0)
+        val newItem = (lastMoveNumber, newMoveNotation)
+        historyView.items.add(newItem)
+    }
+  }
+
+  // TODO: Add more validations (see the undo function)
+  override def redo = {
+    _undo(undoneBoards, historyBoards)
+    true
+  }
 
   private def _undo(historyBoards: ObservableList[(Board, Side)],
       undoneBoards: ObservableList[(Board, Side)]) = {
@@ -180,5 +197,6 @@ case class DefaultGameController(
     boardAccessor = boardAccessor.updatedBoard(lastBoard)
     boardView.resetBoard()
     sideToMove = lastSideToMove
+    lastSideToMove
   }
 }

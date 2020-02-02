@@ -32,15 +32,15 @@ case class GameMenu(gameController: GameController) extends Menu {
   }
 
   val undoMI = (createMenuItem("Undo")
-      andThen addAccelerator(KeyCode.Z, KeyCombination.META_DOWN)
+      andThen addAccelerator(KeyCode.Z, KeyCombination.CONTROL_DOWN)
       andThen disableWhen(Bindings.isEmpty(gameController.historyBoards))) { _ =>
-    gameController.undo()
+    gameController.undo
   }
 
   val redoMI = (createMenuItem("Redo")
-      andThen addAccelerator(KeyCode.Y, KeyCombination.META_DOWN)
+      andThen addAccelerator(KeyCode.Y, KeyCombination.CONTROL_DOWN)
       andThen disableWhen(Bindings.isEmpty(gameController.undoneBoards))) { _ =>
-    gameController.redo()
+    gameController.redo
   }
 
   getItems.addAll(newGameMI, new SeparatorMenuItem,

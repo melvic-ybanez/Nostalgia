@@ -72,8 +72,16 @@ class HistoryView extends VBox {
       listView.getItems.add((moveNumber, moveNotation))
     } else {
       val lastIndex = listView.getItems.size - 1
-      val (lastMoveNumber, lastItem) = listView.getItems.get(lastIndex)
-      listView.getItems.set(lastIndex, (lastMoveNumber, s"$lastItem $moveNotation"))
+      val (lastMoveNumber, lastMoveNotation) = listView.getItems.get(lastIndex)
+      listView.getItems.set(lastIndex, (lastMoveNumber, s"$lastMoveNotation $moveNotation"))
     }
   }
+
+  def items = listView.getItems
+
+  def size = items.size
+
+  def lastItem: Option[HistoryMove] =
+    if (items.isEmpty) None
+    else Some(items.get(items.size - 1))
 }
