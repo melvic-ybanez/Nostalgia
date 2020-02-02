@@ -79,10 +79,11 @@ case class DefaultGameController(
     service.setOnSucceeded { _ =>
       val movedBoard = service.getValue
       val accessor = boardAccessor.updatedBoard(movedBoard)
-      val move = movedBoard.lastMove.get
-      val piece = boardAccessor.board(move.source).get
-      handleMoveResult(accessor.accessorMove(move),
-        piece, accessor, movedBoard.isCheckmate(sideToMove))
+      for {
+        move <- movedBoard.lastMove
+        piece <- boardAccessor.board(move.source)
+      } yield handleMoveResult(accessor.accessorMove(move),
+        piece, accessor, movedBoard.isChecked(sideToMove))
     }
     service
   }
@@ -172,22 +173,34 @@ case class DefaultGameController(
 
   override def undo = {
     val lastSideToMove = _undo(historyBoards, undoneBoards)
+    def removeLast() = historyView.items.remove(historyView.size - 1)
+
     if (historyView.items.isEmpty) false
     else if (lastSideToMove == White) {
-      historyView.items.remove(historyView.size - 1)
+      removeLast()
       true
     } else historyView.lastItem exists {
       case (lastMoveNumber, lastMoveNotation) =>
         val newMoveNotation = lastMoveNotation.split(" ")(0)
         val newItem = (lastMoveNumber, newMoveNotation)
+        removeLast()
         historyView.items.add(newItem)
     }
   }
 
-  // TODO: Add more validations (see the undo function)
   override def redo = {
     _undo(undoneBoards, historyBoards)
-    true
+    def lastUndone = undoneBoards.get(undoneBoards.size - 1)
+
+    if (historyView.items.isEmpty) false
+    else {
+      val (lastBoard, _) = lastUndone
+      val result = for {
+        move <- lastBoard.lastMove
+        piece <- boardAccessor.board(move.source)
+      } yield historyView.addMove(move, lastBoard, piece)
+      result.getOrElse(false)
+    }
   }
 
   private def _undo(historyBoards: ObservableList[(Board, Side)],

@@ -63,7 +63,7 @@ class HistoryView extends VBox {
 
   getChildren.addAll(titlePane, new Separator(Orientation.HORIZONTAL), listView)
 
-  def addMove(move: LocationMove, board: Board, piece: Piece): Unit = {
+  def addMove(move: LocationMove, board: Board, piece: Piece): Boolean = {
     val moveNotation = Notation.ofMove(move, piece, board)
 
     // A white move starts on a new row.
@@ -74,6 +74,7 @@ class HistoryView extends VBox {
       val lastIndex = listView.getItems.size - 1
       val (lastMoveNumber, lastMoveNotation) = listView.getItems.get(lastIndex)
       listView.getItems.set(lastIndex, (lastMoveNumber, s"$lastMoveNotation $moveNotation"))
+      true
     }
   }
 
