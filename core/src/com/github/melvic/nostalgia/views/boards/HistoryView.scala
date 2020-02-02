@@ -8,7 +8,7 @@ import javafx.scene.layout.{BorderPane, VBox}
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.{Node, control}
 import scalafx.scene.control.Label
-import scalafx.scene.layout.HBox
+import scalafx.scene.layout.{HBox, VBox => SVBox}
 import scalafx.scene.paint.Color
 import scalafx.scene.text.{Font, TextAlignment}
 
@@ -53,11 +53,13 @@ class HistoryView extends VBox {
 
   val listView = new HistoryListView
 
-  val titlePane = new VBox
-  val titleLabel = new Label("History")
-  titleLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold")
-  titlePane.getChildren.add(titleLabel)
-  titlePane.setPadding(Insets(10))
+  val titlePane = new SVBox {
+    children = Vector(new Label {
+      text = "History"
+      style = "-fx-font-size: 16; -fx-font-weight: bold"
+    })
+    padding = Insets(10, 10, 2, 10)
+  }
 
   getChildren.addAll(titlePane, new Separator(Orientation.HORIZONTAL), listView)
 
