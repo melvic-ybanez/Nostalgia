@@ -309,7 +309,7 @@ case class Bitboard(bitsets: Vector[U64],
     val space = " " * 2
 
     val squareStrings = (0 until 64).foldLeft[List[String]](Nil) { (acc, i) =>
-      val squareString = this(i).map { case Piece(pieceType, side) =>
+      val squareString = this.apply(i).map { case Piece(pieceType, side) =>
         sideString(side) + pieceTypeString(pieceType)
       } getOrElse ("_" * space.length)
 

@@ -93,7 +93,7 @@ case class DefaultGameController(
       case SimpleBoardAccessor(b) => RotatedBoardAccessor(b)
       case RotatedBoardAccessor(b) => SimpleBoardAccessor(b)
     }
-    boardView.resetBoard()
+    boardView.rotate()
   }
 
   override def newGame(lowerSide: Side, gameType: GameType): Unit = {

@@ -37,6 +37,7 @@ sealed trait BoardView {
   def showResignConfirmationDialog(): Unit
 
   def animateMove(finished: => Unit): Unit
+  def rotate(): Unit
 
   def registerListeners(): Unit
   def removeListeners(): Unit
@@ -56,10 +57,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
   def init() {
     setPadding(new Insets(25, 30, 0, 20))
 
-    add(createRanksPane, 0, 0)
-    resetBoard()
-    add(canvas, 1, 0)
-    add(createFilesPane, 1, 1)
+    paintAll()
   }
 
   def createRanksPane: GridPane = {
@@ -108,6 +106,18 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   override def resetBoard(fullReset: Boolean = true): Unit = {
     drawBoard(canvas.getGraphicsContext2D, fullReset)
+  }
+
+  override def rotate(): Unit = {
+    getChildren.clear()
+    paintAll()
+  }
+
+  def paintAll(): Unit = {
+    add(createRanksPane, 0, 0)
+    resetBoard()
+    add(canvas, 1, 0)
+    add(createFilesPane, 1, 1)
   }
 
   def drawBoard(gc: GraphicsContext, fullReset: Boolean): Unit = {
