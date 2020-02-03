@@ -190,15 +190,14 @@ case class DefaultGameController(
 
   override def redo = {
     _undo(undoneBoards, historyBoards)
-    def lastUndone = undoneBoards.get(undoneBoards.size - 1)
 
-    if (historyView.items.isEmpty) false
-    else {
-      val (lastBoard, _) = lastUndone
+    !historyBoards.isEmpty && {
+      val (lastBoard, _) = historyBoards.get(historyBoards.size - 1)
       val result = for {
         move <- lastBoard.lastMove
         piece <- boardAccessor.board(move.source)
-      } yield historyView.addMove(move, lastBoard, piece)
+      } yield historyView.addMove(move, boardAccessor.board, piece)
+
       result.getOrElse(false)
     }
   }
