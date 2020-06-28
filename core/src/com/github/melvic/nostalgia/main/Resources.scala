@@ -1,6 +1,6 @@
 package com.github.melvic.nostalgia.main
 
-import com.github.melvic.nostalgia.engine.board.Piece
+import com.github.melvic.nostalgia.engine.board.{Black, Knight, Piece, Rook, White}
 
 /**
   * Created by melvic on 9/15/18.
@@ -15,9 +15,15 @@ object Resources {
 
   def piecePathOf: Piece => String = {
     case Piece(pieceType, side) =>
-      // TODO: This is a hackish approach. Improve this later.
-      val stringify = (x: Any) => x.toString.toLowerCase
+      def shortName(name: String) = name.substring(0, 1).toUpperCase
 
-      image(s"pieces/${stringify(side)}_${stringify(pieceType)}.png")
+      val typeString = pieceType match {
+        case Knight => "H"
+        case _ => shortName(pieceType.toString)
+      }
+      val sideString = shortName(side.toString)
+      val filename = s"$typeString${sideString}F.png"
+
+      image(s"pieces/$filename")
   }
 }

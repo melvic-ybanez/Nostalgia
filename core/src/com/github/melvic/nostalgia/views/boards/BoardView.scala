@@ -1,7 +1,5 @@
 package com.github.melvic.nostalgia.views.boards
 
-import java.lang.Boolean
-
 import com.github.melvic.nostalgia.animations.MoveAnimator
 import com.github.melvic.nostalgia.controllers.GameController
 import com.github.melvic.nostalgia.engine.board.{Board, Piece, Side}
@@ -16,7 +14,7 @@ import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.control.{Alert, ButtonType}
-import javafx.scene.image.Image
+import javafx.scene.image.{Image, ImageView}
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.scene.paint.Color
@@ -44,10 +42,12 @@ sealed trait BoardView {
 }
 
 case class DefaultBoardView(boardController: GameController) extends GridPane with BoardView {
-  // TODO: Improve this number (e.g. make it dynamically generated)
-  override val squareSize = 51
+  override val squareSize = 77
+  val upperCanvasPadding = 40
 
-  val canvas = new Canvas(Board.Size * squareSize, Board.Size * squareSize)
+  val canvas = new Canvas(
+    Board.Size * squareSize,
+    Board.Size * squareSize + upperCanvasPadding)
 
   val hoverEventHandler = PieceHoverEventHandler(this)
   val moveEventHandler = MoveEventHandler(this, hoverEventHandler)
@@ -65,7 +65,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
       if (boardController.boardAccessor.isRotated) 1 to 8 by 1
       else 8 to 1 by -1
 
-    ranks.foldLeft(new GridPane) { (ranksPane, rank) =>
+    val ranksPane = ranks.foldLeft(new GridPane) { (ranksPane, rank) =>
       val textPane = new BorderPane
       textPane.setMinSize(squareSize / 2, squareSize)
       textPane.setPadding(new Insets(0, 16, 0, 15))
@@ -79,6 +79,8 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
       ranksPane.addColumn(0, textPane)
       ranksPane
     }
+    ranksPane.setPadding(new Insets(upperCanvasPadding, 0, 0, 0))
+    ranksPane
   }
 
   def createFilesPane = {
@@ -132,7 +134,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
         }
 
         val x = col * squareSize
-        val y = row * squareSize
+        val y = row * squareSize + upperCanvasPadding
         gc.fillRect(x, y, squareSize, squareSize)
 
         val accessor = boardController.boardAccessor
@@ -198,13 +200,24 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
     drawBoard(gc, true)
     gc.setLineWidth(2.5)
-    gc.strokeRect(col * squareSize, row * squareSize, squareSize, squareSize)
+    gc.strokeRect(
+      col * squareSize,
+      row * squareSize + upperCanvasPadding,
+      squareSize, squareSize)
   }
 
   def drawPiece(gc: GraphicsContext, x: Int, y: Int)(piece: Piece): Unit = {
     val pieceImage = new Image(Resources.piecePathOf(piece))
+
+    val defaultPadding = 3
     val offsetX = (squareSize - pieceImage.getWidth) / 2
-    val offsetY = (squareSize - pieceImage.getHeight) / 2
+    val offsetY = {
+      val height = pieceImage.getHeight
+      if (height > squareSize)
+        squareSize - height - defaultPadding
+      else (squareSize - height) / 2
+    }
+
     gc.drawImage(pieceImage, x + offsetX, y + offsetY)
   }
 
