@@ -2,7 +2,7 @@ package com.github.melvic.nostalgia.views.boards
 
 import com.github.melvic.nostalgia.animations.MoveAnimator
 import com.github.melvic.nostalgia.controllers.GameController
-import com.github.melvic.nostalgia.engine.board.{Board, Piece, Side}
+import com.github.melvic.nostalgia.engine.board.{Board, Piece, Side, White}
 import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.{Location, Move}
 import com.github.melvic.nostalgia.events.{MoveEventHandler, PieceHoverEventHandler}
@@ -29,7 +29,7 @@ sealed trait BoardView {
 
   def toggleHover(hover: Boolean): Unit
   def highlight(location: Location): Unit
-  def resetBoard(fullReset: Boolean = true): Unit
+  def resetBoard(lowerSide: Side = White, fullReset: Boolean = true): Unit
 
   def showGameOverDialog(winningSide: Side, reason: String): Unit
   def showResignConfirmationDialog(): Unit
@@ -44,6 +44,8 @@ sealed trait BoardView {
 case class DefaultBoardView(boardController: GameController) extends GridPane with BoardView {
   override val squareSize = 77
   val upperCanvasPadding = 40
+
+  private var _lowerSide: Side = White
 
   val canvas = new Canvas(
     Board.Size * squareSize,
@@ -106,7 +108,8 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     }
   }
 
-  override def resetBoard(fullReset: Boolean = true): Unit = {
+  override def resetBoard(lowerSide: Side, fullReset: Boolean = true): Unit = {
+    _lowerSide = lowerSide
     drawBoard(canvas.getGraphicsContext2D, fullReset)
   }
 
@@ -117,7 +120,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   def paintAll(): Unit = {
     add(createRanksPane, 0, 0)
-    resetBoard()
+    resetBoard(_lowerSide)
     add(canvas, 1, 0)
     add(createFilesPane, 1, 1)
   }
@@ -207,7 +210,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
   }
 
   def drawPiece(gc: GraphicsContext, x: Int, y: Int)(piece: Piece): Unit = {
-    val pieceImage = new Image(Resources.piecePathOf(piece))
+    val pieceImage = new Image(Resources.piecePathOf(piece, piece.side != _lowerSide))
 
     val defaultPadding = 3
     val offsetX = (squareSize - pieceImage.getWidth) / 2

@@ -104,11 +104,11 @@ case class DefaultGameController(
     lowerSide match {
       case Black => boardAccessor match {
         case SimpleBoardAccessor(_) => rotate()
-        case _ => boardView.resetBoard()
+        case _ => boardView.resetBoard(lowerSide)
       }
       case White => boardAccessor match {
         case RotatedBoardAccessor(_) => rotate()
-        case _ => boardView.resetBoard()
+        case _ => boardView.resetBoard(lowerSide)
       }
     }
     historyView.listView.getItems.clear()
@@ -161,7 +161,7 @@ case class DefaultGameController(
       checkmate: Boolean): Unit = {
     historyView.addMove(accessorMove, boardAccessor.board, piece)
     boardAccessor = accessor
-    boardView.resetBoard(false)
+    boardView.resetBoard(fullReset = false)
 
     boardView.animateMove {
       if (checkmate) gameOver(sideToMove, "checkmate")
