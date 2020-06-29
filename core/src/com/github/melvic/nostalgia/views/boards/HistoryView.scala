@@ -15,10 +15,10 @@ import scalafx.scene.text.{Font, TextAlignment}
 /**
   * Created by melvic on 1/23/19.
   */
-class HistoryView extends VBox {
+class HistoryView extends SVBox {
   type HistoryMove = (Int, String)
 
-  val themeColor = "white"
+  padding = Insets(20)
 
   class HistoryListView extends ListView[HistoryMove] {
     setFocusTraversable(false)
@@ -28,27 +28,44 @@ class HistoryView extends VBox {
     setCellFactory(_ => new ListCell[HistoryMove] {
       override def updateItem(item: HistoryMove, empty: Boolean): Unit = {
         super.updateItem(item, empty)
-        setStyle(s"-fx-background-color: $themeColor")
         setText(null)
         setGraphic(null)
 
-        if (!empty) {
+        if (!empty) setGraphic {
           val (number, notation) = item
-          val content: Node = new HBox {
+          new HBox {
+            val _font = Font(18)
             padding = Insets(4)
-            spacing = 3
+            spacing = 7
             children = Vector(
               new Label {
                 text = "%3s".format(s"$number.")
-                textFill = Color.Gray
+                textFill = Color.DarkGray
+                font = _font
               },
-              new Label(notation)
+              new Label {
+                text = notation
+                textFill = Color.Beige
+                font = _font
+              }
             )
-          }
-          setGraphic(content)
+          }.delegate
         }
       }
     })
+
+    setPlaceholder(new Label {
+      val sep = "\n\n"
+      text = s"""
+        |Wow, such empty.$sep
+        |(No moves have been made.)
+        |$sep$sep$sep
+        |White to move.$sep
+      """.stripMargin
+
+      textFill = Color.Beige
+      style = "-fx-font-style: italic; -fx-font-size: 18"
+    }.delegate)
   }
 
   val listView = new HistoryListView
@@ -56,12 +73,13 @@ class HistoryView extends VBox {
   val titlePane = new SVBox {
     children = Vector(new Label {
       text = "History"
-      style = "-fx-font-size: 16; -fx-font-weight: bold"
+      textFill = Color.Beige
+      style = "-fx-font-size: 22; -fx-font-weight: bold"
     })
     padding = Insets(10, 10, 2, 10)
   }
 
-  getChildren.addAll(titlePane, new Separator(Orientation.HORIZONTAL), listView)
+  children.addAll(titlePane, new Separator(Orientation.HORIZONTAL), listView)
 
   def addMove(move: LocationMove, board: Board, piece: Piece): Boolean = {
     val moveNotation = Notation.ofMove(move, piece, board)

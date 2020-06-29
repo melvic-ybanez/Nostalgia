@@ -24,6 +24,12 @@
 }
 
 .history {
-    -fx-border-color: #FFFFFF;
-    -fx-background-color: #FFFFFF;
+    -fx-border-color: #969696;
+    -fx-background-color: #969696;
+    -fx-padding: 17px;
+}
+
+.history .list-cell {
+    -fx-background-color: #969696;
+    -fx-text-fill: black;
 }
