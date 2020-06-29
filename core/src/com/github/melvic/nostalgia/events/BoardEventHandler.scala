@@ -13,11 +13,11 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
   override def handle(event: MouseEvent): Unit = {
     val controller = boardView.boardController
 
-    def handleEvent() = {
-      val col = (event.getX / boardView.squareSize).toInt
-      val row = (event.getY / boardView.squareSize).toInt
+    def handleEvent(): Unit = {
+      val col = (event.getX / boardView.offsettedSquareSize).toInt
+      val row = (event.getY / boardView.offsettedSquareSize).toInt
 
-      val selectedLocation = Location.locateForView (row, col)
+      val selectedLocation = Location.locateForView(row, col)
       val selectedPiece = controller.boardAccessor (selectedLocation)
 
       performAction (selectedPiece, selectedLocation)

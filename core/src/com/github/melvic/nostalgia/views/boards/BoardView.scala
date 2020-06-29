@@ -23,7 +23,7 @@ import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
 /**
   * Created by melvic on 9/11/18.
   */
-sealed trait BoardView {
+trait BoardView {
   def squareSize: Int
   def boardController: GameController
 
@@ -39,11 +39,14 @@ sealed trait BoardView {
 
   def registerListeners(): Unit
   def removeListeners(): Unit
+
+  def topCanvasOffset: Int
+  def offsettedSquareSize: Int = squareSize + topCanvasOffset
 }
 
 case class DefaultBoardView(boardController: GameController) extends GridPane with BoardView {
   override val squareSize = 77
-  val upperCanvasPadding = 40
+  override val topCanvasOffset = 40
 
   // TODO: Move this to a stylesheet if it becomes complex enough.
   val BgColor = "#969696"
@@ -52,7 +55,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   val canvas = new Canvas(
     Board.Size * squareSize,
-    Board.Size * squareSize + upperCanvasPadding)
+    Board.Size * squareSize + topCanvasOffset)
 
   val hoverEventHandler = PieceHoverEventHandler(this)
   val moveEventHandler = MoveEventHandler(this, hoverEventHandler)
@@ -84,7 +87,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
       ranksPane.addColumn(0, textPane)
       ranksPane
     }
-    ranksPane.setPadding(new Insets(upperCanvasPadding, 0, 0, 0))
+    ranksPane.setPadding(new Insets(topCanvasOffset, 0, 0, 0))
     ranksPane
   }
 
@@ -141,7 +144,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
         }
 
         val x = col * squareSize
-        val y = row * squareSize + upperCanvasPadding
+        val y = row * squareSize + topCanvasOffset
         gc.fillRect(x, y, squareSize, squareSize)
 
         val accessor = boardController.boardAccessor
@@ -209,7 +212,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     gc.setLineWidth(2.5)
     gc.strokeRect(
       col * squareSize,
-      row * squareSize + upperCanvasPadding,
+      row * squareSize + topCanvasOffset,
       squareSize, squareSize)
   }
 
