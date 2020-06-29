@@ -45,6 +45,9 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
   override val squareSize = 77
   val upperCanvasPadding = 40
 
+  // TODO: Move this to a stylesheet if it becomes complex enough.
+  val BgColor = "#969696"
+
   private var _lowerSide: Side = White
 
   val canvas = new Canvas(
@@ -58,7 +61,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   def init() {
     setPadding(new Insets(25, 30, 0, 20))
-
+    setStyle(s"-fx-background-color: $BgColor")
     paintAll()
   }
 
@@ -74,7 +77,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
       val text = new Text(String.valueOf(rank))
       text.setTextAlignment(TextAlignment.CENTER)
-      text.setFill(Color.GRAY)
+      text.setFill(Color.WHITE)
       text.setFont(Font.font(18))
 
       textPane.setCenter(text)
@@ -99,7 +102,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
       textPane.setPadding(new Insets(15, 0, 15, 0))
 
       val text = new Text(String.valueOf(label))
-      text.setFill(Color.GRAY)
+      text.setFill(Color.WHITE)
       text.setFont(Font.font(18))
 
       textPane.getChildren.add(text)
@@ -126,14 +129,15 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
   }
 
   def drawBoard(gc: GraphicsContext, fullReset: Boolean): Unit = {
-    gc.setFill(Color.WHITE)
+    val light = Color.WHITE
+    gc.setFill(light)
 
     // draw the board
     for (row <- 0 until Board.Size) {
       for (col <- 0 until Board.Size) {
         if (col != 0) gc.setFill {
-          if (gc.getFill == Color.WHITE) Color.DARKGRAY
-          else Color.WHITE
+          if (gc.getFill == light) Color.web(BgColor)
+          else light
         }
 
         val x = col * squareSize
