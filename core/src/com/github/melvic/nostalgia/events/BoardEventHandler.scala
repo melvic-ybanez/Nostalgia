@@ -14,8 +14,8 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
     val controller = boardView.boardController
 
     def handleEvent(): Unit = {
-      val col = (event.getX / boardView.offsettedSquareSize).toInt
-      val row = (event.getY / boardView.offsettedSquareSize).toInt
+      val col = (event.getX / boardView.squareSize).toInt
+      val row = (event.getY / boardView.squareSize).toInt + boardView.topCanvasOffset
 
       val selectedLocation = Location.locateForView(row, col)
       val selectedPiece = controller.boardAccessor (selectedLocation)
