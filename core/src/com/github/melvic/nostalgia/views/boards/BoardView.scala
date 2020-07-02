@@ -53,7 +53,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   private var _lowerSide: Side = White
 
-  val canvas = new Canvas(
+  implicit val canvas: Canvas = new Canvas(
     Board.Size * squareSize,
     Board.Size * squareSize + topCanvasOffset)
 
