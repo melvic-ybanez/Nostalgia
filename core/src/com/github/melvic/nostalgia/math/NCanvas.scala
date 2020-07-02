@@ -17,7 +17,7 @@ trait NCanvas[C] {
     f(CanvasCoordinate(coordinate.value * squareSize))
 
   def gridCoordinate(coordinate: CanvasCoordinate, offset: Offset) =
-    ((coordinate.value - offset(bounds) / squareSize)).toInt
+    ((coordinate.value - offset(bounds)) / squareSize).toInt
 
   def x(cX: CanvasCoordinate): cX.Type = offsettedCoordinate(cX, _.west)
   def y(cY: CanvasCoordinate): cY.Type = offsettedCoordinate(cY, _.north)
