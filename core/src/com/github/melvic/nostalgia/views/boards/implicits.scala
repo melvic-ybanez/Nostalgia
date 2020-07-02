@@ -8,7 +8,7 @@ trait implicits {
     new NCanvas[Canvas] {
       override def squareSize = 77
 
-      override def offset = Bounds(40, 0, 0, 0)
+      override def bounds = Bounds(40, 0, 0, 0)
     }
 }
 

@@ -1,21 +1,17 @@
 package com.github.melvic.nostalgia.math
 
-import com.github.melvic.nostalgia.math
+trait Coordinate {
+  type Type
 
-trait Coordinate[C] {
-  type V
-
-  def value: V
+  def value: Type
 }
 
 object Coordinate {
-  final abstract class Board
+  final case class GridCoordinate(value: Int) extends Coordinate {
+    override type Type = Int
+  }
 
-  def apply[C, V1](value1: V1)(
-      implicit aux: CoordinateType.Aux[C, V1]
-  ): Coordinate[C] = new Coordinate[C] {
-    override type V = V1
-
-    override def value = value1
+  final case class CanvasCoordinate(value: Double) extends Coordinate {
+    override type Type = Double
   }
 }
