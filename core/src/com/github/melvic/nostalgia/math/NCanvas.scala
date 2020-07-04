@@ -1,34 +1,39 @@
 package com.github.melvic.nostalgia.math
 
-import com.github.melvic.nostalgia.math.Coordinate.{GridCoordinate, CanvasCoordinate}
-
 trait NCanvas[C] {
-  type Offset = Bounds => Double
+  def padding: Padding
 
-  def squareSize: Int
+  def squareSize: Double
 
-  def bounds: Bounds
+  def x(canvas: C): Double
 
-  def offsettedCoordinate(
-      coordinate: CanvasCoordinate, offset: Offset
-  ): coordinate.Type = coordinate.value + offset(bounds)
+  def y(canvas: C): Double
 
-  def scaledCoordinate(coordinate: GridCoordinate, f: CanvasCoordinate => Double): Double =
-    f(CanvasCoordinate(coordinate.value * squareSize))
+  def init(x: Double, y: Double): C
 
-  def gridCoordinate(coordinate: CanvasCoordinate, offset: Offset) =
-    ((coordinate.value - offset(bounds)) / squareSize).toInt
+  def initBounded(x: Double, y: Double): C =
+    init(x + padding.left, y + padding.top)
 
-  def x(cX: CanvasCoordinate): cX.Type = offsettedCoordinate(cX, _.west)
-  def y(cY: CanvasCoordinate): cY.Type = offsettedCoordinate(cY, _.north)
+  def boundedX(canvas: C): Double = x(canvas) - padding.left
 
-  def x(gX: GridCoordinate): Double = scaledCoordinate(gX, x)
-  def y(gY: GridCoordinate): Double = scaledCoordinate(gY, y)
-
-  def col(x: CanvasCoordinate): Int = gridCoordinate(x, _.west)
-  def row(y: CanvasCoordinate): Int = gridCoordinate(y, _.east)
+  def boundedY(canvas: C): Double = y(canvas) - padding.top
 }
 
 object NCanvas {
   def apply[C](implicit canvas: NCanvas[C]): NCanvas[C] = canvas
+
+  implicit class NCanvasOps[C: NCanvas](canvas: C) {
+    def gridCoordinate(coordinate: Double): Int = (coordinate / canvas.squareSize).toInt
+
+    def toCell: NCell = NCell(
+      gridCoordinate(canvas.boundedY),
+      gridCoordinate(canvas.boundedX)
+    )
+
+    def squareSize: Double = NCanvas[C].squareSize
+
+    def boundedY: Double = NCanvas[C].boundedY(canvas)
+
+    def boundedX: Double = NCanvas[C].boundedX(canvas)
+  }
 }
