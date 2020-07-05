@@ -2,7 +2,7 @@
 
 Nostalgia is a chess program that supports three main modes: **Human Vs Human**, in which the user can play with himself (or with the others); **Human Vs Computer**, in which the user gets to play with the machine; and **Computer Vs Computer**, in which two instances of the engine (that may have different levels) would play with each other.
 
-![Human Vs Human sample game](/../screenshots/screenshots/sample_game.png?raw=true "Sample Human Vs Human Game")
+![Human Vs Human sample game](/../screenshots/screenshots/nostalgia.png?raw=true "Sample Human Vs Human Game")
 
 Note: The AI implementation still needs a lot of improvements. Do not expect it to play at the same level as that of Stockfish.
 
