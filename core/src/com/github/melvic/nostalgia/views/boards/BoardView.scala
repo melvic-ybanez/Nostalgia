@@ -7,7 +7,7 @@ import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.{Location, Move}
 import com.github.melvic.nostalgia.events.{MoveEventHandler, PieceHoverEventHandler}
 import com.github.melvic.nostalgia.main.Resources
-import com.github.melvic.nostalgia.math.NCell
+import com.github.melvic.nostalgia.math.{NCanvas, NCell, Point}
 import javafx.application.Platform
 import javafx.beans.property.DoubleProperty
 import javafx.event.ActionEvent
@@ -25,7 +25,7 @@ import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
   * Created by melvic on 9/11/18.
   */
 trait BoardView {
-  def squareSize: Int
+  def squareSize: Double
   def boardController: GameController
 
   def toggleHover(hover: Boolean): Unit
@@ -41,13 +41,13 @@ trait BoardView {
   def registerListeners(): Unit
   def removeListeners(): Unit
 
-  def topCanvasOffset: Int
-  def offsettedSquareSize: Int = squareSize + topCanvasOffset
+  def topCanvasOffset: Double
+  def boundedSquareSize: Double = squareSize + topCanvasOffset
 }
 
 case class DefaultBoardView(boardController: GameController) extends GridPane with BoardView {
-  override val squareSize = 77
-  override val topCanvasOffset = 40
+  override val squareSize = NCanvas[Point].squareSize
+  override val topCanvasOffset = NCanvas[Point].padding.top
 
   // TODO: Move this to a stylesheet if it becomes complex enough.
   val BgColor = "#969696"
@@ -144,10 +144,9 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
           else light
         }
 
-        val x = col * squareSize
-        val y = row * squareSize + topCanvasOffset
-        gc.fillRect(x, y, squareSize, squareSize)
+        val canvas = NCell(row, col).toCanvas[Point]
 
+        gc.fillRect(canvas.x, canvas.y, squareSize, squareSize)
         val accessor = boardController.boardAccessor
         val isMovingPiece = !fullReset && accessor.board.lastMove.exists {
           case Move(source, destination, _) =>
@@ -157,7 +156,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
         }
 
         if (!isMovingPiece)
-          boardController.boardAccessor(row, col).foreach(drawPiece(gc, x, y))
+          boardController.boardAccessor(row, col).foreach(drawPiece(gc, canvas.x, canvas.y))
       }
     }
   }
@@ -217,7 +216,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
       squareSize, squareSize)
   }
 
-  def drawPiece(gc: GraphicsContext, x: Int, y: Int)(piece: Piece): Unit = {
+  def drawPiece(gc: GraphicsContext, x: Double, y: Double)(piece: Piece): Unit = {
     val pieceImage = new Image(Resources.piecePathOf(piece, piece.side != _lowerSide))
 
     val defaultPadding = 3

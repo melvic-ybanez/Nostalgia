@@ -2,7 +2,8 @@ package com.github.melvic.nostalgia.events
 
 import com.github.melvic.nostalgia.engine.board._
 import com.github.melvic.nostalgia.engine.movegen._
-import com.github.melvic.nostalgia.views.boards.{BoardView, PawnPromotionDialog}
+import com.github.melvic.nostalgia.math.{NCanvas, Point}
+import com.github.melvic.nostalgia.views.boards._
 import javafx.event.EventHandler
 import javafx.scene.input.MouseEvent
 
@@ -14,10 +15,9 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
     val controller = boardView.boardController
 
     def handleEvent(): Unit = {
-      val col = (event.getX / boardView.squareSize).toInt
-      val row = (event.getY / boardView.squareSize).toInt + boardView.topCanvasOffset
+      val cell = NCanvas[Point].init(event.getX, event.getY).toCell
 
-      val selectedLocation = Location.locateForView(row, col)
+      val selectedLocation = Location.locateForView(cell.row, cell.col)
       val selectedPiece = controller.boardAccessor (selectedLocation)
 
       performAction (selectedPiece, selectedLocation)

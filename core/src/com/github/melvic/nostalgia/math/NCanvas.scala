@@ -21,7 +21,9 @@ trait NCanvas[C] {
 
 object NCanvas {
   def apply[C](implicit canvas: NCanvas[C]): NCanvas[C] = canvas
+}
 
+trait NCanvasImplicits {
   implicit class NCanvasOps[C: NCanvas](canvas: C) {
     def gridCoordinate(coordinate: Double): Int = (coordinate / canvas.squareSize).toInt
 
