@@ -15,6 +15,8 @@ import javafx.stage.Stage;
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
+        setupFontProperties();
+
         MainView root = new MainView();
 
         Scene scene = new Scene(root.delegate());
@@ -36,5 +38,13 @@ public class Main extends Application {
     public static void exit() {
         Platform.exit();
         System.exit(0);
+    }
+
+    /**
+     * Fixes the font rendering on linux-based systems
+     */
+    public static void setupFontProperties() {
+        System.setProperty("prism.lcdtext", "false");
+        System.setProperty("prism.text", "t2k");
     }
 }
