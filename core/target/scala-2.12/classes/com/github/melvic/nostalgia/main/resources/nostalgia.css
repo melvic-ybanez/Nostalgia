@@ -1,0 +1,35 @@
+.root {
+	-fx-font-size: 14;
+	-fx-background-color : #FFFFFF;
+}
+
+.button,.menu-button,.toggle-button,.split-menu-button {
+	-fx-pref-height: 2.7em;
+}
+
+.text-field {
+	-fx-pref-height: 2.7em;
+}
+
+.check-box  {
+    -fx-label-padding: 0 0 0 0.3em;
+}
+
+.check-box > .box {
+    -fx-padding: 0.2em;
+}
+
+.check-box > .box > .mark {
+    -fx-background-insets: -5 -5 1 0;
+}
+
+.history {
+    -fx-border-color: #969696;
+    -fx-background-color: #969696;
+    -fx-padding: 17px;
+}
+
+.history .list-cell {
+    -fx-background-color: #969696;
+    -fx-text-fill: black;
+}
