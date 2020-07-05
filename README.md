@@ -16,14 +16,18 @@ Nostalgia has two main parts, the **Engine** and the **Graphical User Interface 
 
 The engine contains the AI implementation and is divided into four sub-parts: _board representation_, _move generators_, _evaluators_, and _move searchers_. The GUI is the interface with which the user would interact while using the program.
 
-
-
 ## Technologies Used
 
 **Programming Languages:** Scala, Java
 
-**GUI Framework/Library:** JavaFX
+**GUI Framework/Library:** JavaFX, ScalaFX
 
 **Version Control System:** Git
 
 **Supported Platforms:** Linux, Mac, Windows
+
+## Credits
+Credit goes to [Phobos](https://itch.io/profile/phobos) for the wonderful set of chess piece assets.
+They really made me rethink about updating the UI for my program. I'll include proper acknowledgements
+for them as part of Nostalgia's upcoming feature-set.  
+
