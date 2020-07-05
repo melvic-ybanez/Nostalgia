@@ -7,6 +7,7 @@ import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.{Location, Move}
 import com.github.melvic.nostalgia.events.{MoveEventHandler, PieceHoverEventHandler}
 import com.github.melvic.nostalgia.main.Resources
+import com.github.melvic.nostalgia.math.NCell
 import javafx.application.Platform
 import javafx.beans.property.DoubleProperty
 import javafx.event.ActionEvent
