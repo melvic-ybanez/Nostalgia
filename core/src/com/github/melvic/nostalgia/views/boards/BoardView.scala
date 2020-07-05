@@ -7,8 +7,7 @@ import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.{Location, Move}
 import com.github.melvic.nostalgia.events.{MoveEventHandler, PieceHoverEventHandler}
 import com.github.melvic.nostalgia.main.Resources
-import com.github.melvic.nostalgia.math.NCell.{Col, Row}
-import com.github.melvic.nostalgia.math.{NCell, NPlane, Point}
+import com.github.melvic.nostalgia.math.{NCell, NCoordinate, Point}
 import javafx.application.Platform
 import javafx.beans.property.DoubleProperty
 import javafx.event.ActionEvent
@@ -47,8 +46,8 @@ trait BoardView {
 }
 
 case class DefaultBoardView(boardController: GameController) extends GridPane with BoardView {
-  override val squareSize = NPlane[Point].cellSize
-  override val topCanvasOffset = NPlane[Point].padding.top
+  override val squareSize = NCoordinate[Point].size
+  override val topCanvasOffset = NCoordinate[Point].offsets.top
 
   // TODO: Move this to a stylesheet if it becomes complex enough.
   val BgColor = "#969696"
@@ -145,9 +144,10 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
           else light
         }
 
-        val plane = NCell(Row(row), Col(col)).toPlane[Point]
+        val cell = NCell(col, row)
+        val coord = cell.toCoordinate[Point]
 
-        gc.fillRect(plane.x, plane.y, squareSize, squareSize)
+        gc.fillRect(coord.x, coord.y, squareSize, squareSize)
         val accessor = boardController.boardAccessor
         val isMovingPiece = !fullReset && accessor.board.lastMove.exists {
           case Move(source, destination, _) =>
@@ -157,7 +157,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
         }
 
         if (!isMovingPiece)
-          boardController.boardAccessor(row, col).foreach(drawPiece(gc, plane.x, plane.y))
+          boardController.boardAccessor(row, col).foreach(drawPiece(gc, coord.x, coord.y, _))
       }
     }
   }
@@ -175,7 +175,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
         val animator = new MoveAnimator(this) {
           override def handle(now: Long, x: DoubleProperty, y: DoubleProperty): Unit = {
             drawBoard(gc, false)
-            drawPiece(gc, x.intValue, y.intValue)(piece)
+            drawPiece(gc, x.doubleValue, y.doubleValue, piece)
           }
 
           override def beforeFinished(): Unit = {
@@ -209,15 +209,17 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     val row = Board.Size - 1 - location.rank
     val col: Int = location.file
 
+    val cell = NCell(col, row)
+    val coord = cell.toCoordinate[Point]
+
     drawBoard(gc, fullReset = true)
     gc.setLineWidth(2.5)
-    gc.strokeRect(
-      col * squareSize,
-      row * squareSize + topCanvasOffset,
-      squareSize, squareSize)
+    gc.strokeRect(coord.x, coord.y, coord.size, coord.size)
+    drawPiece(gc, col, row)
+    drawPiece(gc, col, (row + 1) % Board.Size)
   }
 
-  def drawPiece(gc: GraphicsContext, x: Double, y: Double)(piece: Piece): Unit = {
+  def drawPiece(gc: GraphicsContext, x: Double, y: Double, piece: Piece): Unit = {
     val pieceImage = new Image(Resources.piecePathOf(piece, piece.side != _lowerSide))
 
     val defaultPadding = 3
@@ -230,6 +232,14 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     }
 
     gc.drawImage(pieceImage, x + offsetX, y + offsetY)
+  }
+
+  def drawPiece(gc: GraphicsContext, col: Int, row: Int): Unit = {
+    val cell  = NCell(col, row)
+    val coord = cell.toCoordinate[Point]
+
+    boardController.boardAccessor(cell.row, cell.col).foreach(
+      drawPiece(gc, coord.x, coord.y, _))
   }
 
   override def showGameOverDialog(winningSide: Side, reason: String): Unit = {

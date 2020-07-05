@@ -1,12 +1,12 @@
 package com.github.melvic.nostalgia.views.boards
 
-import com.github.melvic.nostalgia.math.{NPlane, Padding, Point}
+import com.github.melvic.nostalgia.math.{NCoordinate, NPadding, Point}
 
 trait implicits {
-  implicit val viewPlane: NPlane[Point] = new NPlane[Point] {
-    override def padding = Padding(40, 0, 0, 0)
+  implicit val viewPlane: NCoordinate[Point] = new NCoordinate[Point] {
+    override def offsets = NPadding(40, 0, 0, 0)
 
-    override def cellSize = 77
+    override def size = 77
 
     override def x(point: Point) = point.x
 

@@ -1,25 +1,13 @@
 package com.github.melvic.nostalgia.math
 
-import com.github.melvic.nostalgia.math.NCell.{Col, Row}
-
-final case class NCell(row: Row, col: Col)
+final case class NCell(col: Int, row: Int)
 
 object NCell {
-  /**
-    * Type-safe wrapper for an value representing row number
-    */
-  final case class Row(value: Int)
-
-  /**
-    * Type-safe wrapper for an value representing column number
-    */
-  final case class Col(value: Int)
-
   implicit class NCellOps(cell: NCell) {
-    def toPlane[C](implicit plane: NPlane[C]): C =
-      NPlane[C].initBounded(
-        cell.col.value * plane.cellSize,
-        cell.row.value * plane.cellSize
+    def toCoordinate[C](implicit plane: NCoordinate[C]): C =
+      NCoordinate[C].initBounded(
+        cell.col * plane.size,
+        cell.row * plane.size
       )
   }
 }
