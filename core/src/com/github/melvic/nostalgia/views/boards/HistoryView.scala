@@ -40,7 +40,7 @@ class HistoryView extends SVBox {
             children = Vector(
               new Label {
                 text = "%3s".format(s"$number.")
-                textFill = Color.DarkGray
+                textFill = Color.WhiteSmoke
                 font = _font
               },
               new Label {
