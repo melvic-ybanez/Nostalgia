@@ -2,6 +2,7 @@ package com.github.melvic.nostalgia.views.boards
 
 import com.github.melvic.nostalgia.animations.MoveAnimator
 import com.github.melvic.nostalgia.controllers.GameController
+import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
 import com.github.melvic.nostalgia.engine.board.{Board, Piece, Side, White}
 import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.{Location, Move}
@@ -52,7 +53,9 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
   override val topCanvasOffset = NCoordinate[Point].offsets.top
 
   // TODO: Move this to a stylesheet if it becomes complex enough.
-  val BgColor = "#969696"
+  val DarkColorHex = "#969696"
+  val DarkColor = Color.web(DarkColorHex)
+  val LightColor = Color.WHITE
 
   private var _lowerSide: Side = White
 
@@ -67,7 +70,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   def init() {
     setPadding(new Insets(25, 30, 0, 20))
-    setStyle(s"-fx-background-color: $BgColor")
+    setStyle(s"-fx-background-color: $DarkColorHex")
     paintAll()
   }
 
@@ -137,15 +140,13 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
   def drawBoard(gc: GraphicsContext, fullReset: Boolean): Unit = {
     gc.clearRect(0, 0, canvas.getWidth, canvas.getHeight)
 
-    val light = Color.WHITE
-    gc.setFill(light)
+    gc.setFill(LightColor)
 
     // draw the board
     for (row <- 0 until Board.Size) {
       for (col <- 0 until Board.Size) {
         if (col != 0) gc.setFill {
-          if (gc.getFill == light) Color.web(BgColor)
-          else light
+          if (gc.getFill == LightColor) DarkColor else LightColor
         }
 
         val cell = NCell(col, row)
@@ -228,10 +229,14 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     gc.setEffect(effect)
     drawPiece(gc, col, row)
 
-    // Redraw the piece below it in case it exceeds it's own square
-    // and overlaps with the selected square
     gc.setEffect(null)
-    if ((row + 1) < Board.Size) drawPiece(gc, col, row + 1)
+
+    // For every piece not above the selected one, redraw the piece
+    // below it in case it exceeds it's own square and overlaps with
+    // the piece above
+    for (r <- (row + 1) until Board.Size) {
+      drawPiece(gc, col, r, clear = true)
+    }
   }
 
   def drawPiece(gc: GraphicsContext, x: Double, y: Double, piece: Piece): Unit = {
@@ -249,12 +254,26 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     gc.drawImage(pieceImage, x + offsetX, y + offsetY)
   }
 
-  def drawPiece(gc: GraphicsContext, col: Int, row: Int): Unit = {
+  def drawPiece(gc: GraphicsContext, col: Int, row: Int, clear: Boolean = false): Unit = {
     val cell  = NCell(col, row)
     val coord = cell.toCoordinate[Point]
 
+    // This is a trick we use to avoid the "bold" image effect
+    // brought by repeated drawing of an image. This clears the old image,
+    // making the one we are about to draw a fresh object.
+    if (clear) {
+      gc.setFill(detectSquareColor(gc, col, row))
+      gc.fillRect(coord.x, coord.y, squareSize, squareSize)
+    }
+
     boardController.boardAccessor(cell.row, cell.col).foreach(
       drawPiece(gc, coord.x, coord.y, _))
+  }
+
+  def detectSquareColor(gc: GraphicsContext, col: Int, row: Int) = {
+    val boardColorTable = 0x55aa55aa55aa55aaL
+    val squareBitset = 1 << Location.locateForView(row, col).toBitPosition
+    if (Bitboard.isEmptySet(boardColorTable & squareBitset)) DarkColor else LightColor
   }
 
   override def showGameOverDialog(winningSide: Side, reason: String): Unit = {

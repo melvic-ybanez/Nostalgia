@@ -37,6 +37,10 @@ object Location {
   lazy val Files: List[File] = A :: B :: C :: D :: E :: F :: G :: H :: Nil
   lazy val Ranks: List[Rank] = _1 :: _2 :: _3 :: _4 :: _5 :: _6 :: _7 :: _8 :: Nil
 
+  implicit class LocationOps(location: Location) {
+    def toBitPosition: Int = Bitboard.toBitPosition(location)
+  }
+
   implicit def fileToInt(file: File): Int = Location.Files.indexOf(file)
 
   implicit def rankToInt(rank: Rank): Int = Location.Ranks.indexOf(rank)
@@ -45,6 +49,7 @@ object Location {
 
   implicit def intToRank(i: Int): Rank = Location.Ranks(i)
 
+  @deprecated("use the extension method LocationOps.toBitPosition instead")
   implicit def locationToInt(location: Location): Int = Bitboard.toBitPosition(location)
 
   implicit def intToLocation(position: Int): Location = Location(
