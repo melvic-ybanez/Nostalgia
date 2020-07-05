@@ -1,4 +1,4 @@
 package com.github.melvic.nostalgia
 
-package object math extends NCanvasImplicits {
+package object math extends NPlaneImplicits {
 }

@@ -7,7 +7,8 @@ import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.{Location, Move}
 import com.github.melvic.nostalgia.events.{MoveEventHandler, PieceHoverEventHandler}
 import com.github.melvic.nostalgia.main.Resources
-import com.github.melvic.nostalgia.math.{NCanvas, NCell, Point}
+import com.github.melvic.nostalgia.math.NCell.{Col, Row}
+import com.github.melvic.nostalgia.math.{NCell, NPlane, Point}
 import javafx.application.Platform
 import javafx.beans.property.DoubleProperty
 import javafx.event.ActionEvent
@@ -46,8 +47,8 @@ trait BoardView {
 }
 
 case class DefaultBoardView(boardController: GameController) extends GridPane with BoardView {
-  override val squareSize = NCanvas[Point].squareSize
-  override val topCanvasOffset = NCanvas[Point].padding.top
+  override val squareSize = NPlane[Point].cellSize
+  override val topCanvasOffset = NPlane[Point].padding.top
 
   // TODO: Move this to a stylesheet if it becomes complex enough.
   val BgColor = "#969696"
@@ -144,9 +145,9 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
           else light
         }
 
-        val canvas = NCell(row, col).toCanvas[Point]
+        val plane = NCell(Row(row), Col(col)).toPlane[Point]
 
-        gc.fillRect(canvas.x, canvas.y, squareSize, squareSize)
+        gc.fillRect(plane.x, plane.y, squareSize, squareSize)
         val accessor = boardController.boardAccessor
         val isMovingPiece = !fullReset && accessor.board.lastMove.exists {
           case Move(source, destination, _) =>
@@ -156,7 +157,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
         }
 
         if (!isMovingPiece)
-          boardController.boardAccessor(row, col).foreach(drawPiece(gc, canvas.x, canvas.y))
+          boardController.boardAccessor(row, col).foreach(drawPiece(gc, plane.x, plane.y))
       }
     }
   }
@@ -208,7 +209,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     val row = Board.Size - 1 - location.rank
     val col: Int = location.file
 
-    drawBoard(gc, true)
+    drawBoard(gc, fullReset = true)
     gc.setLineWidth(2.5)
     gc.strokeRect(
       col * squareSize,
