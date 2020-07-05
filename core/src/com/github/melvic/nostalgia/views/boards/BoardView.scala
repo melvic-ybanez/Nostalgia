@@ -15,11 +15,13 @@ import javafx.geometry.Insets
 import javafx.scene.Cursor
 import javafx.scene.canvas.{Canvas, GraphicsContext}
 import javafx.scene.control.{Alert, ButtonType}
+import javafx.scene.effect.{DropShadow, Effect, Glow}
 import javafx.scene.image.{Image, ImageView}
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{BorderPane, GridPane}
 import javafx.scene.paint.Color
 import javafx.scene.text.{Font, Text, TextAlignment, TextFlow}
+import scalafx.scene.effect.InnerShadow
 
 /**
   * Created by melvic on 9/11/18.
@@ -133,6 +135,8 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
   }
 
   def drawBoard(gc: GraphicsContext, fullReset: Boolean): Unit = {
+    gc.clearRect(0, 0, canvas.getWidth, canvas.getHeight)
+
     val light = Color.WHITE
     gc.setFill(light)
 
@@ -213,10 +217,21 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     val coord = cell.toCoordinate[Point]
 
     drawBoard(gc, fullReset = true)
-    gc.setLineWidth(2.5)
-    gc.strokeRect(coord.x, coord.y, coord.size, coord.size)
+
+    // Fill the square
+    gc.setFill(Color.STEELBLUE)
+    gc.fillRect(coord.x, coord.y, coord.size, coord.size)
+
+    // Add effects to the piece
+    val effect = new DropShadow()
+    effect.setColor(Color.TURQUOISE)
+    gc.setEffect(effect)
     drawPiece(gc, col, row)
-    drawPiece(gc, col, (row + 1) % Board.Size)
+
+    // Redraw the piece below it in case it exceeds it's own square
+    // and overlaps with the selected square
+    gc.setEffect(null)
+    if ((row + 1) < Board.Size) drawPiece(gc, col, row + 1)
   }
 
   def drawPiece(gc: GraphicsContext, x: Double, y: Double, piece: Piece): Unit = {
