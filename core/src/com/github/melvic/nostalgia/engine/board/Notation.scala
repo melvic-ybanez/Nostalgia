@@ -1,6 +1,6 @@
 package com.github.melvic.nostalgia.engine.board
 
-import com.github.melvic.nostalgia.engine.movegen
+import com.github.melvic.nostalgia.engine.{base, movegen}
 import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.validators.MoveValidator
@@ -37,7 +37,7 @@ object Notation {
     }
   }
 
-  def ofPawnSuffix: MoveType => Option[String] = {
+  def ofPawnSuffix: base.MoveType => Option[String] = {
     case EnPassant => Some("e.p.")
     case PawnPromotion(Piece(pieceType, _)) => ofPieceType(pieceType)
     case _ => None

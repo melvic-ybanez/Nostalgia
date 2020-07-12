@@ -1,11 +1,12 @@
 package com.github.melvic.nostalgia.engine.movegen.bitboards
 
+import com.github.melvic.nostalgia.engine.base.MoveType
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard.U64
 import com.github.melvic.nostalgia.engine.board._
 import com.github.melvic.nostalgia.engine.movegen.Move.BitboardMove
 import com.github.melvic.nostalgia.engine.movegen.bitboards.BitboardMoveGenerator.withMoveType
-import com.github.melvic.nostalgia.engine.movegen.{Attack, Move, MoveType}
+import com.github.melvic.nostalgia.engine.movegen.{Attack, Move}
 
 /**
   * Created by melvic on 8/5/18.

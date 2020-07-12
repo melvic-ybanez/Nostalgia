@@ -1,5 +1,6 @@
 package com.github.melvic.nostalgia.events
 
+import com.github.melvic.nostalgia.engine.base
 import com.github.melvic.nostalgia.engine.board._
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.math.{NCoordinate, Point}
@@ -93,7 +94,7 @@ case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverE
       case _ => validateAndMove()
     }
 
-    def validateAndMove(moveType: MoveType = Normal): Unit = {
+    def validateAndMove(moveType: base.MoveType = Normal): Unit = {
       if (boardController.humanMove(Move[Location](sourceLocation, selectedLocation, moveType)))
         resetSourcePiece()
     }

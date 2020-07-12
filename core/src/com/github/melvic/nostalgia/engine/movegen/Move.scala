@@ -1,5 +1,6 @@
 package com.github.melvic.nostalgia.engine.movegen
 
+import com.github.melvic.nostalgia.engine.base
 import com.github.melvic.nostalgia.engine.board.Piece
 import com.github.melvic.nostalgia.engine.movegen.Location._
 
@@ -8,16 +9,16 @@ import com.github.melvic.nostalgia.engine.movegen.Location._
   */
 sealed trait MoveType
 
-case object Normal extends MoveType
-case object Attack extends MoveType
-case object DoublePawnPush extends MoveType
-case object EnPassant extends MoveType
-case class PawnPromotion(newPosition: Piece) extends MoveType
-case class Check(attacker: Piece) extends MoveType
-case object Castling extends MoveType
+case object Normal extends base.MoveType
+case object Attack extends base.MoveType
+case object DoublePawnPush extends base.MoveType
+case object EnPassant extends base.MoveType
+case class PawnPromotion(newPosition: Piece) extends base.MoveType
+case class Check(attacker: Piece) extends base.MoveType
+case object Castling extends base.MoveType
 
-case class Move[A](source: A, destination: A, moveType: MoveType = Normal) {
-  def withType(newType: MoveType) = Move(source, destination, newType)
+case class Move[A](source: A, destination: A, moveType: base.MoveType = Normal) {
+  def withType(newType: base.MoveType) = Move(source, destination, newType)
 }
 
 object Move {
