@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.board
 
 import com.github.melvic.nostalgia.engine.{base, movegen}
-import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
+import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.validators.MoveValidator
 
@@ -29,8 +29,8 @@ object Notation {
   def ofCapture(board: Board, move: LocationMove) = {
     lazy val captureNotation = Some("x")
     move match {
-      case Move(_, _, EnPassant) => captureNotation
-      case Move(_, destination, _) =>
+      case MMove(_, _, EnPassant) => captureNotation
+      case MMove(_, destination, _) =>
         if (board(destination).isDefined) captureNotation
         else None
       case _ => None
@@ -50,13 +50,13 @@ object Notation {
     if (board.isCheckmate(side)) Some("#") else None
 
   def ofCastling: LocationMove => Option[String] = {
-    case Move(_, Location(C, _), Castling) => Some("O-O-O")
-    case Move(_, _, Castling) => Some("O-O")
+    case MMove(_, Location(C, _), Castling) => Some("O-O-O")
+    case MMove(_, _, Castling) => Some("O-O")
     case _ => None
   }
 
   def ofDisambiguation(move: LocationMove, piece: Piece, board: Board) = move match {
-    case Move(source@Location(sourceFile, sourceRank), destination, moveType) =>
+    case MMove(source@Location(sourceFile, sourceRank), destination, moveType) =>
       // Get the locations of the pieces that can move to the
       // destination square.
       val locations = board.pieceLocations(piece).filter { location =>
@@ -83,7 +83,7 @@ object Notation {
     * @return The string representation of the move's algebraic notation.
     */
   def ofMove(move: LocationMove, piece: Piece, board: Board): String = move match {
-    case Move(source, destination, moveType) =>
+    case MMove(source, destination, moveType) =>
       lazy val captureNotation = ofCapture(board, move)
 
       def combineWith(nextNotationOpt: Option[String])(notation: String) =

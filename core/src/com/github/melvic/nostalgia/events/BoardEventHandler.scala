@@ -95,7 +95,7 @@ case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverE
     }
 
     def validateAndMove(moveType: MoveType = Normal): Unit = {
-      if (boardController.humanMove(Move[Location](sourceLocation, selectedLocation, moveType)))
+      if (boardController.humanMove(MMove[Location](sourceLocation, selectedLocation, moveType)))
         resetSourcePiece()
     }
 

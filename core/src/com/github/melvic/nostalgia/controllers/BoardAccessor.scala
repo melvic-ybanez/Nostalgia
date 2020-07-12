@@ -2,8 +2,8 @@ package com.github.melvic.nostalgia.controllers
 
 import com.github.melvic.nostalgia.engine.board.{Board, Piece}
 import com.github.melvic.nostalgia.engine.movegen.Location._
-import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
-import com.github.melvic.nostalgia.engine.movegen.{Location, Move}
+import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
+import com.github.melvic.nostalgia.engine.movegen.{Location, MMove}
 
 /**
   * Created by melvic on 9/14/18.
@@ -14,11 +14,11 @@ trait BoardAccessor {
   def board: Board
 
   def accessorLocation: Location => Location = identity
-  def accessorMove: LocationMove => LocationMove = Move.transform(accessorLocation)
+  def accessorMove: LocationMove => LocationMove = MMove.transform(accessorLocation)
   def move(source: Location, destination: Location): LocationMove =
-    accessorMove(Move[Location](source, destination))
+    accessorMove(MMove[Location](source, destination))
 
-  def moveBoard(move: Move[Location]): Option[(BoardAccessor, Piece, Boolean)] = {
+  def moveBoard(move: MMove[Location]): Option[(BoardAccessor, Piece, Boolean)] = {
     val netMove = accessorMove(move)
     board(netMove.source).flatMap { piece =>
       val newBoard = board.updateByMove(netMove, piece)

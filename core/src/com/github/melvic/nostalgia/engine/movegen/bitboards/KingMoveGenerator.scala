@@ -5,7 +5,7 @@ import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard.U64
 import com.github.melvic.nostalgia.engine.board.{King, Piece}
 import com.github.melvic.nostalgia.engine.movegen.bitboards.OneStep.Step
-import com.github.melvic.nostalgia.engine.movegen.{Castling, Move, Normal}
+import com.github.melvic.nostalgia.engine.movegen.{Castling, MMove, Normal}
 
 /**
   * Created by melvic on 9/23/18.
@@ -15,7 +15,7 @@ object KingMoveGenerator extends NonSlidingMoveGenerator with PostShiftOneStep {
     north, south, east, west, northEast, northWest, southEast, southWest
   )
 
-  lazy val castlingDestinationBitsets: StreamGen[WithMove[U64]] = { (board, source, side) =>
+  lazy val castlingDestinationBitsets: ListGen[WithMove[U64]] = { (board, source, side) =>
     val kingBitset = Bitboard.singleBitset(source)
 
     def castle(step: Step, rookIndex: Int, rookSteps: U64): U64 = {
@@ -31,7 +31,7 @@ object KingMoveGenerator extends NonSlidingMoveGenerator with PostShiftOneStep {
         if (Bitboard.isNonEmptySet(kingFirstStep)) 0L
         else {
           val destination = Bitboard.bitScan(kingFirstStep)
-          val move = Move[Int](source, destination, Normal)
+          val move = MMove[Int](source, destination, Normal)
           val updatedMove = board.updateByBitboardMove(move, Piece(King, side))
 
           if (updatedMove.isChecked(side)) 0L

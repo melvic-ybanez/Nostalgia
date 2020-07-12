@@ -8,16 +8,16 @@ import com.github.melvic.nostalgia.engine.movegen.Location._
   * Created by melvic on 8/5/18.
   */
 
-case class Move[A](source: A, destination: A, moveType: MoveType = Normal) {
-  def withType(newType: MoveType) = Move(source, destination, newType)
+case class MMove[A](source: A, destination: A, moveType: MoveType = Normal) {
+  def withType(newType: MoveType) = MMove(source, destination, newType)
 }
 
-object Move {
-  type BitboardMove = Move[Int]
-  type LocationMove = Move[Location]
+object MMove {
+  type BitboardMove = MMove[Int]
+  type LocationMove = MMove[Location]
 
-  def transform[A, B](f: A => B): Move[A] => Move[B] = {
-    case Move(source, destination, moveType) => Move(f(source), f(destination), moveType)
+  def transform[A, B](f: A => B): MMove[A] => MMove[B] = {
+    case MMove(source, destination, moveType) => Move(f(source), f(destination), moveType)
   }
 
   /**

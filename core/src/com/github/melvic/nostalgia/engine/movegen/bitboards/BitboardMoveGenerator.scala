@@ -1,11 +1,8 @@
 package com.github.melvic.nostalgia.engine.movegen.bitboards
 
-import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
-import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard.U64
-import com.github.melvic.nostalgia.engine.board._
-import com.github.melvic.nostalgia.engine.movegen.Move.BitboardMove
+import com.github.melvic.nostalgia.engine.base.MoveType.Attack
+import com.github.melvic.nostalgia.engine.board.bitboards._
 import com.github.melvic.nostalgia.engine.movegen.bitboards.BitboardMoveGenerator.withMoveType
-import com.github.melvic.nostalgia.engine.movegen.{Attack, Move, MoveType}
 
 /**
   * Created by melvic on 8/5/18.
@@ -18,32 +15,31 @@ trait BitboardMoveGenerator {
   type Generator[A] = (Bitboard, Int, Side) => A
 
   /**
-    * A stream generator.
     * @tparam A the type of the elements in the generated stream.
     */
-  type StreamGen[A] = Generator[Stream[A]]
+  type ListGen[A] = Generator[List[A]]
 
   /**
     * A pair comprised of a value of type A and a particular move type.
     */
   type WithMove[A] = (A, MoveType)
 
-  def destinationBitsets: StreamGen[WithMove[U64]]
+  def destinationBitsets: ListGen[WithMove[U64]]
 
-  def nonEmptyDestinationBitsets: StreamGen[WithMove[U64]] = destinationBitsets(_, _, _)
+  def nonEmptyDestinationBitsets: ListGen[WithMove[U64]] = destinationBitsets(_, _, _)
     .filter { case (bitboard, _) => Bitboard.isNonEmptySet(bitboard) }
 
-  def attackBitsets: StreamGen[U64] = nonEmptyDestinationBitsets(_, _, _).filter {
+  def attackBitsets: ListGen[U64] = nonEmptyDestinationBitsets(_, _, _).filter {
     case (_, Attack) => true
     case _ => false
   } map { case (bitboard, _) => bitboard }
 
-  def destinations: StreamGen[WithMove[Int]] = nonEmptyDestinationBitsets(_, _, _)
+  def destinations: ListGen[WithMove[Int]] = nonEmptyDestinationBitsets(_, _, _)
     .map(withMoveType(_)(Bitboard.bitScan))
 
-  def validMoves: StreamGen[BitboardMove] = { (bitboard, source, side) =>
+  def validMoves: ListGen[Move] = { (bitboard, source, side) =>
     destinations(bitboard, source, side).map { case (destination, moveType) =>
-      Move[Int](source, destination, moveType)
+      Move(source, destination, moveType)
     }
   }
 

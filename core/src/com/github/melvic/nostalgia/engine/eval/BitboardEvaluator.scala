@@ -1,15 +1,15 @@
 package com.github.melvic.nostalgia.engine.eval
 
-import com.github.melvic.nostalgia.engine.board.Piece._
-import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
+import com.github.melvic.nostalgia.engine.base.Side
+import com.github.melvic.nostalgia.engine.board.bitboards.{Side => BSide, _}
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard._
 import com.github.melvic.nostalgia.engine.board._
 
 /**
   * Created by melvic on 2/4/19.
   */
-case class BitboardEvaluator(bitboard: Bitboard, sideToMove: Side) {
-  type SideScore = Side => Double
+case class BitboardEvaluator(bitboard: Bitboard, sideToMove: BSide) {
+  type SideScore = BSide => Double
 
   def pieceScoreMap: Map[PieceType, Double] = Map(Pawn -> 1,
       Knight -> 3, Bishop -> 3, Rook -> 5, Queen -> 9, King -> 200)
@@ -19,10 +19,10 @@ case class BitboardEvaluator(bitboard: Bitboard, sideToMove: Side) {
       allPiecesScore(side) + materialScore(side)
     }
 
-    eval(sideToMove) - eval(sideToMove.opposite)
+    eval(sideToMove) - eval(Side[Int].opposite(sideToMove))
   }
 
-  def allPiecesScore: SideScore = side => Piece.types.foldLeft(0.0) {
+  def allPiecesScore: SideScore = side => types.foldLeft(0.0) {
     (total, pieceType) => total + pieceScore(Piece(pieceType, side))
   }
 

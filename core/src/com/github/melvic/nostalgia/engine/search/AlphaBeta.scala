@@ -1,6 +1,7 @@
 package com.github.melvic.nostalgia.engine.search
 
-import com.github.melvic.nostalgia.engine.board.{Board, Side}
+import com.github.melvic.nostalgia.engine.base.Side
+import com.github.melvic.nostalgia.engine.board.Board
 import com.github.melvic.nostalgia.engine.eval.Evaluator
 
 import scala.annotation.tailrec
@@ -8,14 +9,21 @@ import scala.annotation.tailrec
 /**
   * Created by melvic on 1/27/19.
   */
-sealed trait AlphaBeta {
-  def evaluateBoard: (Board, Side) => Double
+trait AlphaBeta[B, T, S, L] {
+
+  implicit val board: Board[B, T, S, L]
+
+  implicit def side: Side[S]
+
+  implicit val evaluator: Evaluator[B, T, S, L]
+
+  def evaluateBoard(board: B, side: S): Double
 
   def cutOffBound(score: Double, bound: Double): Boolean
 
   def isBetterScore(score: Double, bestScore: Double): Boolean
 
-  def opponent: AlphaBeta
+  def opponent: AlphaBeta[B, T, S, L]
 
   /**
     * Recursively evaluates a given board using the Alpha-Beta Pruning algorithm.
@@ -23,33 +31,44 @@ sealed trait AlphaBeta {
     * @param depth remaining depth in the search tree
     * @return A pair consisting of the evaluation score and the chosen next move.
     */
-  def search(board: Board, side: Side, currentScore: Double, bound: Double, depth: Int): (Double, Board) = {
+  def search(
+      board: B,
+      side: S,
+      currentScore: Double,
+      bound: Double,
+      depth: Int
+  ): (Double, B) = {
     lazy val result = (evaluateBoard(board, side), board)
+
+    val boardTC = Board[B, T, S, L]
 
     if (depth == 0) result
     else {
       val validMoves = {
         // Apply all the moves
-        val moves = board.generateMoves(side).map { case (move, piece) =>
-          board.updateByMove(move, piece)
+        val moves = boardTC.generateMoves(board, side).map { case (move, piece) =>
+          boardTC.updateByMove(board, move, piece)
         }
 
         // Only include moves that do not leave the king checked
-        moves.filter(!_.isChecked(side))
+        moves.filter(board => boardTC.isChecked(board, side))
       }
 
       validMoves match {
         // This is a terminal node, return immediately
-        case Stream() => result
+        case Nil => result
 
         case _ =>
           @tailrec
-          def recurse(bestScore: Double,
-            nextBoard: Board, updatedBoards: Stream[Board]): (Double, Board) = updatedBoards match {
-            case Stream() => (bestScore, nextBoard)
+          def recurse(
+              bestScore: Double,
+              nextBoard: B,
+              updatedBoards: List[B]
+          ): (Double, B) = updatedBoards match {
+            case Nil => (bestScore, nextBoard)
             case updatedBoard +: nextMoves =>
               val (score, _) = opponent.search(updatedBoard,
-                side.opposite,
+                Side[S].opposite(side),
                 bound, bestScore, // params positions switched
                 depth - 1)
 
@@ -66,24 +85,38 @@ sealed trait AlphaBeta {
 
 object AlphaBeta {
   val DefaultMaxDepth = 5
-}
 
-object AlphaBetaMax extends AlphaBeta {
-  override def cutOffBound(score: Double, bound: Double) = score >= bound
+  trait AlphaBetaMax[B, T, S, L] extends AlphaBeta[B, T, S, L] {
+    override def cutOffBound(score: Double, bound: Double) = score >= bound
 
-  override def evaluateBoard = Evaluator.evaluate
+    override def isBetterScore(score: Double, bestScore: Double) = score > bestScore
 
-  override def isBetterScore(score: Double, bestScore: Double) = score > bestScore
+    override def opponent = new AlphaBetaMin[B, T, S, L] {
+      override implicit def side: Side[S] = AlphaBetaMax.this.side
 
-  override def opponent = AlphaBetaMin
-}
+      override implicit val evaluator: Evaluator[B, T, S, L] = AlphaBetaMax.this.evaluator
 
-object AlphaBetaMin extends AlphaBeta {
-  override def evaluateBoard = (board, side) => -Evaluator.evaluate(board, side)
+      override implicit val board: Board[B, T, S, L] = AlphaBetaMax.this.board
+    }
 
-  override def cutOffBound(score: Double, bound: Double) = score <= bound
+    override def evaluateBoard(board: B, side: S) =
+      Evaluator[B, T, S, L].evaluate(board, side)
+  }
 
-  override def isBetterScore(score: Double, bestScore: Double) = score < bestScore
+  trait AlphaBetaMin[B, T, S, L] extends AlphaBeta[B, T, S, L] {
+    override def evaluateBoard(board: B, side: S) =
+      -Evaluator[B, T, S, L].evaluate(board, side)
 
-  override def opponent = AlphaBetaMax
+    override def cutOffBound(score: Double, bound: Double) = score <= bound
+
+    override def isBetterScore(score: Double, bestScore: Double) = score < bestScore
+
+    override def opponent = new AlphaBetaMax[B, T, S, L] {
+      override implicit def side: Side[S] = AlphaBetaMin.this.side
+
+      override implicit val evaluator: Evaluator[B, T, S, L] = AlphaBetaMin.this.evaluator
+
+      override implicit val board: Board[B, T, S, L] = AlphaBetaMin.this.board
+    }
+  }
 }

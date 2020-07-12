@@ -3,7 +3,7 @@ package com.github.melvic.nostalgia.validators
 import com.github.melvic.nostalgia.engine.base
 import com.github.melvic.nostalgia.engine.board._
 import com.github.melvic.nostalgia.engine.movegen.Location._
-import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
+import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
 import com.github.melvic.nostalgia.engine.movegen._
 
 import scala.annotation.tailrec
@@ -54,7 +54,7 @@ object MoveValidator {
       val sideLocation: Location = Location(move.source.file + direction, move.source.rank)
       board(sideLocation).flatMap { _ =>
         board.lastMove match {
-          case Some(Move(_, lastDest, DoublePawnPush)) if lastDest == sideLocation => Some(EnPassant)
+          case Some(MMove(_, lastDest, DoublePawnPush)) if lastDest == sideLocation => Some(EnPassant)
           case _ => None
         }
       }
@@ -62,8 +62,8 @@ object MoveValidator {
 
     def handlePromotion(side: Side, moveType: MoveType) = Some {
       (side, move) match {
-        case (White, Move(_, Location(_, _8), promotion: PawnPromotion)) => promotion
-        case (Black, Move(_, Location(_, _1), promotion: PawnPromotion)) => promotion
+        case (White, MMove(_, Location(_, _8), promotion: PawnPromotion)) => promotion
+        case (Black, MMove(_, Location(_, _1), promotion: PawnPromotion)) => promotion
         case _ => moveType
       }
     }
@@ -119,7 +119,7 @@ object MoveValidator {
         board.at(singleStepLocation)
           .flatMap(_ => None)   // the next square is occupied; abort
           .orElse {
-            val singleStepMove = Move[Location](
+            val singleStepMove = MMove[Location](
               move.source, Location(singleStepFile, move.destination.rank))
             val singleStepBoard = board.updateByMove(singleStepMove, piece)
 
@@ -135,7 +135,7 @@ object MoveValidator {
   def validateSlidingMove(side: Side)
       (notAllowed: (Int, Int) => Boolean)
       (step: Int => Int): MoveValidation = {
-    case move @ Move(source, destination, _) => board =>
+    case move @ MMove(source, destination, _) => board =>
       val (fileDelta, rankDelta) = delta(move)
       if (notAllowed(Math.abs(fileDelta), Math.abs(rankDelta))) None
       else {

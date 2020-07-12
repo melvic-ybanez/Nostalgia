@@ -161,7 +161,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
 
   def moves: Stream[Slide]
 
-  override def destinationBitsets: StreamGen[WithMove[U64]] = { (board, source, side) =>
+  override def destinationBitsets: ListGen[WithMove[U64]] = { (board, source, side) =>
     moves flatMap { slide =>
       val moveBitset = slide(source, board.occupied)
       val blocker = board.occupied & moveBitset

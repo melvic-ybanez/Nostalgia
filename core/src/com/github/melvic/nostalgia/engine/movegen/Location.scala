@@ -30,7 +30,7 @@ case object _7 extends Rank
 case object _8 extends Rank
 
 case class Location(file: File, rank: Rank) {
-  def to(destination: Location): Move[Location] = Move(this, destination)
+  def to(destination: Location): MMove[Location] = MMove(this, destination)
 }
 
 object Location {

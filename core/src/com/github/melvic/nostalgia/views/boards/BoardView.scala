@@ -5,7 +5,7 @@ import com.github.melvic.nostalgia.controllers.GameController
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
 import com.github.melvic.nostalgia.engine.board.{Board, Piece, Side, White}
 import com.github.melvic.nostalgia.engine.movegen.Location._
-import com.github.melvic.nostalgia.engine.movegen.{Location, Move}
+import com.github.melvic.nostalgia.engine.movegen.{Location, MMove}
 import com.github.melvic.nostalgia.events.{MoveEventHandler, PieceHoverEventHandler}
 import com.github.melvic.nostalgia.main.Resources
 import com.github.melvic.nostalgia.math.{NCell, NCoordinate, Point}
@@ -155,7 +155,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
         gc.fillRect(coord.x, coord.y, squareSize, squareSize)
         val accessor = boardController.boardAccessor
         val isMovingPiece = !fullReset && accessor.board.lastMove.exists {
-          case Move(source, destination, _) =>
+          case MMove(source, destination, _) =>
             val location = accessor.accessorLocation(Location.locateForView(row, col))
             location == source || location == destination
           case _ => false
@@ -174,7 +174,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     // animate the moving piece
     board.lastMove.foreach { lastMove =>
       val netMove = boardController.boardAccessor.accessorMove(lastMove)
-      val (source, dest) = Move.locateMove(netMove)
+      val (source, dest) = MMove.locateMove(netMove)
 
       board(lastMove.destination).foreach { case piece@Piece(_, side) =>
         val animator = new MoveAnimator(this) {

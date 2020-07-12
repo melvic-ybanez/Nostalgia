@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.views.boards
 
 import com.github.melvic.nostalgia.engine.board.{Board, Notation, Piece, White}
-import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
+import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
 import javafx.geometry.Orientation
 import javafx.scene.control.{ListCell, ListView, Separator}
 import javafx.scene.layout.{BorderPane, VBox}

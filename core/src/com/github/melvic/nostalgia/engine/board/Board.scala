@@ -1,8 +1,8 @@
 package com.github.melvic.nostalgia.engine.board
 
+import com.github.melvic.nostalgia.engine.base.{Square, Move, Piece}
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
-import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
-import com.github.melvic.nostalgia.engine.movegen.{File, Location, Rank}
+import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
 
 /**
   * Created by melvic on 8/6/18.
@@ -10,25 +10,30 @@ import com.github.melvic.nostalgia.engine.movegen.{File, Location, Rank}
 object Board {
   val Size = 8
   lazy val defaultBoard = Bitboard()
+
+  def apply[B, T, S, L](implicit B: Board[B, T, S, L]): Board[B, T, S, L] = B
 }
 
-trait Board {
-  def at(location: Location): Option[Piece]
-  def at(file: File, rank: Rank): Option[Piece] = at(Location(file, rank))
+trait Board[B, T, S, L] {
+  type BPiece = Piece[T, S]
+  type BMove = Move[T, S, L]
 
-  def apply(location: Location): Option[Piece] = at(location)
-  def apply(file: File, rank: Rank) = at(file, rank)
+  implicit def square: Square[L]
 
-  def updateByMove(move: LocationMove, piece: Piece): Board
+  def at(board: B, location: L): Option[BPiece]
 
-  def lastMove: Option[LocationMove]
+  def apply(board: B, location: L): Option[BPiece] = at(board, location)
 
-  def generateMoves(sideToMove: Side): Stream[(LocationMove, Piece)]
+  def updateByMove(board: B, move: BMove, piece: BPiece): B
 
-  def updateByNextMove(sideToMove: Side, depth: Int): Board
+  def lastMove(board: B): Option[BMove]
 
-  def isChecked(side: Side): Boolean
-  def isCheckmate(winningSide: Side): Boolean
+  def generateMoves(board: B, sideToMove: S): List[(BMove, BPiece)]
+
+  def updateByNextMove(board: B, sideToMove: S, depth: Int): B
+
+  def isChecked(board: B, side: S): Boolean
+  def isCheckmate(board: B, winningSide: S): Boolean
 
   /**
     * Checks if the king, given its move, can still castle. That is, if the king
@@ -40,9 +45,9 @@ trait Board {
     * @param kingMove Location of the king
     * @return Whether the king can still castle.
     */
-  def canCastle(kingMove: LocationMove): Boolean
+  def canCastle(board: B, kingMove: BMove): Boolean
 
-  def pieceLocations(piece: Piece): Stream[Location]
+  def pieceLocations(board: B, piece: BPiece): List[Square[L]]
 }
 
 

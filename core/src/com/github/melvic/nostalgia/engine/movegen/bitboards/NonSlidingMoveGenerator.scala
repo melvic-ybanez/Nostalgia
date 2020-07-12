@@ -10,7 +10,7 @@ import com.github.melvic.nostalgia.engine.movegen.Attack
 trait NonSlidingMoveGenerator extends BitboardMoveGenerator {
   def moves: Stream[U64 => U64]
 
-  def destinationBitsets: StreamGen[WithMove[U64]] = { (board, source, side) =>
+  def destinationBitsets: ListGen[WithMove[U64]] = { (board, source, side) =>
     val pieces = Bitboard.singleBitset(source)
     moves map { f =>
       val dest = emptyOrOpponent(board.emptySquares, board.opponents(side))(f(pieces))
