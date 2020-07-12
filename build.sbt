@@ -25,7 +25,10 @@ lazy val root = (project in file("."))
 lazy val core = (project in file("core"))
   //.dependsOn(macros)
   .settings(commonSettings,
-    libraryDependencies ++= Seq("org.scalafx" %% "scalafx" % "11-R16"),
+    libraryDependencies ++= Seq(
+      "org.scalafx" %% "scalafx" % "11-R16",
+      "org.typelevel" %% "cats-core" % "2.0.0"
+    ),
     libraryDependencies ++= javaFXModules.map(m =>
       "org.openjfx" % s"javafx-$m" % "11" classifier osName))
 
