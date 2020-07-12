@@ -7,15 +7,6 @@ import com.github.melvic.nostalgia.engine.movegen.Location._
 /**
   * Created by melvic on 8/5/18.
   */
-sealed trait MoveType
-
-case object Normal extends MoveType
-case object Attack extends MoveType
-case object DoublePawnPush extends MoveType
-case object EnPassant extends MoveType
-case class PawnPromotion(newPosition: Piece) extends MoveType
-case class Check(attacker: Piece) extends MoveType
-case object Castling extends MoveType
 
 case class Move[A](source: A, destination: A, moveType: MoveType = Normal) {
   def withType(newType: MoveType) = Move(source, destination, newType)
