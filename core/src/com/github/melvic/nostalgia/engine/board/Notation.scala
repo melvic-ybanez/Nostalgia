@@ -37,7 +37,7 @@ object Notation {
     }
   }
 
-  def ofPawnSuffix: base.MoveType => Option[String] = {
+  def ofPawnSuffix: MoveType => Option[String] = {
     case EnPassant => Some("e.p.")
     case PawnPromotion(Piece(pieceType, _)) => ofPieceType(pieceType)
     case _ => None

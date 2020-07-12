@@ -1,10 +1,10 @@
 package com.github.melvic.nostalgia.engine.base
 
-import cats.Functor
+import cats.{Bifunctor, Functor}
 
 object implicits {
-  implicit val pieceFunctor: Functor[Piece] = new Functor[Piece] {
-    override def map[A, B](piece: Piece[A])(f: A => B) =
-      Piece(f(piece.pieceType), f(piece.side))
+  implicit val pieceFunctor: Bifunctor[Piece] = new Bifunctor[Piece] {
+    override def bimap[A, B, C, D](piece: Piece[A, B])(f: A => C, g: B => D) =
+      Piece(f(piece.pieceType), g(piece.side))
   }
 }

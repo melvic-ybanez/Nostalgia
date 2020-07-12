@@ -12,7 +12,7 @@ import scala.annotation.tailrec
   * Created by melvic on 9/14/18.
   */
 object MoveValidator {
-  type MoveValidation = LocationMove => Board => Option[base.MoveType]
+  type MoveValidation = LocationMove => Board => Option[MoveType]
   type PieceMoveValidation = Piece => MoveValidation
 
   def validateMove: MoveValidation = move => board => board(move.source) flatMap { piece =>
@@ -60,7 +60,7 @@ object MoveValidator {
       }
     }
 
-    def handlePromotion(side: Side, moveType: base.MoveType) = Some {
+    def handlePromotion(side: Side, moveType: MoveType) = Some {
       (side, move) match {
         case (White, Move(_, Location(_, _8), promotion: PawnPromotion)) => promotion
         case (Black, Move(_, Location(_, _1), promotion: PawnPromotion)) => promotion
@@ -143,7 +143,7 @@ object MoveValidator {
         val rankStep = step(rankDelta)
 
         @tailrec
-        def recurse(file: File, rank: Rank): Option[base.MoveType] =
+        def recurse(file: File, rank: Rank): Option[MoveType] =
           if (file == destination.file && rank == destination.rank)
             captureOrEmpty(side, destination, board)(() => Some(Normal))
           else if (board(file, rank).isDefined) None
@@ -154,14 +154,14 @@ object MoveValidator {
   }
 
   def validateCapture(side: Side, destination: Location, board: Board)
-      (implicit  f: () => Option[base.MoveType]) =
+      (implicit  f: () => Option[MoveType]) =
     board(destination) flatMap {
       case Piece(_, destSide) if destSide == side.opposite => f()
       case _ => None
     }
 
   def captureOrEmpty(side: Side, destination: Location, board: Board)
-      (implicit f: () => Option[base.MoveType]) =
+      (implicit f: () => Option[MoveType]) =
     validateCapture(side, destination, board).orElse {
       board(destination).flatMap(_ => None).orElse(f())
     }

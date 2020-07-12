@@ -18,7 +18,7 @@ case class Check(attacker: Piece) extends MoveType
 case object Castling extends MoveType
 
 case class Move[A](source: A, destination: A, moveType: MoveType = Normal) {
-  def withType(newType: base.MoveType) = Move(source, destination, newType)
+  def withType(newType: MoveType) = Move(source, destination, newType)
 }
 
 object Move {
