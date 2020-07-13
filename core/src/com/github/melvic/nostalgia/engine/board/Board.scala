@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.board
 
 import com.github.melvic.nostalgia.engine.base.{Square, Move, Piece}
-import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
+import com.github.melvic.nostalgia.engine.board.bitboards.BitboardInstance
 import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
 
 /**
@@ -9,7 +9,6 @@ import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
   */
 object Board {
   val Size = 8
-  lazy val defaultBoard = Bitboard()
 
   def apply[B, T, S, L](implicit B: Board[B, T, S, L]): Board[B, T, S, L] = B
 }

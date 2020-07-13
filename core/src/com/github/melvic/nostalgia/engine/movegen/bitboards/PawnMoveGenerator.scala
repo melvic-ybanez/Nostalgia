@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.movegen.bitboards
 
 import com.github.melvic.nostalgia.engine.board.Piece._
-import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
+import com.github.melvic.nostalgia.engine.board.bitboards.BitboardInstance
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard._
 import com.github.melvic.nostalgia.engine.board._
 import com.github.melvic.nostalgia.engine.movegen.bitboards.BitboardMoveGenerator._

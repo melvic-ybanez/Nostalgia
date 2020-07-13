@@ -1,17 +1,9 @@
 package com.github.melvic.nostalgia.engine.search.bitboards
 
-import com.github.melvic.nostalgia.engine.base.Side
-import com.github.melvic.nostalgia.engine.board.Board
-import com.github.melvic.nostalgia.engine.board.bitboards.BitboardInstance
-import com.github.melvic.nostalgia.engine.eval.Evaluator
-import com.github.melvic.nostalgia.engine.search.AlphaBeta.AlphaBetaMax
+trait implicits {
+  implicit object AlphaBetaMax extends AlphaBetaMax(AlphaBetaMin) with AlphaBeta
 
-object AlphaBetaMax {
-  implicit val bbAlphabetaMax: AlphaBetaMax = new AlphaBetaMax {
-    override implicit val board: Board[BitboardInstance, Int, Int, Int] = _
-
-    override implicit def side: Side[Int] = ???
-
-    override implicit val evaluator: Evaluator[BitboardInstance, Int, Int, Int] = _
-  }
+  implicit object AlphaBetaMin extends AlphaBetaMin(AlphaBetaMax) with AlphaBeta
 }
+
+object implicits extends implicits

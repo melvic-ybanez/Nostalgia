@@ -60,22 +60,21 @@ trait AlphaBeta[B, T, S, L] {
 
         case _ =>
           @tailrec
-          def recurse(
-              bestScore: Double,
-              nextBoard: B,
-              updatedBoards: List[B]
-          ): (Double, B) = updatedBoards match {
-            case Nil => (bestScore, nextBoard)
-            case updatedBoard +: nextMoves =>
-              val (score, _) = opponent.search(updatedBoard,
-                Side[S].opposite(side),
-                bound, bestScore, // params positions switched
-                depth - 1)
+          def recurse(bestScore: Double, nextBoard: B, updatedBoards: List[B]): (Double, B) =
+            updatedBoards match {
+              case Nil => (bestScore, nextBoard)
+              case updatedBoard +: nextMoves =>
+                val (score, _) = opponent.search(
+                  updatedBoard,
+                  Side[S].opposite(side),
+                  bound, bestScore,   // params positions switched
+                  depth - 1
+                )
 
-              if (cutOffBound(score, bound)) (bound, updatedBoard)
-              else if (isBetterScore(score, bestScore)) recurse(score, updatedBoard, nextMoves)
-              else recurse(bestScore, nextBoard, nextMoves)
-          }
+                if (cutOffBound(score, bound)) (bound, updatedBoard)
+                else if (isBetterScore(score, bestScore)) recurse(score, updatedBoard, nextMoves)
+                else recurse(bestScore, nextBoard, nextMoves)
+            }
 
           recurse(currentScore, board, validMoves)
       }
@@ -85,38 +84,4 @@ trait AlphaBeta[B, T, S, L] {
 
 object AlphaBeta {
   val DefaultMaxDepth = 5
-
-  trait AlphaBetaMax[B, T, S, L] extends AlphaBeta[B, T, S, L] {
-    override def cutOffBound(score: Double, bound: Double) = score >= bound
-
-    override def isBetterScore(score: Double, bestScore: Double) = score > bestScore
-
-    override def opponent = new AlphaBetaMin[B, T, S, L] {
-      override implicit def side: Side[S] = AlphaBetaMax.this.side
-
-      override implicit val evaluator: Evaluator[B, T, S, L] = AlphaBetaMax.this.evaluator
-
-      override implicit val board: Board[B, T, S, L] = AlphaBetaMax.this.board
-    }
-
-    override def evaluateBoard(board: B, side: S) =
-      Evaluator[B, T, S, L].evaluate(board, side)
-  }
-
-  trait AlphaBetaMin[B, T, S, L] extends AlphaBeta[B, T, S, L] {
-    override def evaluateBoard(board: B, side: S) =
-      -Evaluator[B, T, S, L].evaluate(board, side)
-
-    override def cutOffBound(score: Double, bound: Double) = score <= bound
-
-    override def isBetterScore(score: Double, bestScore: Double) = score < bestScore
-
-    override def opponent = new AlphaBetaMax[B, T, S, L] {
-      override implicit def side: Side[S] = AlphaBetaMin.this.side
-
-      override implicit val evaluator: Evaluator[B, T, S, L] = AlphaBetaMin.this.evaluator
-
-      override implicit val board: Board[B, T, S, L] = AlphaBetaMin.this.board
-    }
-  }
 }
