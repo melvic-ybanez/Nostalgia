@@ -1,15 +1,11 @@
 package com.github.melvic.nostalgia.engine.board
 
 import com.github.melvic.nostalgia.engine.base.{Square, Move, Piece}
-import com.github.melvic.nostalgia.engine.board.bitboards.BitboardInstance
-import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
 
 /**
   * Created by melvic on 8/6/18.
   */
 object Board {
-  val Size = 8
-
   def apply[B, T, S, L](implicit B: Board[B, T, S, L]): Board[B, T, S, L] = B
 }
 
@@ -46,7 +42,9 @@ trait Board[B, T, S, L] {
     */
   def canCastle(board: B, kingMove: BMove): Boolean
 
-  def pieceLocations(board: B, piece: BPiece): List[Square[L]]
+  def pieceLocations(board: B, piece: BPiece): List[L]
+
+  val Size = 8
 }
 
 
