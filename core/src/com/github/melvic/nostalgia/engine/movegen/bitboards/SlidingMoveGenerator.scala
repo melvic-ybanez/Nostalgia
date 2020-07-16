@@ -1,6 +1,6 @@
 package com.github.melvic.nostalgia.engine.movegen.bitboards
 
-import com.github.melvic.nostalgia.engine.board.bitboards.BitboardInstance
+import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard.U64
 import com.github.melvic.nostalgia.engine.board.bitboards.Transformers.Transformation
 import com.github.melvic.nostalgia.engine.board.{Board, Piece}

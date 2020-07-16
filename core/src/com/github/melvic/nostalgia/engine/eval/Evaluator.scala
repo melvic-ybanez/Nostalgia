@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.eval
 
 import com.github.melvic.nostalgia.engine.base.Side
-import com.github.melvic.nostalgia.engine.board.bitboards.{BitboardInstance}
+import com.github.melvic.nostalgia.engine.board.bitboards.{Bitboard}
 import com.github.melvic.nostalgia.engine.board.Board
 import com.github.melvic.nostalgia.engine.eval.bitboards.EvalInstance
 

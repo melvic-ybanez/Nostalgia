@@ -1,11 +1,8 @@
 package com.github.melvic.nostalgia.engine.movegen.bitboards
 
-import com.github.melvic.nostalgia.engine.board.Piece._
-import com.github.melvic.nostalgia.engine.board.bitboards.BitboardInstance
+import com.github.melvic.nostalgia.engine.board.bitboards.{Board, Bitboard}
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard.U64
-import com.github.melvic.nostalgia.engine.board.{King, Piece}
 import com.github.melvic.nostalgia.engine.movegen.bitboards.OneStep.Step
-import com.github.melvic.nostalgia.engine.movegen.{Castling, MMove, Normal}
 
 /**
   * Created by melvic on 9/23/18.

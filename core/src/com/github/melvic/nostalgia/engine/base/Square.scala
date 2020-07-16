@@ -1,7 +1,5 @@
 package com.github.melvic.nostalgia.engine.base
 
-import cats.Bifunctor
-
 trait Square[S] {
   type File
   type Rank

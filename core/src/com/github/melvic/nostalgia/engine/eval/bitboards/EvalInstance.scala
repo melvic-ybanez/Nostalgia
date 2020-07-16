@@ -6,7 +6,7 @@ import com.github.melvic.nostalgia.engine.board.bitboards._
 /**
   * Created by melvic on 2/4/19.
   */
-case class EvalInstance(bitboard: BitboardInstance, sideToMove: Int) {
+case class EvalInstance(bitboard: Bitboard, sideToMove: Int) {
   type SideScore = Int => Double
 
   def pieceScoreMap: Map[PieceType, Double] = Map(Pawn -> 1,

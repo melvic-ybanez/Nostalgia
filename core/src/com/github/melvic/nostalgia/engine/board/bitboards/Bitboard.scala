@@ -44,8 +44,8 @@ object Bitboard {
       .updatePiece(white(Pawn)) {
         _ | toBitset(A(_2), B(_2), C(_2), D(_2), E(_2), F(_2), G(_2), H(_2))
       }.updatePiece(white(Knight)) {
-      _ | toBitset(B(_1), G(_1))
-    }
+        _ | toBitset(B(_1), G(_1))
+      }
       .updatePiece(white(Bishop)) {
         _ | toBitset(C(_1), F(_1))
       }

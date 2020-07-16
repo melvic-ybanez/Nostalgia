@@ -1,6 +1,6 @@
 package com.github.melvic.nostalgia.controllers
 
-import com.github.melvic.nostalgia.engine.board.bitboards.BitboardInstance
+import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
 import com.github.melvic.nostalgia.validators.MoveValidator
 import com.github.melvic.nostalgia.views.menus
 import com.github.melvic.nostalgia.views.menus.GameMenu

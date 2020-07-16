@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.board
 
+import com.github.melvic.nostalgia.engine.base.Piece
 import com.github.melvic.nostalgia.engine.{base, movegen}
-import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.validators.MoveValidator
 
@@ -9,7 +9,7 @@ import com.github.melvic.nostalgia.validators.MoveValidator
   * Created by melvic on 1/23/19.
   */
 object Notation {
-  def ofPieceType(pieceType: PieceType): Option[String] = pieceType match {
+  def ofPieceType[T, S](pieceType: T)(implicit piece: Piece[T, S]): Option[String] = pieceType match {
     case Pawn => None
     case _ => Some { pieceType match {
       case Knight => "N"
