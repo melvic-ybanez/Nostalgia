@@ -3,7 +3,8 @@ package com.github.melvic.nostalgia.views.boards
 import com.github.melvic.nostalgia.animations.MoveAnimator
 import com.github.melvic.nostalgia.controllers.GameController
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
-import com.github.melvic.nostalgia.engine.board.{Board, Piece, Side, White}
+import com.github.melvic.nostalgia.engine.board.piece.Piece
+import com.github.melvic.nostalgia.engine.board.{Board, Side, White}
 import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.{Location, MMove}
 import com.github.melvic.nostalgia.events.{MoveEventHandler, PieceHoverEventHandler}

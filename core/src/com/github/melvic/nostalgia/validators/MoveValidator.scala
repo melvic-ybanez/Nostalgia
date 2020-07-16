@@ -2,6 +2,7 @@ package com.github.melvic.nostalgia.validators
 
 import com.github.melvic.nostalgia.engine.base
 import com.github.melvic.nostalgia.engine.board._
+import com.github.melvic.nostalgia.engine.board.piece.Piece
 import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
 import com.github.melvic.nostalgia.engine.movegen._

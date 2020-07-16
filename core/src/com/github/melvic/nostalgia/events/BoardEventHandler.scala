@@ -2,6 +2,7 @@ package com.github.melvic.nostalgia.events
 
 import com.github.melvic.nostalgia.engine.base
 import com.github.melvic.nostalgia.engine.board._
+import com.github.melvic.nostalgia.engine.board.piece.Piece
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.math.{NCoordinate, Point}
 import com.github.melvic.nostalgia.views.boards._

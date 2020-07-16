@@ -1,6 +1,6 @@
 package com.github.melvic.nostalgia.engine.board
 
-import com.github.melvic.nostalgia.engine.base.{Square, Move, Piece}
+import com.github.melvic.nostalgia.engine.base.{Move, Piece, Square}
 
 /**
   * Created by melvic on 8/6/18.
@@ -10,7 +10,7 @@ object Board {
 }
 
 trait Board[B, T, S, L] {
-  type BPiece = Piece[T, S]
+  type BPiece = piece.Piece[T, S]
   type BMove = Move[T, S, L]
 
   implicit def square: Square[L]

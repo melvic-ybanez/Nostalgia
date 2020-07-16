@@ -1,6 +1,7 @@
 package com.github.melvic.nostalgia.engine.board
 
-import com.github.melvic.nostalgia.engine.base.Piece
+import com.github.melvic.nostalgia.engine.board.piece.Piece
+import com.github.melvic.nostalgia.engine.board.piece.PieceType._
 import com.github.melvic.nostalgia.engine.{base, movegen}
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.validators.MoveValidator
@@ -9,7 +10,7 @@ import com.github.melvic.nostalgia.validators.MoveValidator
   * Created by melvic on 1/23/19.
   */
 object Notation {
-  def ofPieceType[T, S](pieceType: T)(implicit piece: Piece[T, S]): Option[String] = pieceType match {
+  def ofPieceType[T, S](pieceType: T)(implicit piece: Piece): Option[String] = pieceType match {
     case Pawn => None
     case _ => Some { pieceType match {
       case Knight => "N"
@@ -55,7 +56,7 @@ object Notation {
     case _ => None
   }
 
-  def ofDisambiguation(move: LocationMove, piece: Piece, board: Board) = move match {
+  def ofDisambiguation(move: LocationMove, piece: piece.Piece, board: Board) = move match {
     case MMove(source@Location(sourceFile, sourceRank), destination, moveType) =>
       // Get the locations of the pieces that can move to the
       // destination square.
@@ -82,7 +83,7 @@ object Notation {
     * @param board The current board position
     * @return The string representation of the move's algebraic notation.
     */
-  def ofMove(move: LocationMove, piece: Piece, board: Board): String = move match {
+  def ofMove(move: LocationMove, piece: piece.Piece, board: Board): String = move match {
     case MMove(source, destination, moveType) =>
       lazy val captureNotation = ofCapture(board, move)
 

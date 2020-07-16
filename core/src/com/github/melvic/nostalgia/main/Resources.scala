@@ -1,6 +1,7 @@
 package com.github.melvic.nostalgia.main
 
-import com.github.melvic.nostalgia.engine.board.{Black, Knight, Piece, Rook, Side, White}
+import com.github.melvic.nostalgia.engine.board.piece.Piece
+import com.github.melvic.nostalgia.engine.board.{Black, Knight, Rook, Side, White}
 
 /**
   * Created by melvic on 9/15/18.

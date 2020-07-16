@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.movegen
 
 import com.github.melvic.nostalgia.engine.base
-import com.github.melvic.nostalgia.engine.board.Piece
+import com.github.melvic.nostalgia.engine.board.piece.Piece
 import com.github.melvic.nostalgia.engine.movegen.Location._
 
 /**
