@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.views.boards
 
 import com.github.melvic.nostalgia.engine.board._
-import com.github.melvic.nostalgia.engine.board.piece.PieceType
+import com.github.melvic.nostalgia.engine.api.piece.PieceType
 import com.github.melvic.nostalgia.main.Resources
 import javafx.scene.Cursor
 import javafx.scene.control.{ButtonType, Dialog, Label}

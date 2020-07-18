@@ -1,19 +1,15 @@
-package com.github.melvic.nostalgia.engine.board
-
-import com.github.melvic.nostalgia.engine.base.{Move, Piece, Square}
+package com.github.melvic.nostalgia.engine.base
 
 /**
-  * Created by melvic on 8/6/18.
-  */
-object Board {
-  def apply[B, T, S, L](implicit B: Board[B, T, S, L]): Board[B, T, S, L] = B
-}
-
+ * The base typeclass representing a chessboard
+ * @tparam B The board type
+ * @tparam T The type for piece type (e.g. pawns, kings, etc.)
+ * @tparam S The type for sides.
+ * @tparam L The type to use for the locations (e.g integers for bitboards)
+ */
 trait Board[B, T, S, L] {
-  type BPiece = piece.Piece[T, S]
+  type BPiece = Piece[T, S]
   type BMove = Move[T, S, L]
-
-  implicit def square: Square[L]
 
   def at(board: B, location: L): Option[BPiece]
 
@@ -47,4 +43,7 @@ trait Board[B, T, S, L] {
   val Size = 8
 }
 
+object Board {
+  def apply[B, T, S, L](implicit B: Board[B, T, S, L]): Board[B, T, S, L] = B
+}
 

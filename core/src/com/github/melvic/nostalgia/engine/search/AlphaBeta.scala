@@ -1,7 +1,6 @@
 package com.github.melvic.nostalgia.engine.search
 
-import com.github.melvic.nostalgia.engine.base.Side
-import com.github.melvic.nostalgia.engine.board.Board
+import com.github.melvic.nostalgia.engine.base.{Board, Side}
 import com.github.melvic.nostalgia.engine.eval.Evaluator
 
 import scala.annotation.tailrec

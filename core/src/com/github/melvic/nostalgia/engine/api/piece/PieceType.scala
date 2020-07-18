@@ -1,4 +1,4 @@
-package com.github.melvic.nostalgia.engine.board.piece
+package com.github.melvic.nostalgia.engine.api.piece
 
 sealed trait PieceType
 

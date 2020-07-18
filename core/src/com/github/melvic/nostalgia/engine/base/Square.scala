@@ -1,14 +1,12 @@
 package com.github.melvic.nostalgia.engine.base
 
-trait Square[S] {
-  type File
-  type Rank
+import cats.Bifunctor
 
-  def file(square: S): File
-
-  def rank(square: S): Rank
-}
+final case class Square[F, R](file: F, rank: R)
 
 object Square {
-  def apply[S](implicit S: Square[S]): Square[S] = S
+  implicit def squareBifunctor: Bifunctor[Square] = new Bifunctor[Square] {
+    def bimap[F, R, F1, R1](square: Square[F, R])(f: F => F1, g: R => R1) =
+      Square(f(square.file), g(square.rank))
+  }
 }

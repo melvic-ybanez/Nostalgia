@@ -1,13 +1,14 @@
 package com.github.melvic.nostalgia.engine.board.bitboards
 
+import com.github.melvic.nostalgia.engine.api.movegen.File._
+import com.github.melvic.nostalgia.engine.api.movegen.Coordinate
+import com.github.melvic.nostalgia.engine.api.movegen.Coordinate._
+import com.github.melvic.nostalgia.engine.api.movegen.Rank._
 import com.github.melvic.nostalgia.engine.base.MoveType.{Castling, DoublePawnPush, EnPassant, PawnPromotion}
 import com.github.melvic.nostalgia.engine.base.Square
-import com.github.melvic.nostalgia.engine.board.Board
 import com.github.melvic.nostalgia.engine.board.bitboards.Piece._
-import com.github.melvic.nostalgia.engine.movegen.Location._
 import com.github.melvic.nostalgia.engine.movegen.bitboards.BitboardMoveGenerator
-import com.github.melvic.nostalgia.engine.movegen.{bitboards => _, _}
-import com.github.melvic.nostalgia.engine.search.AlphaBetaMax
+import com.github.melvic.nostalgia.engine.movegen.{bitboards => _}
 import com.github.melvic.nostalgia.engine.search.bitboards.AlphaBetaInstances.AlphaBetaMax
 
 import scala.annotation.tailrec
@@ -82,7 +83,8 @@ object Bitboard {
         singleBitset(A(_1)) | singleBitset(A(_8))))
   }
 
-  def toBitPosition(location: Location): Int = location.file + location.rank * Board.Size
+  def toBitPosition(location: Coordinate): Int =
+    location.file.toInt + location.rank.toInt * Board.Size
 
   def fileOf(position: Int) = position % Board.Size
 
@@ -128,8 +130,6 @@ object Bitboard {
   }
 
   implicit val bitboardBoard: Board = new Board {
-    override implicit def square: Square[Int] = Square[Int]
-
     override def at(board: Bitboard, location: Int) = board.at(location)
 
     override def updateByMove(board: Bitboard, move: BMove, piece: BPiece) =
@@ -318,7 +318,7 @@ case class Bitboard(
   }
 
   def castlingRookIndex(kingMove: Move, side: Side) = {
-    val delta = kingMove.to.file - kingMove.from.file
+    val delta = kingMove.to.toSquare.file - kingMove.from.toSquare.file
     if (delta < 0) QueenSideCastlingIndex else KingSideCastlingIndex
   }
 

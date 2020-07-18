@@ -1,5 +1,5 @@
 package com.github.melvic.nostalgia.engine.eval.bitboards
-import com.github.melvic.nostalgia.engine.board.Board
+import com.github.melvic.nostalgia.engine.base.Board
 import com.github.melvic.nostalgia.engine.board.bitboards._
 
 object Evaluator {

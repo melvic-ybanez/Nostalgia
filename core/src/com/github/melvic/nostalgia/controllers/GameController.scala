@@ -1,8 +1,9 @@
 package com.github.melvic.nostalgia.controllers
 
 import com.github.melvic.nostalgia.engine.board._
-import com.github.melvic.nostalgia.engine.board.piece.Piece
-import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
+import com.github.melvic.nostalgia.engine.api.piece.Piece
+import com.github.melvic.nostalgia.engine.base.Board
+import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
 import com.github.melvic.nostalgia.models.Preferences.Defaults
 import com.github.melvic.nostalgia.models._
 import com.github.melvic.nostalgia.validators.MoveValidator._

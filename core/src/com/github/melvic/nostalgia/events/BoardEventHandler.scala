@@ -1,8 +1,9 @@
 package com.github.melvic.nostalgia.events
 
+import com.github.melvic.nostalgia.engine.api.movegen.{Coordinate, _1, _8}
 import com.github.melvic.nostalgia.engine.base
 import com.github.melvic.nostalgia.engine.board._
-import com.github.melvic.nostalgia.engine.board.piece.Piece
+import com.github.melvic.nostalgia.engine.api.piece.Piece
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.math.{NCoordinate, Point}
 import com.github.melvic.nostalgia.views.boards._
@@ -19,7 +20,7 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
     def handleEvent(): Unit = {
       val cell = NCoordinate[Point].init(event.getX, event.getY).toCell
 
-      val selectedLocation = Location.locateForView(cell.row, cell.col)
+      val selectedLocation = Coordinate.locateForView(cell.row, cell.col)
       val selectedPiece = controller.boardAccessor(selectedLocation)
 
       performAction(selectedPiece, selectedLocation)
@@ -33,17 +34,17 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
   }
 
   def boardView: BoardView
-  def performAction(selectedPiece: Option[Piece], selectedLocation: Location): Unit
+  def performAction(selectedPiece: Option[Piece], selectedLocation: Coordinate): Unit
 
   private var _sourcePiece: Option[Piece] = None
   def sourcePiece = _sourcePiece
   def sourcePiece_=(sourcePiece: Option[Piece]) = _sourcePiece = sourcePiece
 
-  private var _sourceLocation: Option[Location] = None
+  private var _sourceLocation: Option[Coordinate] = None
   def sourceLocation = _sourceLocation.get
-  def sourceLocation_=(sourceLocation: Location) = _sourceLocation = Some(sourceLocation)
+  def sourceLocation_=(sourceLocation: Coordinate) = _sourceLocation = Some(sourceLocation)
 
-  def updateSourceSquare(selectedPiece: Option[Piece], selectedLocation: Location): Unit = {
+  def updateSourceSquare(selectedPiece: Option[Piece], selectedLocation: Coordinate): Unit = {
     sourcePiece = selectedPiece
     sourceLocation = selectedLocation
   }
@@ -55,7 +56,7 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
 }
 
 case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandler {
-  override def performAction(selectedPiece: Option[Piece], selectedLocation: Location): Unit = boardView.toggleHover {
+  override def performAction(selectedPiece: Option[Piece], selectedLocation: Coordinate): Unit = boardView.toggleHover {
     val controller = boardView.boardController
     (sourcePiece, selectedPiece) match {
       case (None, Some(Piece(_, side))) if side == controller.sideToMove => true
@@ -70,7 +71,7 @@ case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandle
 }
 
 case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverEventHandler) extends BoardEventHandler {
-  override def performAction(selectedPiece: Option[Piece], selectedLocation: Location) = {
+  override def performAction(selectedPiece: Option[Piece], selectedLocation: Coordinate) = {
     (sourcePiece, selectedPiece) match {
       case (None, None) => ()
       case (None, Some(Piece(_, side))) =>
@@ -96,7 +97,7 @@ case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverE
     }
 
     def validateAndMove(moveType: MoveType = Normal): Unit = {
-      if (boardController.humanMove(MMove[Location](sourceLocation, selectedLocation, moveType)))
+      if (boardController.humanMove(Move[Coordinate](sourceLocation, selectedLocation, moveType)))
         resetSourcePiece()
     }
 

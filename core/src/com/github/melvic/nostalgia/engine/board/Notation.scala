@@ -1,7 +1,9 @@
 package com.github.melvic.nostalgia.engine.board
 
-import com.github.melvic.nostalgia.engine.board.piece.Piece
-import com.github.melvic.nostalgia.engine.board.piece.PieceType._
+import com.github.melvic.nostalgia.engine.api.movegen.{C, File, Coordinate, Rank}
+import com.github.melvic.nostalgia.engine.api.piece.Piece
+import com.github.melvic.nostalgia.engine.api.piece.PieceType._
+import com.github.melvic.nostalgia.engine.base.Board
 import com.github.melvic.nostalgia.engine.{base, movegen}
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.validators.MoveValidator
@@ -21,7 +23,7 @@ object Notation {
     }}
   }
 
-  def ofLocation(location: Location): String =
+  def ofLocation(location: Coordinate): String =
     ofFile(location.file) + ofRank(location.rank)
 
   def ofFile(file: File) = file.toString.toLowerCase
@@ -51,17 +53,17 @@ object Notation {
     if (board.isCheckmate(side)) Some("#") else None
 
   def ofCastling: LocationMove => Option[String] = {
-    case MMove(_, Location(C, _), Castling) => Some("O-O-O")
+    case MMove(_, Coordinate(C, _), Castling) => Some("O-O-O")
     case MMove(_, _, Castling) => Some("O-O")
     case _ => None
   }
 
-  def ofDisambiguation(move: LocationMove, piece: piece.Piece, board: Board) = move match {
-    case MMove(source@Location(sourceFile, sourceRank), destination, moveType) =>
+  def ofDisambiguation(move: LocationMove, piece: com.github.melvic.nostalgia.engine.api.piece.Piece, board: Board) = move match {
+    case MMove(source@Coordinate(sourceFile, sourceRank), destination, moveType) =>
       // Get the locations of the pieces that can move to the
       // destination square.
       val locations = board.pieceLocations(piece).filter { location =>
-        val _move = movegen.Move[Location](location, destination, moveType)
+        val _move = movegen.Move[Coordinate](location, destination, moveType)
         MoveValidator.validateMove(_move)(board).isDefined
       }
 
@@ -83,7 +85,7 @@ object Notation {
     * @param board The current board position
     * @return The string representation of the move's algebraic notation.
     */
-  def ofMove(move: LocationMove, piece: piece.Piece, board: Board): String = move match {
+  def ofMove(move: LocationMove, piece: com.github.melvic.nostalgia.engine.api.piece.Piece, board: Board): String = move match {
     case MMove(source, destination, moveType) =>
       lazy val captureNotation = ofCapture(board, move)
 

@@ -1,10 +1,12 @@
 package com.github.melvic.nostalgia.validators
 
+import com.github.melvic.nostalgia.engine.api.movegen.{File, Coordinate, Rank, _2, _7}
 import com.github.melvic.nostalgia.engine.base
 import com.github.melvic.nostalgia.engine.board._
-import com.github.melvic.nostalgia.engine.board.piece.Piece
-import com.github.melvic.nostalgia.engine.movegen.Location._
-import com.github.melvic.nostalgia.engine.movegen.MMove.LocationMove
+import com.github.melvic.nostalgia.engine.api.piece.Piece
+import com.github.melvic.nostalgia.engine.api.movegen.Coordinate._
+import com.github.melvic.nostalgia.engine.base.Board
+import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
 import com.github.melvic.nostalgia.engine.movegen._
 
 import scala.annotation.tailrec
@@ -52,7 +54,7 @@ object MoveValidator {
         .orElse(validateEnPassant(side, direction))
 
     def validateEnPassant(side: Side, direction: Int) = {
-      val sideLocation: Location = Location(move.source.file + direction, move.source.rank)
+      val sideLocation: Coordinate = Coordinate(move.source.file + direction, move.source.rank)
       board(sideLocation).flatMap { _ =>
         board.lastMove match {
           case Some(MMove(_, lastDest, DoublePawnPush)) if lastDest == sideLocation => Some(EnPassant)
@@ -63,8 +65,8 @@ object MoveValidator {
 
     def handlePromotion(side: Side, moveType: MoveType) = Some {
       (side, move) match {
-        case (White, MMove(_, Location(_, _8), promotion: PawnPromotion)) => promotion
-        case (Black, MMove(_, Location(_, _1), promotion: PawnPromotion)) => promotion
+        case (White, MMove(_, Coordinate(_, _8), promotion: PawnPromotion)) => promotion
+        case (Black, MMove(_, Coordinate(_, _1), promotion: PawnPromotion)) => promotion
         case _ => moveType
       }
     }
@@ -115,13 +117,13 @@ object MoveValidator {
         // move one step closer to the destination
         val singleStep = if (direction > 0) 1 else -1
         val singleStepFile: File = move.source.file + singleStep
-        val singleStepLocation = Location(singleStepFile, move.destination.rank)
+        val singleStepLocation = Coordinate(singleStepFile, move.destination.rank)
 
         board.at(singleStepLocation)
           .flatMap(_ => None)   // the next square is occupied; abort
           .orElse {
-            val singleStepMove = MMove[Location](
-              move.source, Location(singleStepFile, move.destination.rank))
+            val singleStepMove = Move[Coordinate](
+              move.source, Coordinate(singleStepFile, move.destination.rank))
             val singleStepBoard = board.updateByMove(singleStepMove, piece)
 
             if (singleStepBoard.isChecked(piece.side)) None
@@ -154,14 +156,14 @@ object MoveValidator {
       }
   }
 
-  def validateCapture(side: Side, destination: Location, board: Board)
+  def validateCapture(side: Side, destination: Coordinate, board: Board)
       (implicit  f: () => Option[MoveType]) =
     board(destination) flatMap {
       case Piece(_, destSide) if destSide == side.opposite => f()
       case _ => None
     }
 
-  def captureOrEmpty(side: Side, destination: Location, board: Board)
+  def captureOrEmpty(side: Side, destination: Coordinate, board: Board)
       (implicit f: () => Option[MoveType]) =
     validateCapture(side, destination, board).orElse {
       board(destination).flatMap(_ => None).orElse(f())
@@ -174,7 +176,7 @@ object MoveValidator {
     * @return A pair of integers representing the file and rank distances
     */
   def delta(move: LocationMove, abs: Boolean = false): (Int, Int) = {
-    def delta(locOp: Location => Int): Int = {
+    def delta(locOp: Coordinate => Int): Int = {
       val _delta = locOp(move.destination) - locOp(move.source)
       if (abs) Math.abs(_delta) else _delta
     }
