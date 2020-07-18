@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.movegen.bitboards
 
-import com.github.melvic.nostalgia.engine.board.Piece._
-import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
+import com.github.melvic.nostalgia.engine.base.MoveType._
+import com.github.melvic.nostalgia.engine.board.bitboards._
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard._
 import com.github.melvic.nostalgia.engine.board._
 import com.github.melvic.nostalgia.engine.movegen.bitboards.BitboardMoveGenerator._
@@ -69,7 +69,7 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
     * @param getTargets Determines the target square (empty, occupied by opponents, etc.).
     * @return A move generator of stream of (U64, MoveType) denoting the pawn moves.
     */
-  def generatePawnMoves(moves: Stream[WithMove[PawnMove]],
+  def generatePawnMoves(moves: List[WithMove[PawnMove]],
                         getTargets: (Bitboard, Side) => U64): ListGen[WithMove[U64]] = {
     case (bitboard, source, sideToMove) =>
       val pawnBitset = Bitboard.singleBitset(source)
@@ -81,17 +81,17 @@ object PawnMoveGenerator extends BitboardMoveGenerator with PostShiftOneStep {
 
         if (promote)
           // Generate bitboards for each position promotions
-          Stream(Knight, Bishop, Rook, Queen) map { officerType =>
+          List(Knight, Bishop, Rook, Queen) map { officerType =>
             val promotionOptions = (pawnMove, PawnPromotion(Piece(officerType, sideToMove)))
             withMoveType(promotionOptions)(moveBitset)
           }
-        else Stream(withMoveType(move)(moveBitset))
+        else List(withMoveType(move)(moveBitset))
       }
   }
 
-  def pushMoves = Stream((singlePush, Normal), (doublePush, DoublePawnPush))
-  def attackMoves = Stream((attackEast, Attack), (attackWest, Attack))
-  def enPassantMove(enPassantBitset: U64) = Stream((enPassant(enPassantBitset), EnPassant))
+  def pushMoves = List((singlePush, Normal), (doublePush, DoublePawnPush))
+  def attackMoves = List((attackEast, Attack), (attackWest, Attack))
+  def enPassantMove(enPassantBitset: U64) = List((enPassant(enPassantBitset), EnPassant))
 
   def generatePushes = generatePawnMoves(pushMoves, (board, _) => board.emptySquares)
   def generateAttacks = generatePawnMoves(attackMoves, (board, side) => board.opponents(side))

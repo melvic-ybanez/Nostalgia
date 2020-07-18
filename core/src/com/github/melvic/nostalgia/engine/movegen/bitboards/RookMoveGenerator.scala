@@ -14,5 +14,5 @@ object RookMoveGenerator extends SlidingMoveGenerator {
 
   def west: Slide = negativeRay(Transformers.horizontalMirror)(rankMask)
 
-  override def moves = Stream(north, south, east, west)
+  override def moves = List(north, south, east, west)
 }

@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.movegen.bitboards
 
-import com.github.melvic.nostalgia.engine.base.Board
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard.U64
+import com.github.melvic.nostalgia.engine.board.bitboards.Board
 import com.github.melvic.nostalgia.engine.utils.Masks
 
 /**

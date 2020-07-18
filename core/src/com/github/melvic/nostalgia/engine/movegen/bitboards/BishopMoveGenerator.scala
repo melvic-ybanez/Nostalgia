@@ -12,6 +12,6 @@ object BishopMoveGenerator extends SlidingMoveGenerator {
 
   def negativeAntiDiagonal: Slide = negativeRay()(antiDiagonalMask)
 
-  override def moves = Stream(positiveDiagonal,
+  override def moves = List(positiveDiagonal,
     negativeDiagonal, positiveAntiDiagonal, negativeAntiDiagonal)
 }

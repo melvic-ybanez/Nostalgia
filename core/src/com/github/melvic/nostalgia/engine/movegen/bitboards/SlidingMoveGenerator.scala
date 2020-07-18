@@ -1,10 +1,9 @@
 package com.github.melvic.nostalgia.engine.movegen.bitboards
 
-import com.github.melvic.nostalgia.engine.base.Board
-import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
+import com.github.melvic.nostalgia.engine.base.MoveType.Attack
+import com.github.melvic.nostalgia.engine.board.bitboards._
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard.U64
 import com.github.melvic.nostalgia.engine.board.bitboards.Transformers.Transformation
-import com.github.melvic.nostalgia.engine.movegen.Attack
 
 
 /**
@@ -159,7 +158,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
     f(rankIndex, fileIndex)
   }
 
-  def moves: Stream[Slide]
+  def moves: List[Slide]
 
   override def destinationBitsets: ListGen[WithMove[U64]] = { (board, source, side) =>
     moves flatMap { slide =>
@@ -167,7 +166,7 @@ trait SlidingMoveGenerator extends BitboardMoveGenerator {
       val blocker = board.occupied & moveBitset
 
       // remove the blocker from the set if it's neither an enemy nor empty
-      val validMoveBitSet = board(Bitboard.bitScan(blocker)) match {
+      val validMoveBitSet = board.at(Bitboard.bitScan(blocker)) match {
         case Some(Piece(_, blockerSide)) if blockerSide == side =>
           moveBitset ^ blocker
         case _ => moveBitset
