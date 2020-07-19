@@ -2,11 +2,9 @@ package com.github.melvic.nostalgia.views.boards
 
 import com.github.melvic.nostalgia.animations.MoveAnimator
 import com.github.melvic.nostalgia.controllers.GameController
-import com.github.melvic.nostalgia.engine.api.movegen.Coordinate
 import com.github.melvic.nostalgia.engine.board.bitboards.Bitboard
 import com.github.melvic.nostalgia.engine.api.piece.Piece
 import com.github.melvic.nostalgia.engine.board.{Side, White}
-import Coordinate._
 import com.github.melvic.nostalgia.events.{MoveEventHandler, PieceHoverEventHandler}
 import com.github.melvic.nostalgia.main.Resources
 import com.github.melvic.nostalgia.math.{NCell, NCoordinate, Point}
@@ -33,7 +31,7 @@ trait BoardView {
   def boardController: GameController
 
   def toggleHover(hover: Boolean): Unit
-  def highlight(location: Coordinate): Unit
+  def highlight(location: Square): Unit
   def resetBoard(lowerSide: Side = White, fullReset: Boolean = true): Unit
 
   def showGameOverDialog(winningSide: Side, reason: String): Unit
@@ -157,7 +155,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
         val accessor = boardController.boardAccessor
         val isMovingPiece = !fullReset && accessor.board.lastMove.exists {
           case MMove(source, destination, _) =>
-            val location = accessor.accessorLocation(Coordinate.locateForView(row, col))
+            val location = accessor.accessorLocation(Square.locateForView(row, col))
             location == source || location == destination
           case _ => false
         }
@@ -209,7 +207,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
     if (hover) Cursor.HAND else Cursor.DEFAULT
   }
 
-  override def highlight(location: Coordinate): Unit = {
+  override def highlight(location: Square): Unit = {
     val gc = canvas.getGraphicsContext2D
 
     val row = Board.Size - 1 - location.rank
@@ -273,7 +271,7 @@ case class DefaultBoardView(boardController: GameController) extends GridPane wi
 
   def detectSquareColor(gc: GraphicsContext, col: Int, row: Int) = {
     val boardColorTable = 0x55aa55aa55aa55aaL
-    val squareBitset = 1 << Coordinate.locateForView(row, col).toBitPosition
+    val squareBitset = 1 << Square.locateForView(row, col).toBitPosition
     if (Bitboard.isEmptySet(boardColorTable & squareBitset)) DarkColor else LightColor
   }
 

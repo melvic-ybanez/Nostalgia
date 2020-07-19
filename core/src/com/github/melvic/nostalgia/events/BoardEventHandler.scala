@@ -1,6 +1,6 @@
 package com.github.melvic.nostalgia.events
 
-import com.github.melvic.nostalgia.engine.api.movegen.{Coordinate, _1, _8}
+import com.github.melvic.nostalgia.engine.api.movegen.{_1, _8}
 import com.github.melvic.nostalgia.engine.base
 import com.github.melvic.nostalgia.engine.board._
 import com.github.melvic.nostalgia.engine.api.piece.Piece
@@ -20,7 +20,7 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
     def handleEvent(): Unit = {
       val cell = NCoordinate[Point].init(event.getX, event.getY).toCell
 
-      val selectedLocation = Coordinate.locateForView(cell.row, cell.col)
+      val selectedLocation = Square.locateForView(cell.row, cell.col)
       val selectedPiece = controller.boardAccessor(selectedLocation)
 
       performAction(selectedPiece, selectedLocation)
@@ -34,17 +34,17 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
   }
 
   def boardView: BoardView
-  def performAction(selectedPiece: Option[Piece], selectedLocation: Coordinate): Unit
+  def performAction(selectedPiece: Option[Piece], selectedLocation: Square): Unit
 
   private var _sourcePiece: Option[Piece] = None
   def sourcePiece = _sourcePiece
   def sourcePiece_=(sourcePiece: Option[Piece]) = _sourcePiece = sourcePiece
 
-  private var _sourceLocation: Option[Coordinate] = None
+  private var _sourceLocation: Option[Square] = None
   def sourceLocation = _sourceLocation.get
-  def sourceLocation_=(sourceLocation: Coordinate) = _sourceLocation = Some(sourceLocation)
+  def sourceLocation_=(sourceLocation: Square) = _sourceLocation = Some(sourceLocation)
 
-  def updateSourceSquare(selectedPiece: Option[Piece], selectedLocation: Coordinate): Unit = {
+  def updateSourceSquare(selectedPiece: Option[Piece], selectedLocation: Square): Unit = {
     sourcePiece = selectedPiece
     sourceLocation = selectedLocation
   }
@@ -56,7 +56,7 @@ trait BoardEventHandler extends EventHandler[MouseEvent] {
 }
 
 case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandler {
-  override def performAction(selectedPiece: Option[Piece], selectedLocation: Coordinate): Unit = boardView.toggleHover {
+  override def performAction(selectedPiece: Option[Piece], selectedLocation: Square): Unit = boardView.toggleHover {
     val controller = boardView.boardController
     (sourcePiece, selectedPiece) match {
       case (None, Some(Piece(_, side))) if side == controller.sideToMove => true
@@ -71,7 +71,7 @@ case class PieceHoverEventHandler(boardView: BoardView) extends BoardEventHandle
 }
 
 case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverEventHandler) extends BoardEventHandler {
-  override def performAction(selectedPiece: Option[Piece], selectedLocation: Coordinate) = {
+  override def performAction(selectedPiece: Option[Piece], selectedLocation: Square) = {
     (sourcePiece, selectedPiece) match {
       case (None, None) => ()
       case (None, Some(Piece(_, side))) =>
@@ -97,7 +97,7 @@ case class MoveEventHandler(boardView: BoardView, hoverEventHandler: PieceHoverE
     }
 
     def validateAndMove(moveType: MoveType = Normal): Unit = {
-      if (boardController.humanMove(Move[Coordinate](sourceLocation, selectedLocation, moveType)))
+      if (boardController.humanMove(Move[Square](sourceLocation, selectedLocation, moveType)))
         resetSourcePiece()
     }
 

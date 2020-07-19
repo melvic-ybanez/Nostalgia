@@ -1,12 +1,29 @@
 package com.github.melvic.nostalgia.engine.base
 
-import cats.Bifunctor
+import scala.language.higherKinds
 
-final case class Square[F, R](file: F, rank: R)
+trait Square[S] {
+  type File
+  type Rank
+
+  def file(square: S): File
+
+  def rank(square: S): Rank
+}
 
 object Square {
-  implicit def squareBifunctor: Bifunctor[Square] = new Bifunctor[Square] {
-    def bimap[F, R, F1, R1](square: Square[F, R])(f: F => F1, g: R => R1) =
-      Square(f(square.file), g(square.rank))
+  type Aux[S, F, R] = Square[S] {
+    type File = F
+    type Rank = R
+  }
+
+  def apply[S](implicit square: Square[S]): Square[S] = square
+
+  trait lowPriorityImplicits {
+    implicit class SquareAuxOps[S, F, R](instance: S)(implicit square: Aux[S, F, R]) {
+      def file: F = square.file(instance)
+
+      def rank: R = square.rank(instance)
+    }
   }
 }

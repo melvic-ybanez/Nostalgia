@@ -1,23 +1,29 @@
 package com.github.melvic.nostalgia.engine.api.movegen
 
-import com.github.melvic.nostalgia.engine.api.piece.Piece
-import com.github.melvic.nostalgia.engine.base.MoveType
-import com.github.melvic.nostalgia.engine.base.MoveType.Normal
-
-final case class Move(from: Coordinate, to: Coordinate, moveType: MoveType[Piece])
+import cats.{Bifunctor, Functor}
+import com.github.melvic.nostalgia.engine.api.piece.{Piece, PieceType, Side}
+import com.github.melvic.nostalgia.engine.base.{Move => BaseMove, _}
+import com.github.melvic.nostalgia.engine.board.bitboards._
+import cats.implicits._
 
 /**
   * Created by melvic on 8/5/18.
   */
 object Move {
-  def normal(from: Coordinate, to: Coordinate) = Move(from, to, Normal)
+  type GenMove[C] = BaseMove[PieceType, Side, C]
+  type Move = GenMove[Location]
+
+  def normal(from: Location, to: Location): Move = BaseMove.normal(from, to)
+
   /**
     * Makes the coordinates compatible with the board view's
     * because the direction of the ranks are reversed
     */
   def locateMove(move: Move) = {
-    val source = Coordinate.locateForView(move.from.rank, move.to.file)
-    val dest = Coordinate.locateForView(move.destination.rank, move.destination.file)
+    val intMove = Functor[GenMove].map(move)(_.toBitPosition)
+
+    val source = Location.locateForView(intMove.from.rank, intMove.from.file)
+    val dest = Location.locateForView(intMove.to.rank, intMove.to.file)
     (source, dest)
   }
 }

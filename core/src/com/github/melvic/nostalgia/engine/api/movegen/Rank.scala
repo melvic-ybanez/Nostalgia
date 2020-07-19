@@ -14,7 +14,9 @@ object Rank {
 
   lazy val Ranks: List[Rank] = _1 :: _2 :: _3 :: _4 :: _5 :: _6 :: _7 :: _8 :: Nil
 
-  implicit class RankOps(rank: Rank) {
-    def toInt: Int = Ranks.indexOf(rank)
+  trait implicits {
+    implicit class RankOps(rank: Rank) {
+      def toInt: Int = Ranks.indexOf(rank)
+    }
   }
 }

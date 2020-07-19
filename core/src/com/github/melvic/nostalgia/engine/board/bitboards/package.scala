@@ -7,15 +7,13 @@ package object bitboards extends implicits
   with Side.all {
 
   type U64 = Bitboard.U64
-  type Board = base.Board[Bitboard, Int, Int, Int]
+  type Board = base.Board[Int, Int, Int]
 
-  def Board(implicit board: Board): Board = board
+  val BoardSize = base.Board.Size
 
   type Piece = Piece.Piece
   type Side = Side.Side
   type PieceType = PieceType.PieceType
-
-  type Square = Square.Square
 
   type Move = Move.Move
   type MoveType = Move.MoveType

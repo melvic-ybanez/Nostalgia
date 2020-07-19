@@ -1,7 +1,7 @@
 package com.github.melvic.nostalgia.engine.api.movegen
 
 sealed trait File {
-  def apply(rank: Rank): Coordinate = Coordinate(this, rank)
+  def apply(rank: Rank): Location = Location(this, rank)
 }
 
 object File {
@@ -16,7 +16,9 @@ object File {
 
   lazy val Files: List[File] = A :: B :: C :: D :: E :: F :: G :: H :: Nil
 
-  implicit class FileOps(file: File) {
-    def toInt: Int = Files.indexOf(file)
+  trait implicits {
+    implicit class FileOps(file: File) {
+      def toInt: Int = Files.indexOf(file)
+    }
   }
 }

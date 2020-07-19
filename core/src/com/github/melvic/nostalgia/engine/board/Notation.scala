@@ -1,69 +1,76 @@
 package com.github.melvic.nostalgia.engine.board
 
-import com.github.melvic.nostalgia.engine.api.movegen.{C, File, Coordinate, Rank}
-import com.github.melvic.nostalgia.engine.api.piece.Piece
+import com.github.melvic.nostalgia.engine.api.movegen.{File, Rank}
 import com.github.melvic.nostalgia.engine.api.piece.PieceType._
-import com.github.melvic.nostalgia.engine.base.Board
-import com.github.melvic.nostalgia.engine.{base, movegen}
+import com.github.melvic.nostalgia.engine.base.MoveType.{Castling, EnPassant, PawnPromotion}
+import com.github.melvic.nostalgia.engine.base.{Board, Move, MoveType, Piece, Square}
+import com.github.melvic.nostalgia.engine.base.implicits._
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.validators.MoveValidator
+import cats.implicits._
 
 /**
   * Created by melvic on 1/23/19.
   */
-object Notation {
-  def ofPieceType[T, S](pieceType: T)(implicit piece: Piece): Option[String] = pieceType match {
+trait Notation[T, S, L] {
+  type NBoard = Board[T, S, L]
+  type NMove = Move[T, S, L]
+
+  implicit def square: Square[L]
+
+  def ofPieceType(pieceType: T): Option[String] = pieceType match {
     case Pawn => None
-    case _ => Some { pieceType match {
-      case Knight => "N"
-      case Bishop => "B"
-      case Rook => "R"
-      case Queen => "Q"
-      case King => "K"
-    }}
+    case Knight => "N".some
+    case Bishop => "B".some
+    case Rook => "R".some
+    case Queen => "Q".some
+    case King => "K".some
   }
 
-  def ofLocation(location: Coordinate): String =
-    ofFile(location.file) + ofRank(location.rank)
+  def ofSquare(location: L): String =
+    ofFile(Square[L].file(location)) + ofRank(Square[L].rank(location))
 
-  def ofFile(file: File) = file.toString.toLowerCase
-  def ofRank(rank: Rank) = rank.toString.tail
+  def ofFile(file: Square[L]#File) = file.toString.toLowerCase
+  def ofRank(rank: Square[L]#Rank) = rank.toString.tail
 
-  def ofCapture(board: Board, move: LocationMove) = {
+  def ofCapture(board: NBoard, move: Move[T, S, L]) = {
     lazy val captureNotation = Some("x")
     move match {
-      case MMove(_, _, EnPassant) => captureNotation
-      case MMove(_, destination, _) =>
+      case Move(_, _, EnPassant) => captureNotation
+      case Move(_, destination, _) =>
         if (board(destination).isDefined) captureNotation
         else None
       case _ => None
     }
   }
 
-  def ofPawnSuffix: MoveType => Option[String] = {
+  def ofPawnSuffix: MoveType[Piece[T, S]] => Option[String] = {
     case EnPassant => Some("e.p.")
     case PawnPromotion(Piece(pieceType, _)) => ofPieceType(pieceType)
     case _ => None
   }
 
-  def ofCheckedSuffix(board: Board, side: Side) =
+  def ofCheckedSuffix(board: NBoard, side: S) =
     if (board.isChecked(side)) Some("+") else None
 
-  def ofCheckMateSuffix(board: Board, side: Side) =
+  def ofCheckMateSuffix(board: NBoard, side: S) =
     if (board.isCheckmate(side)) Some("#") else None
 
-  def ofCastling: LocationMove => Option[String] = {
-    case MMove(_, Coordinate(C, _), Castling) => Some("O-O-O")
-    case MMove(_, _, Castling) => Some("O-O")
+  def ofCastling: NMove => Option[String] = {
+    case Move(_, square, Castling) if Square[L].file(square) => Some("O-O-O")
+    case Move(_, _, Castling) => Some("O-O")
     case _ => None
   }
 
-  def ofDisambiguation(move: LocationMove, piece: com.github.melvic.nostalgia.engine.api.piece.Piece, board: Board) = move match {
-    case MMove(source@Coordinate(sourceFile, sourceRank), destination, moveType) =>
+  def ofDisambiguation(move: NMove, piece: Piece[T, S], board: NBoard) = move match {
+    case Move(source, destination, moveType) =>
+      val sourceFile = Square[L].file(source)
+      val sourceRank = Square[L].rank(source)
+
       // Get the locations of the pieces that can move to the
       // destination square.
       val locations = board.pieceLocations(piece).filter { location =>
-        val _move = movegen.Move[Coordinate](location, destination, moveType)
+        val _move = Move(location, destination, moveType)
         MoveValidator.validateMove(_move)(board).isDefined
       }
 
@@ -72,7 +79,7 @@ object Notation {
       else Some {
         if (locations.count(_.file == sourceFile) == 1) ofFile(sourceFile)
         else if (locations.count(_.rank == sourceRank) == 1) ofRank(sourceRank)
-        else ofLocation(source)
+        else ofSquare(source)
       }
   }
 
@@ -109,7 +116,7 @@ object Notation {
           .orElse(captureNotation.map(ofFile(source.file) + _).orElse(Some("")))
 
           // Append the destination notation.
-          .flatMap(combineWith(Some(ofLocation(destination))))
+          .flatMap(combineWith(Some(ofSquare(destination))))
 
           // Append the suffix, if there is one.
           .flatMap(combineWith(ofPawnSuffix(moveType)))

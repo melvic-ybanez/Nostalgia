@@ -1,8 +1,6 @@
 package com.github.melvic.nostalgia.controllers
 
-import com.github.melvic.nostalgia.engine.api.movegen.Coordinate
 import com.github.melvic.nostalgia.engine.api.piece.Piece
-import Coordinate._
 import com.github.melvic.nostalgia.engine.base.Board
 import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
 
@@ -10,16 +8,16 @@ import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
   * Created by melvic on 9/14/18.
   */
 trait BoardAccessor {
-  def apply(location: Coordinate): Option[Piece] = board(accessorLocation(location))
+  def apply(location: Square): Option[Piece] = board(accessorLocation(location))
   def apply(row: Int, col: Int): Option[Piece] = apply(locateForView(row, col))
   def board: Board
 
-  def accessorLocation: Coordinate => Coordinate = identity
+  def accessorLocation: Square => Square = identity
   def accessorMove: LocationMove => LocationMove = Move.transform(accessorLocation)
-  def move(source: Coordinate, destination: Coordinate): LocationMove =
-    accessorMove(Move[Coordinate](source, destination))
+  def move(source: Square, destination: Square): LocationMove =
+    accessorMove(Move[Square](source, destination))
 
-  def moveBoard(move: MMove[Coordinate]): Option[(BoardAccessor, Piece, Boolean)] = {
+  def moveBoard(move: MMove[Square]): Option[(BoardAccessor, Piece, Boolean)] = {
     val netMove = accessorMove(move)
     board(netMove.source).flatMap { piece =>
       val newBoard = board.updateByMove(netMove, piece)
@@ -46,6 +44,6 @@ case class SimpleBoardAccessor(board: Board) extends BoardAccessor
 
 case class RotatedBoardAccessor(board: Board) extends BoardAccessor {
   override def accessorLocation = location =>
-    Coordinate(Board.Size - 1 - location.file, Board.Size -1 - location.rank)
+    Square(Board.Size - 1 - location.file, Board.Size -1 - location.rank)
 }
 

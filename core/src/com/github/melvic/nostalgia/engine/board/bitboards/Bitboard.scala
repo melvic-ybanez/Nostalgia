@@ -1,11 +1,11 @@
 package com.github.melvic.nostalgia.engine.board.bitboards
 
 import com.github.melvic.nostalgia.engine.api.movegen.File._
-import com.github.melvic.nostalgia.engine.api.movegen.Coordinate
-import com.github.melvic.nostalgia.engine.api.movegen.Coordinate._
+import com.github.melvic.nostalgia.engine.api.movegen.Location
 import com.github.melvic.nostalgia.engine.api.movegen.Rank._
-import com.github.melvic.nostalgia.engine.base.MoveType.{Castling, DoublePawnPush, EnPassant, PawnPromotion}
-import com.github.melvic.nostalgia.engine.base.Square
+import com.github.melvic.nostalgia.engine.api.movegen._
+import com.github.melvic.nostalgia.engine.base.MoveType._
+import com.github.melvic.nostalgia.engine.base.implicits._
 import com.github.melvic.nostalgia.engine.board.bitboards.Piece._
 import com.github.melvic.nostalgia.engine.movegen.bitboards.BitboardMoveGenerator
 import com.github.melvic.nostalgia.engine.movegen.{bitboards => _}
@@ -41,7 +41,7 @@ object Bitboard {
 
   def apply(): Bitboard = {
     // Initialize the white pieces
-    val partialBitboard = Bitboard(Vector.fill(Board.Size)(0), Vector(), None)
+    val partialBitboard = Bitboard(Vector.fill(BoardSize)(0), Vector(), None)
       .updatePiece(white(Pawn)) {
         _ | toBitset(A(_2), B(_2), C(_2), D(_2), E(_2), F(_2), G(_2), H(_2))
       }.updatePiece(white(Knight)) {
@@ -64,7 +64,7 @@ object Bitboard {
      * Rotate each of the white piece positions to get the
      * corresponding black piece positions.
      */
-    val fullBitboard = (PieceTypeOffset until Board.Size).foldLeft(partialBitboard) { (bitboard, i) =>
+    val fullBitboard = (PieceTypeOffset until BoardSize).foldLeft(partialBitboard) { (bitboard, i) =>
       val pieceTypeBitset = bitboard.bitsets(i)
       bitboard.updatePiece(black(i - PieceTypeOffset)) {
         _ | Transformers.rotate180(pieceTypeBitset)
@@ -83,12 +83,14 @@ object Bitboard {
         singleBitset(A(_1)) | singleBitset(A(_8))))
   }
 
-  def toBitPosition(location: Coordinate): Int =
-    location.file.toInt + location.rank.toInt * Board.Size
+  def toBitPosition(location: Location): Int =
+    location.file.toInt + location.rank.toInt * BoardSize
 
-  def fileOf(position: Int) = position % Board.Size
+  def fileOf(position: Int) = position % BoardSize
 
-  def rankOf(position: Int) = position / Board.Size
+  def rankOf(position: Int) = position / BoardSize
+
+  def singleBitset(square: Location) = singleBitset(square.toBitPosition)
 
   def singleBitset(position: Int) = 1L << position
 
@@ -125,31 +127,10 @@ object Bitboard {
 
   def toSquareIndexes: SplitBoard[Int] = isolate(_).map(bitScan)
 
+  def toBitset(squares: Location*) = toBitset(squares.map(_.toBitPosition): _*)
+
   def toBitset(positions: Int*): U64 = positions.foldLeft(0L) { (bitset, position) =>
     bitset | singleBitset(position)
-  }
-
-  implicit val bitboardBoard: Board = new Board {
-    override def at(board: Bitboard, location: Int) = board.at(location)
-
-    override def updateByMove(board: Bitboard, move: BMove, piece: BPiece) =
-      board.updateByMove(move, piece)
-
-    override def lastMove(board: Bitboard) = board.lastMove
-
-    override def generateMoves(board: Bitboard, sideToMove: Int) =
-      board.generateMoves(sideToMove)
-
-    override def updateByNextMove(board: Bitboard, sideToMove: Int, depth: Int) =
-      board.updateByNextMove(sideToMove, depth)
-
-    override def isChecked(board: Bitboard, side: Int) = board.isChecked(side)
-
-    override def isCheckmate(board: Bitboard, winningSide: Int) = board.isCheckmate(winningSide)
-
-    override def canCastle(board: Bitboard, kingMove: BMove) = board.canCastle(kingMove)
-
-    override def pieceLocations(board: Bitboard, piece: BPiece) = board.pieceLocations(piece)
   }
 }
 
@@ -157,8 +138,7 @@ case class Bitboard(
     bitsets: Vector[U64],
     castlingBitsets: Vector[U64],
     lastBitboardMove: Option[Move],
-    enPassantBitset: U64 = 0L) {
-
+    enPassantBitset: U64 = 0L) extends Board {
   import Bitboard._
 
   lazy val (sideBitsets, pieceTypeBitsets) = bitsets.splitAt(PieceTypeOffset)
@@ -201,8 +181,8 @@ case class Bitboard(
     move.moveType match {
       case EnPassant =>
         partialBoard.updatePiece(Piece(Pawn, oppositeSide)) { _ ^ {
-          if (piece.side == White) destBitset >> Board.Size
-          else destBitset << Board.Size
+          if (piece.side == White) destBitset >> BoardSize
+          else destBitset << BoardSize
         }}
       case PawnPromotion(promotionPiece) =>
         // remove the pawn and replace it with the specified officer
@@ -318,7 +298,7 @@ case class Bitboard(
   }
 
   def castlingRookIndex(kingMove: Move, side: Side) = {
-    val delta = kingMove.to.toSquare.file - kingMove.from.toSquare.file
+    val delta = kingMove.to.file - kingMove.from.file
     if (delta < 0) QueenSideCastlingIndex else KingSideCastlingIndex
   }
 
@@ -344,11 +324,11 @@ case class Bitboard(
     val space = " " * 2
 
     val squareStrings = (0 until 64).foldLeft[List[String]](Nil) { (acc, i) =>
-      val squareString = this.apply(i).map { case Piece(pieceType, side) =>
+      val squareString = at(i).map { case Piece(pieceType, side) =>
         sideString(side) + pieceTypeString(pieceType)
       } getOrElse ("_" * space.length)
 
-      if (i % Board.Size == 0) squareString :: acc
+      if (i % BoardSize == 0) squareString :: acc
       else acc.head + space + squareString :: acc.tail
     }
 
