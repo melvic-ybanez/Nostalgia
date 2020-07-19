@@ -3,7 +3,7 @@ package com.github.melvic.nostalgia.engine.board
 import com.github.melvic.nostalgia.engine.api.movegen.{File, Rank}
 import com.github.melvic.nostalgia.engine.api.piece.PieceType._
 import com.github.melvic.nostalgia.engine.base.MoveType.{Castling, EnPassant, PawnPromotion}
-import com.github.melvic.nostalgia.engine.base.{Board, Move, MoveType, Piece, Square}
+import com.github.melvic.nostalgia.engine.base.{Board, Move, MoveType, Piece, Side, Square}
 import com.github.melvic.nostalgia.engine.base.implicits._
 import com.github.melvic.nostalgia.engine.movegen._
 import com.github.melvic.nostalgia.validators.MoveValidator
@@ -16,7 +16,15 @@ trait Notation[T, S, L] {
   type NBoard = Board[T, S, L]
   type NMove = Move[T, S, L]
 
+  /**
+   * Proof that L is an instance of Square
+   */
   implicit def square: Square[L]
+
+  /**
+   * Proof that S is an instance of Side
+   */
+  implicit def side: Side[S]
 
   def ofPieceType(pieceType: T): Option[String] = pieceType match {
     case Pawn => None
@@ -92,8 +100,8 @@ trait Notation[T, S, L] {
     * @param board The current board position
     * @return The string representation of the move's algebraic notation.
     */
-  def ofMove(move: LocationMove, piece: com.github.melvic.nostalgia.engine.api.piece.Piece, board: Board): String = move match {
-    case MMove(source, destination, moveType) =>
+  def ofMove(move: NMove, piece: Piece[T, S], board: NBoard): String = move match {
+    case Move(source, destination, moveType) =>
       lazy val captureNotation = ofCapture(board, move)
 
       def combineWith(nextNotationOpt: Option[String])(notation: String) =
@@ -130,7 +138,7 @@ trait Notation[T, S, L] {
 
             ofCheckMateSuffix(updatedBoard, piece.side)
               .map(notation + _)
-              .orElse(combineWith(ofCheckedSuffix(updatedBoard, side.opposite))(notation))
+              .orElse(combineWith(ofCheckedSuffix(updatedBoard, Side[S].opposite(side)))(notation))
           }
       }.get
   }

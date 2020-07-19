@@ -1,6 +1,6 @@
 package com.github.melvic.nostalgia.engine.base
 
-trait implicits extends Move.implicits with Square.lowPriorityImplicits
+trait implicits extends Move.implicits with Square.LowPriorityImplicits
 
 object implicits extends implicits {
   implicit class SquareOps[S: Square](instance: S) {
