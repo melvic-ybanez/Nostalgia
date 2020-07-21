@@ -20,10 +20,10 @@ object Square {
   def apply[S](implicit square: Square[S]): Square[S] = square
 
   trait LowPriorityImplicits {
-    implicit class SquareAuxOps[S, F, R](instance: S)(implicit square: Aux[S, F, R]) {
-      def file: F = square.file(instance)
+    implicit class SquareOps[S: Square](instance: S) {
+      def file: Square[S]#File = Square[S].file(instance)
 
-      def rank: R = square.rank(instance)
+      def rank: Square[S]#Rank = Square[S].rank(instance)
     }
   }
 }

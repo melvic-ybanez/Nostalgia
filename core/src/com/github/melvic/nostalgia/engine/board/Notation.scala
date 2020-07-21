@@ -52,7 +52,7 @@ trait Notation[T, S, L] {
     }
   }
 
-  def ofPawnSuffix: MoveType[Piece[T, S]] => Option[String] = {
+  def ofPawnSuffix: MoveType[T, S] => Option[String] = {
     case EnPassant => Some("e.p.")
     case PawnPromotion(Piece(pieceType, _)) => ofPieceType(pieceType)
     case _ => None

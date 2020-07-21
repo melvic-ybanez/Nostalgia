@@ -1,12 +1,7 @@
 package com.github.melvic.nostalgia.validators
 
-import com.github.melvic.nostalgia.engine.api.movegen.{File, Rank, _2, _7}
-import com.github.melvic.nostalgia.engine.base
-import com.github.melvic.nostalgia.engine.board._
+import com.github.melvic.nostalgia.engine.api.movegen.{File, Move, Rank}
 import com.github.melvic.nostalgia.engine.api.piece.Piece
-import com.github.melvic.nostalgia.engine.base.Board
-import com.github.melvic.nostalgia.engine.movegen.Move.LocationMove
-import com.github.melvic.nostalgia.engine.movegen._
 
 import scala.annotation.tailrec
 
@@ -14,7 +9,7 @@ import scala.annotation.tailrec
   * Created by melvic on 9/14/18.
   */
 object MoveValidator {
-  type MoveValidation = LocationMove => Board => Option[MoveType]
+  type MoveValidation = Move => Board => Option[MoveType]
   type PieceMoveValidation = Piece => MoveValidation
 
   def validateMove: MoveValidation = move => board => board(move.source) flatMap { piece =>

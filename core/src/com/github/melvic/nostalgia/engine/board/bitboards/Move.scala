@@ -8,7 +8,7 @@ import com.github.melvic.nostalgia.engine.base.{
 
 object Move {
   type Move = BaseMove[Int, Int, Int]
-  type MoveType = BaseMoveType[BasePiece[Int, Int]]
+  type MoveType = BaseMoveType[Int, Int]
 
   def apply(from: Int, to: Int, moveType: MoveType) =
     BaseMove[Int, Int, Int](from, to, moveType)

@@ -4,12 +4,14 @@ import com.github.melvic.nostalgia.engine.base.{Side => BaseSide}
 object Side {
   type Side = Int
 
-  trait all {
+  trait constants {
     val White = 0
     val Black = 1
   }
 
-  trait SideImplicits {
+  lazy val all = White :: Black :: Nil
+
+  trait implicits {
     implicit class SideOps(side: Int) {
       def of(pieceType: Int) = Piece(pieceType, side)
 

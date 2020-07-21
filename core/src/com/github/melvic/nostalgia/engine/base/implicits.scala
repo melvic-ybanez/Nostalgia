@@ -1,11 +1,16 @@
 package com.github.melvic.nostalgia.engine.base
 
-trait implicits extends Move.implicits with Square.LowPriorityImplicits
+import com.github.melvic.nostalgia.engine.base.Square.Aux
 
+trait implicits extends Square.LowPriorityImplicits
+
+/**
+ * Contains the high-priority implicits
+ */
 object implicits extends implicits {
-  implicit class SquareOps[S: Square](instance: S) {
-    def file: Square[S]#File = Square[S].file(instance)
+  implicit class SquareAuxOps[S, F, R](instance: S)(implicit square: Aux[S, F, R]) {
+    def file: F = square.file(instance)
 
-    def rank: Square[S]#Rank = Square[S].rank(instance)
+    def rank: R = square.rank(instance)
   }
 }

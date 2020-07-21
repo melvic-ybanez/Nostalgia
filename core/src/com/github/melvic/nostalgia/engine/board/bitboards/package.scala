@@ -4,7 +4,7 @@ import com.github.melvic.nostalgia.engine.base
 
 package object bitboards extends implicits
   with PieceType.constants
-  with Side.all {
+  with Side.constants {
 
   type U64 = Bitboard.U64
   type Board = base.Board[Int, Int, Int]
